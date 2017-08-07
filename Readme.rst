@@ -28,7 +28,6 @@ Example of writing into NWB
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: igorpro
-   :linenos:
 
     Function NWBWriterExample()
 
@@ -108,7 +107,6 @@ Example of reading from NWB
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: igorpro
-   :linenos:
 
     Function PrintTimeSeriesProperties(groupID, elem)
       variable groupID
@@ -221,7 +219,6 @@ The following tree describes the currently supported NWB layout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: none
-   :linenos:
 
    acquisition:
         timeseries: (empty if no acquired data is saved)
