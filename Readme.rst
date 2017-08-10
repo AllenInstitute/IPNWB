@@ -28,7 +28,6 @@ Example of writing into NWB
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: igorpro
-   :linenos:
 
     Function NWBWriterExample()
 
@@ -81,9 +80,11 @@ Example of writing into NWB
       IPNWB#AddElectrode(fileID, params.electrodeName, contents, device)
 
       // calculate the timepoint of the first wave point relative to the session_start_time
-      params.startingTime  = NumberByKeY("MODTIME", WaveInfo(AD, 0)) - date2secs(-1, -1, -1) // last time the wave was modified (UTC)
+      // last time the wave was modified (UTC)
+      params.startingTime  = NumberByKeY("MODTIME", WaveInfo(AD, 0)) - date2secs(-1, -1, -1)
       params.startingTime -= ti.session_start_time // relative to the start of the session
-      params.startingTime -= IndexToScale(AD, DimSize(AD, 0) - 1, 0) // we want the timestamp of the beginning of the measurement
+      // we want the timestamp of the beginning of the measurement
+      params.startingTime -= IndexToScale(AD, DimSize(AD, 0) - 1, 0)
 
       IPNWB#AddDevice(fileID, "Device name", "My hardware specs")
 
@@ -108,7 +109,6 @@ Example of reading from NWB
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: igorpro
-   :linenos:
 
     Function PrintTimeSeriesProperties(groupID, elem)
       variable groupID
@@ -125,7 +125,8 @@ Example of reading from NWB
       num_samples    = IPNWB#ReadDataSetAsNumber(groupID, "num_samples")
       starting_time  = IPNWB#ReadDataSetAsNumber(groupID, "starting_time")
 
-      printf "%s: Electrode %s, Gain %06g, Scale %06g, Number of samples % 9d, Starting time %g\r",	elem, electrode_name, gain, scale, num_samples, starting_time
+      printf "%s: Electrode %s, Gain %06g, Scale %06g, ", elem, electrode_name, gain, scale
+      printf "Number of samples % 9d, Starting time %g\r", num_samples, starting_time
     End
 
     Function NWBReaderExample()
@@ -221,7 +222,6 @@ The following tree describes the currently supported NWB layout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: none
-   :linenos:
 
    acquisition:
         timeseries: (empty if no acquired data is saved)
