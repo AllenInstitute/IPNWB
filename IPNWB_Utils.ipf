@@ -48,6 +48,13 @@ Function DateTimeInUTC()
 	return DateTime - date2secs(-1, -1, -1)
 End
 
+/// @brief Returns one if var is an integer and zero otherwise
+Function IsInteger(var)
+	variable var
+
+	return IsFinite(var) && trunc(var) == var
+End
+
 /// @brief Return a string in ISO 8601 format with timezone UTC
 /// @param secondsSinceIgorEpoch [optional, defaults to number of seconds until now] Seconds since the Igor Pro epoch (1/1/1904) in UTC
 Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch])
