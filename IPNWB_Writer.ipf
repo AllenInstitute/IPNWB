@@ -48,7 +48,7 @@ Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, subjectInfo]
 	H5_WriteTextDataset(locationID, "identifier", str=ti.identifier)
 	// file_create_date needs to be appendable for the modified timestamps, and that is equivalent to having chunked layout
 	H5_WriteTextDataset(locationID, "file_create_date", wvText=ti.file_create_date, chunkedLayout=1)
-	H5_WriteTextDataset(locationID, "session_start_time", str=GetISO8601TimeStamp(secondsSinceIgorEpoch=ti.session_start_time))
+	H5_WriteTextDataset(locationID, "session_start_time", str=GetISO8601TimeStamp(secondsSinceIgorEpoch=ti.session_start_time, numFracSecondsDigits = 3))
 	H5_WriteTextDataset(locationID, "session_description", str=ti.session_description)
 
 	H5_CreateGroupsRecursively(locationID, "/general", groupID=groupID)

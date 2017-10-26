@@ -309,7 +309,7 @@ The following tree describes the currently supported NWB layout
     identifier          : SHA256 hash, ensured to be unique
     nwb_version         : NWB specification version
     session_description : unused
-    session_start_time  : UTC timestamp defining when the recording session started
+    session_start_time  : ISO8601 timestamp in UTC timezone with sub-second precision defining when the recording session started
 
     epochs:
         tags: unused
