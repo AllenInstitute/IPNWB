@@ -502,6 +502,26 @@ Function H5_OpenGroup(locationID, path)
 	return id
 End
 
+#if (IgorVersion() >= 8.00)
+
+/// @brief Flush the file contents to disc
+/// @param fileID       HDF5 file identifier
+/// @param discLocation unused (for compatibility with the Igor Pro 7 version only)
+/// @param write        unused (for compatibility with the Igor Pro 7 version only)
+///
+/// @return fileID  (for compatibility with the Igor Pro 7 version only)
+Function H5_FlushFile(fileID, discLocation, [write])
+	variable fileID
+	string discLocation
+	variable write
+
+	HDF5FlushFile fileID
+
+	return fileID
+End
+
+#else
+
 /// @brief Flush the file contents to disc
 ///
 /// Currently uses open/close and thus it is not very fast. This approach results
@@ -528,3 +548,5 @@ Function H5_FlushFile(fileID, discLocation, [write])
 
 	return H5_OpenFile(discLocation, write = write)
 End
+
+#endif
