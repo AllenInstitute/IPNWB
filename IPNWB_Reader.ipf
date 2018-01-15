@@ -161,13 +161,10 @@ Function CheckChannels(groupID, channelList)
 		channel = StringFromList(i, channelList)
 		if(!CheckChannel(groupID, channel))
 			return 0
-		endif
-		wave loaded = LoadDataWave(groupID, channel)
-		if(!WaveExists(loaded))
-			printf "could not load DataSet for channel %s" channel
+		elseif(!H5_DatasetExists(groupID, "./" + channel + "/data"))
+			printf "could not load DataSet for channel %s\r" channel
 			return 0
 		endif
-		WaveClear loaded
 	endfor
 
 	return 1
