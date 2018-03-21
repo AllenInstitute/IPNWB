@@ -66,7 +66,7 @@ Function/S ReadStimsets(fileID)
 
 	ASSERT(H5_IsFileOpen(fileID), "given HDF5 file identifier is not valid")
 
-	if(!IPNWB#StimsetPathExists(fileID))
+	if(!StimsetPathExists(fileID))
 		return ""
 	endif
 
