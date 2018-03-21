@@ -77,7 +77,7 @@ Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits])
 	if(ParamIsDefault(numFracSecondsDigits))
 		numFracSecondsDigits = 0
 	else
-		ASSERT(IsInteger(numFracSecondsDigits) && numFracSecondsDigits >= 0, "Invalid value for numFracSecondsDigits")
+		ASSERT_TS(IsInteger(numFracSecondsDigits) && numFracSecondsDigits >= 0, "GetISO8601TimeStamp: Invalid value for numFracSecondsDigits")
 	endif
 
 	if(ParamIsDefault(secondsSinceIgorEpoch))
@@ -140,7 +140,7 @@ Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 
 	string expr
 
-	ASSERT(!isEmpty(unitWithPrefix), "empty unit")
+	ASSERT_TS(!isEmpty(unitWithPrefix), "ParseUnit: empty unit")
 
 	prefix    = ""
 	numPrefix = NaN
@@ -149,7 +149,7 @@ Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 	expr = "(Y|Z|E|P|T|G|M|k|h|d|c|m|mu|n|p|f|a|z|y)?[[:space:]]*(m|kg|s|A|K|mol|cd|Hz|V|N|W|J|a.u.)"
 
 	SplitString/E=(expr) unitWithPrefix, prefix, unit
-	ASSERT(V_flag >= 1, "Could not parse unit string")
+	ASSERT_TS(V_flag >= 1, "ParseUnit: Could not parse unit string")
 
 	numPrefix = GetDecimalMultiplierValue(prefix)
 End
@@ -168,9 +168,9 @@ Function GetDecimalMultiplierValue(prefix)
 	Make/FREE/D values   = {1e24, 1e21, 1e18, 1e15, 1e12, 1e9, 1e6, 1e3, 1e2, 1e1, 1e-1, 1e-2, 1e-3, 1e-6, 1e-9, 1e-12, 1e-15, 1e-18, 1e-21, 1e-24}
 
 	FindValue/Z/TXOP=(1 + 4)/TEXT=(prefix) prefixes
-	ASSERT(V_Value != -1, "Could not find prefix")
+	ASSERT_TS(V_Value != -1, "GetDecimalMultiplierValue: Could not find prefix")
+	ASSERT_TS(DimSize(prefixes, ROWS) == DimSize(values, ROWS), "GetDecimalMultiplierValue: prefixes and values wave sizes must match")
 
-	ASSERT(DimSize(prefixes, ROWS) == DimSize(values, ROWS), "prefixes and values wave sizes must match")
 	return values[V_Value]
 End
 
@@ -241,7 +241,7 @@ Function/WAVE ReadTextAttribute(locationID, path, name)
 		return wv
 	endif
 
-	ASSERT(IsTextWave(wv), "Expected a text wave")
+	ASSERT_TS(IsTextWave(wv), "Expected a text wave")
 
 	return wv
 End
@@ -262,8 +262,8 @@ Function/S ReadTextAttributeAsString(locationID, path, name)
 		return PLACEHOLDER
 	endif
 
-	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(IsTextWave(wv), "Expected a text wave")
+	ASSERT_TS(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT_TS(IsTextWave(wv), "Expected a text wave")
 
 	return wv[0]
 End
@@ -284,8 +284,8 @@ Function ReadAttributeAsNumber(locationID, path, name)
 		return NaN
 	endif
 
-	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(IsNumericWave(wv), "Expected a text wave")
+	ASSERT_TS(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT_TS(IsNumericWave(wv), "Expected a text wave")
 
 	return wv[0]
 End
@@ -306,7 +306,7 @@ Function/WAVE ReadTextDataSet(locationID, name)
 		return wv
 	endif
 
-	ASSERT(IsTextWave(wv), "Expected a text wave")
+	ASSERT_TS(IsTextWave(wv), "Expected a text wave")
 
 	return wv
 End
@@ -325,8 +325,8 @@ Function/S ReadTextDataSetAsString(locationID, name)
 		return PLACEHOLDER
 	endif
 
-	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(IsTextWave(wv), "Expected a text wave")
+	ASSERT_TS(DimSize(wv, ROWS) == 1, "ReadTextDataSetAsString: Expected exactly one row")
+	ASSERT_TS(IsTextWave(wv), "Expected a text wave")
 
 	return wv[0]
 End
@@ -345,8 +345,8 @@ Function ReadDataSetAsNumber(locationID, name)
 		return NaN
 	endif
 
-	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(IsNumericWave(wv), "Expected a numeric wave")
+	ASSERT_TS(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT_TS(IsNumericWave(wv), "Expected a numeric wave")
 
 	return wv[0]
 End
@@ -402,8 +402,8 @@ Function/S UniqueWaveName(dfr, baseName)
 	string name
 	string path
 
-	ASSERT(!isEmpty(baseName), "baseName must not be empty" )
-	ASSERT(DataFolderExistsDFR(dfr), "dfr does not exist")
+	ASSERT_TS(!isEmpty(baseName), "UniqueWaveName: baseName must not be empty" )
+	ASSERT_TS(DataFolderExistsDFR(dfr), "UniqueWaveName: dfr does not exist")
 
 	// shorten basename so that we can attach some numbers
 	numRuns = 10000
@@ -445,7 +445,7 @@ Function DataFolderExistsDFR(dfr)
 		case 3: // free data folders always exist
 			return 1
 		default:
-			Abort "unknown status"
+			ASSERT_TS(0, "DataFolderExistsDFR: unknown status")
 			return 0
 	endswitch
 End
@@ -564,8 +564,8 @@ Function/S TextWaveToList(txtWave, sep)
 	string list = ""
 	variable i, numRows
 
-	ASSERT(IsTextWave(txtWave), "Expected a text wave")
-	ASSERT(DimSize(txtWave, COLS) == 0, "Expected a 1D wave")
+	ASSERT_TS(IsTextWave(txtWave), "Expected a text wave")
+	ASSERT_TS(DimSize(txtWave, COLS) == 0, "Expected a 1D wave")
 
 	numRows = DimSize(txtWave, ROWS)
 	for(i = 0; i < numRows; i += 1)
@@ -617,7 +617,7 @@ Function GetClampModeFromAncestry(ancestry)
 		case "TimeSeries": // unassociated channel data
 			return NaN
 		default:
-			ASSERT(0, "Unknown ancestry: " + ancestry)
+			ASSERT_TS(0, "Unknown ancestry: " + ancestry)
 			break
 	endswitch
 End
@@ -642,7 +642,7 @@ Function GetChannelTypeFromAncestry(ancestry)
 		case "TimeSeries": // unassociated channel
 			return CHANNEL_TYPE_OTHER
 		default:
-			ASSERT(0, "Unknown ancestry: " + ancestry)
+			ASSERT_TS(0, "Unknown ancestry: " + ancestry)
 			break
 	endswitch
 End

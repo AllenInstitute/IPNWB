@@ -136,7 +136,7 @@ Function AddElectrode(locationID, name, data, device)
 	string path
 	variable groupID
 
-	ASSERT(H5_IsValidIdentifier(name), "The electrode name must be a valid HDF5 identifier")
+	ASSERT_TS(H5_IsValidIdentifier(name), "AddElectrode: The electrode name must be a valid HDF5 identifier")
 
 	sprintf path, "/general/intracellular_ephys/electrode_%s", name
 	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
@@ -156,7 +156,7 @@ Function AddModificationTimeEntry(locationID)
 	if(V_flag)
 		HDF5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "Could not append to the HDF5 dataset")
+		ASSERT_TS(0, "AddModificationTimeEntry: Could not append to the HDF5 dataset")
 	endif
 End
 
@@ -213,15 +213,15 @@ Function AddProperty(tsp, nwbProp, value)
 	string nwbProp
 	variable value
 
-	ASSERT(FindListItem(nwbProp, tsp.missing_fields) != -1, "incorrect missing_fields")
+	ASSERT_TS(FindListItem(nwbProp, tsp.missing_fields) != -1, "AddProperty: incorrect missing_fields")
 	tsp.missing_fields = RemoveFromList(nwbProp, tsp.missing_fields)
 
 	WAVE/T propNames = tsp.names
 	WAVE propData    = tsp.data
 
 	FindValue/TEXT=""/TXOP=(4) propNames
-	ASSERT(V_Value != -1, "Could not find space for new entry")
-	ASSERT(!IsFinite(propData[V_Value]), "data row already filled")
+	ASSERT_TS(V_Value != -1, "AddProperty: Could not find space for new entry")
+	ASSERT_TS(!IsFinite(propData[V_Value]), "AddProperty: data row already filled")
 
 	propNames[V_value] = nwbProp
 	propData[V_value]  = value
@@ -238,8 +238,8 @@ Function AddCustomProperty(tsp, nwbProp, value)
 	WAVE isCustom    = tsp.isCustom
 
 	FindValue/TEXT=""/TXOP=(4) propNames
-	ASSERT(V_Value != -1, "Could not find space for new entry")
-	ASSERT(!IsFinite(propData[V_Value]), "data row already filled")
+	ASSERT_TS(V_Value != -1, "AddCustomProperty: Could not find space for new entry")
+	ASSERT_TS(!IsFinite(propData[V_Value]), "AddCustomProperty: data row already filled")
 
 	propNames[V_value] = nwbProp
 	propData[V_value]  = value
@@ -266,7 +266,7 @@ Function GetNextFreeGroupIndex(locationID, path)
 
 	str = StringFromList(ItemsInList(list) - 1, list)
 	sscanf str, "data_%d.*", idx
-	ASSERT(V_Flag == 1, "Could not find running data index")
+	ASSERT_TS(V_Flag == 1, "GetNextFreeGroupIndex: Could not find running data index")
 
 	return idx + 1
 End
@@ -302,8 +302,8 @@ Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
 		endif
 
 		channelTypeStr = StringFromList(p.channelType, CHANNEL_NAMES)
-		ASSERT(!IsEmpty(channelTypeStr), "invalid channel type string")
-		ASSERT(IsFinite(p.channelNumber), "invalid channel number")
+		ASSERT_TS(!IsEmpty(channelTypeStr), "WriteSingleChannel: invalid channel type string")
+		ASSERT_TS(IsFinite(p.channelNumber), "WriteSingleChannel: invalid channel number")
 
 		if(strlen(p.channelSuffix) > 0)
 			str = "_" + p.channelSuffix
@@ -338,8 +338,8 @@ Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
 	sprintf source, "Device=%s;Sweep=%d;%s;ElectrodeNumber=%s;ElectrodeName=%s", p.device, p.sweep, str, electrodeNumberStr, p.electrodeName
 
 	if(strlen(p.channelSuffixDesc) > 0 && strlen(p.channelSuffix) > 0)
-		ASSERT(strsearch(p.channelSuffix, "=", 0) == -1, "channelSuffix must not contain an equals (=) symbol")
-		ASSERT(strsearch(p.channelSuffixDesc, "=", 0) == -1, "channelSuffixDesc must not contain an equals (=) symbol")
+		ASSERT_TS(strsearch(p.channelSuffix, "=", 0) == -1, "WriteSingleChannel: channelSuffix must not contain an equals (=) symbol")
+		ASSERT_TS(strsearch(p.channelSuffixDesc, "=", 0) == -1, "WriteSingleChannel: channelSuffixDesc must not contain an equals (=) symbol")
 		source += ";" + p.channelSuffixDesc + "=" + p.channelSuffix
 	endif
 	H5_WriteTextAttribute(groupID, "source", group, str=source, overwrite=1)

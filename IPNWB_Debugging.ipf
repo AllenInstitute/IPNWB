@@ -10,50 +10,32 @@
 ///
 /// @brief Holds functions for debugging
 
-/// @brief Low overhead function to check assertions
+/// @brief Low overhead function to check assertions (threadsafe variant)
 ///
 /// @param var      if zero an error message is printed into the history and procedure execution is aborted,
-///                 nothing is done otherwise.  If the debugger is enabled, it also steps into it.
+///                 nothing is done otherwise.
 /// @param errorMsg error message to output in failure case
 ///
 /// Example usage:
-/// @code
-/// ControlInfo/W = $panelTitle popup_MoreSettings_DeviceType
-/// ASSERT(V_flag > 0, "Non-existing control or window")
-/// do something with S_value
-/// @endcode
+///@code
+///	ASSERT_TS(DataFolderExistsDFR(dfr), "MyFunc: dfr does not exist")
+///	do something with dfr
+///@endcode
+///
+/// Unlike ASSERT() this function does not print a stacktrace or jumps into the debugger. The reasons are Igor Pro limitations.
+/// Therefore it is advised to prefix `errorMsg` with the current function name.
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-Function ASSERT(var, errorMsg)
+threadsafe Function ASSERT_TS(var, errorMsg)
 	variable var
 	string errorMsg
-
-	string file, line, func, caller, stacktrace
-	string abortMsg
-	variable numCallers
 
 	try
 		AbortOnValue var==0, 1
 	catch
-		stacktrace = GetRTStackInfo(3)
-		numCallers = ItemsInList(stacktrace)
-
-		if(numCallers >= 2)
-			caller = StringFromList(numCallers-2, stacktrace)
-			func   = StringFromList(0, caller, ",")
-			file   = StringFromList(1, caller, ",")
-			line   = StringFromList(2, caller, ",")
-		else
-			func = ""
-			file = ""
-			line = ""
-		endif
-
-		sprintf abortMsg, "Assertion FAILED in function %s(...) %s:%s.\rMessage: %s\r", func, file, line, errorMsg
-		printf abortMsg
-		Debugger
-		Abort
+		printf "Assertion FAILED with message %s\r", errorMsg
+		AbortOnValue 1, 1
 	endtry
 End
 
@@ -145,13 +127,13 @@ End
 /// @param var    variable
 /// @param str    string
 /// @param format format string overrides the default of "%g" for variables and "%s" for strings
-Function DEBUGPRINT(msg, [var, str, format])
+threadsafe Function DEBUGPRINT(msg, [var, str, format])
 	string msg
 	variable var
 	string str, format
 
-	string file, line, func, caller, stacktrace, formatted = ""
-	variable numSuppliedOptParams, idx, numCallers
+	string formatted = ""
+	variable numSuppliedOptParams
 
 	// check parameters
 	// valid combinations:
@@ -165,29 +147,11 @@ Function DEBUGPRINT(msg, [var, str, format])
 	if(numSuppliedOptParams == 0)
 		// nothing to check
 	elseif(numSuppliedOptParams == 1)
-		ASSERT(ParamIsDefault(format), "Only supplying the \"format\" parameter is not allowed")
+		ASSERT_TS(ParamIsDefault(format), "Only supplying the \"format\" parameter is not allowed")
 	elseif(numSuppliedOptParams == 2)
-		ASSERT(!ParamIsDefault(format), "You can't supply \"var\" and \"str\" at the same time")
+		ASSERT_TS(!ParamIsDefault(format), "You can't supply \"var\" and \"str\" at the same time")
 	else
-		ASSERT(0, "Invalid parameter combination")
-	endif
-
-	stacktrace = GetRTStackInfo(3)
-
-	idx = strsearch(stacktrace,"DEBUGPRINT",0)
-	ASSERT(idx != -1, "Could not find the name of the current function")
-	stacktrace = stacktrace[0, idx - 1]
-	numCallers = ItemsInList(stacktrace)
-
-	if(numCallers >= 1)
-		caller = StringFromList(numCallers - 1, stacktrace)
-		func   = StringFromList(0, caller, ",")
-		file   = StringFromList(1, caller, ",")
-		line   = StringFromList(2, caller, ",")
-	else
-		func   = ""
-		file   = ""
-		line   = ""
+		ASSERT_TS(0, "Invalid parameter combination")
 	endif
 
 	if(!ParamIsDefault(var))
@@ -202,11 +166,7 @@ Function DEBUGPRINT(msg, [var, str, format])
 		sprintf formatted, format, str
 	endif
 
-	if(!isEmpty(func))
-		printf "DEBUG %s(...)#L%s: %s %s\r", func, line, msg, formatted
-	else
-		printf "DEBUG: %s %s\r", msg, formatted
-	endif
+	printf "DEBUG: %s %s\r", msg, formatted
 End
 
 /// @brief Start a timer for performance measurements

@@ -24,7 +24,7 @@ End
 ///
 /// @param  fileID identifier of open HDF5 file
 /// @return        list with name of all groups inside /general/labnotebook/*
-Function/S ReadLabNoteBooks(fileID)
+threadsafe Function/S ReadLabNoteBooks(fileID)
 	variable fileID
 
 	string result = ""
@@ -64,7 +64,7 @@ End
 Function/S ReadStimsets(fileID)
 	variable fileID
 
-	ASSERT(H5_IsFileOpen(fileID), "given HDF5 file identifier is not valid")
+	ASSERT_TS(H5_IsFileOpen(fileID), "ReadStimsets: given HDF5 file identifier is not valid")
 
 	if(!StimsetPathExists(fileID))
 		return ""
@@ -220,7 +220,7 @@ Function LoadSourceAttribute(locationID, channel, p)
 	variable numStrings, i, error
 
 	WAVE/T/Z wv = H5_LoadAttribute(locationID, channel, "source")
-	ASSERT(WaveExists(wv) && IsTextWave(wv), "Could not find the source attribute")
+	ASSERT_TS(WaveExists(wv) && IsTextWave(wv), "Could not find the source attribute")
 
 	numStrings = DimSize(wv, ROWS)
 
@@ -281,7 +281,7 @@ Function/Wave LoadDataWave(locationID, channel, [path])
 		path = "./"
 	endif
 
-	Assert(IPNWB#H5_GroupExists(locationID, path), "Path is not in nwb file")
+	Assert_TS(H5_GroupExists(locationID, path), "LoadDataWave: Path is not in nwb file")
 
 	path += channel + "/data"
 
@@ -346,7 +346,7 @@ End
 Function OpenStimset(fileID)
 	variable fileID
 
-	ASSERT(StimsetPathExists(fileID), "Path is not in nwb file")
+	ASSERT_TS(StimsetPathExists(fileID), "OpenStimset: Path is not in nwb file")
 
 	return H5_OpenGroup(fileID, PATH_STIMSETS)
 End
