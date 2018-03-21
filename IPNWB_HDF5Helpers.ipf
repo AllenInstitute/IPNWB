@@ -272,9 +272,6 @@ Function H5_OpenFile(discLocation, [write])
 
 	variable fileID
 
-	GetFileFolderInfo/Q/Z discLocation
-	ASSERT(!V_Flag, "The given file does not exist.")
-
 	if(write)
 		HDF5OpenFile/Z fileID as discLocation
 	else
