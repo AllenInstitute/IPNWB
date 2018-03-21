@@ -450,12 +450,6 @@ Function DataFolderExistsDFR(dfr)
 	endswitch
 End
 
-/// @brief Bring the control window (the window with the command line) to the
-///        front of the desktop
-Function ControlWindowToFront()
-	DoWindow/H
-End
-
 /// @brief Return the base name of the file
 ///
 /// Given `path/file.suffix` this gives `file`.

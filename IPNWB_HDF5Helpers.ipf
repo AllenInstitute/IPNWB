@@ -133,7 +133,6 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compres
 		if(strlen(note(wv)) >= H5_ATTRIBUTE_SIZE_LIMIT)
 			// by default HDF5 attributes are stored in the object header and thus attributes are limited to 64k size
 			printf "The wave note of the wave \"%s\" (stored name: \"%s\") will be shortend to enable HDF5/NWB storage\r", NameOfWave(wv), name
-			ControlWindowToFront()
 
 			Duplicate/FREE wv, wvCopy
 			Note/K wvCopy, note(wv)[0, H5_ATTRIBUTE_SIZE_LIMIT]
