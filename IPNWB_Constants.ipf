@@ -59,3 +59,6 @@ Constant I_EQUAL_ZERO_MODE = 2
 Constant NOISE_GEN_LINEAR_CONGRUENTIAL = 1 ///< Don't use for new code.
 Constant NOISE_GEN_MERSENNE_TWISTER    = 2
 ///@}
+
+/// Maximum length of a valid name in bytes in Igor Pro.
+Constant MAX_OBJECT_NAME_LENGTH_IN_BYTES = 31
