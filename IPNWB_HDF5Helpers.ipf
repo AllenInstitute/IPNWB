@@ -9,10 +9,6 @@
 static Constant H5_ATTRIBUTE_SIZE_LIMIT = 60e3
 static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-error
 
-/// @cond DOXYGEN_IGNORES_THIS
-#include "HDF5 Browser", version=1.20
-/// @endcond
-
 /// @file IPNWB_HDF5Helpers.ipf
 /// @brief __H5__ Wrapper functions for convenient use of the HDF5 operations
 
@@ -301,6 +297,40 @@ Function H5_IsFileOpen(fileID)
 	// group "/" does exist, therefore the fileID refers to an open file
 	return H5_GroupExists(fileID, "/")
 End
+
+/// Taken from HDF5 Browser.ipf
+///
+/// Included here for convenience.
+/// @{
+static Constant kHDF5DataInfoVersion = 1000		// 1000 means 1.000.
+static Constant H5S_MAX_RANK = 32
+
+threadsafe static Function InitHDF5DataInfo(di)				// Sets input fields.
+	STRUCT HDF5DataInfo &di
+
+	// HDF5XOP uses these fields to make sure the structure passed in to it is compatible.
+	di.version = kHDF5DataInfoVersion
+	di.structName = "HDF5DataInfo"
+End
+
+static Structure HDF5DataInfo					// Use with HDF5DatasetInfo and HDF5AttributeInfo functions
+	// Input fields (inputs to HDF5 XOP)
+	uint32 version							// Must be set to kHDF5DataInfoVersion
+	char structName[16]						// Must be "HDF5DataInfo".
+
+	// Output fields (outputs from HDF5 XOP)
+	double datatype_class;				// e.g., H5T_INTEGER, H5T_FLOAT.
+	char datatype_class_str[32];			// String with class spelled out. e.g., "H5T_INTEGER", "H5T_FLOAT".
+	double datatype_size;					// Size in bytes of one element.
+	double datatype_sign;					// H5T_SGN_NONE (unsigned), H5T_SGN_2 (signed), H5T_SGN_ERROR (this type does not have a sign, i.e., it is not an integer type).
+	double datatype_order;				// H5T_ORDER_LE, H5T_ORDER_BE, H5T_ORDER_VAX
+	char datatype_str[64];				// Human-readable string, e.g., "16-bit unsigned integer"
+	double dataspace_type;				// H5S_NO_CLASS, H5S_SCALAR, H5S_SIMPLE
+	double ndims;							// Zero for H5S_SCALAR. Number of dimensions in the dataset for H5S_SIMPLE.
+	double dims[H5S_MAX_RANK];			// Size of each dimension.
+	double maxdims[H5S_MAX_RANK];		// Maximum size of each dimension.
+EndStructure
+/// @}
 
 /// @brief Return 1 if the given HDF5 dataset exists, 0 otherwise.
 ///
