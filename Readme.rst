@@ -305,6 +305,9 @@ The following tree describes the currently supported NWB layout
             referenced: All referenced custom waves are stored here in a file-system like group-structure.
                         /general/stimsets/referenced/ relates to root: in the igor Experiment.
 
+        history: custom entry
+            Full Igor Pro history since measurement start (useful for debugging)
+
     file_create_date    : text array with UTC modification timestamps
     identifier          : SHA256 hash, ensured to be unique
     nwb_version         : NWB specification version
