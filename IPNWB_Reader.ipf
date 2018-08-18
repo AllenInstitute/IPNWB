@@ -227,7 +227,7 @@ Function LoadSourceAttribute(locationID, channel, p)
 
 	ASSERT(ItemsInList(S_WaveNames) == 1, "Expected only one wave")
 	WAVE/T wv = tempAttributeWave
-	ASSERT(WaveType(wv, 1) == 2, "Expected a dataset of type text")
+	ASSERT(IsTextWave(wv), "Expected a dataset of type text")
 
 	numStrings = DimSize(wv, ROWS)
 

@@ -184,6 +184,13 @@ Function WriteTextDatasetIfSet(locationID, name, str, [chunkedLayout])
 	H5_WriteTextDataset(locationID, name, str=str, chunkedLayout=chunkedLayout)
 End
 
+/// @brief Return 1 if the wave is a text wave, zero otherwise
+threadsafe Function IsTextWave(wv)
+	WAVE wv
+
+	return WaveType(wv, 1) == 2
+End
+
 /// @brief Read a text dataset as text wave, return a single element
 ///        wave with #PLACEHOLDER if it does not exist.
 ///
@@ -200,7 +207,7 @@ Function/WAVE ReadTextDataSet(locationID, name)
 		return wv
 	endif
 
-	ASSERT(WaveType(wv, 1) == 2, "Expected a text wave")
+	ASSERT(IsTextWave(wv), "Expected a text wave")
 
 	return wv
 End
@@ -220,7 +227,7 @@ Function/S ReadTextDataSetAsString(locationID, name)
 	endif
 
 	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(WaveType(wv, 1) == 2, "Expected a text wave")
+	ASSERT(IsTextWave(wv), "Expected a text wave")
 
 	return wv[0]
 End
