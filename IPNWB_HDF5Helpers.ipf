@@ -382,6 +382,42 @@ Function/WAVE H5_LoadDataset(locationID, name)
 	return wv
 End
 
+/// @brief Check if a given attribute exists
+///
+/// @param[in]  locationID            HDF5 identifier, can be a file or group
+/// @param[in]  path                  Additional path on top of `locationID` which identifies
+///                                   the group or dataset
+/// @param[in]  attribute             Name of the attribute
+/// @param[out] objectType [optional] Return the type of the element to which the
+///                                   attribute is attached to. Can be used for subsequent HDF5LoadData calls.
+Function H5_AttributeExists(locationID, path, attribute, [objectType])
+	variable locationID
+	string path, attribute
+	variable &objectType
+
+	variable objectTypeVar, datasetExists, groupExists
+
+	STRUCT HDF5DataInfo di
+	InitHDF5DataInfo(di)
+
+	datasetExists = H5_DatasetExists(locationID, path)
+	groupExists = H5_GroupExists(locationID, path)
+
+	if(datasetExists && groupExists)
+		ASSERT(0, "Could not handle attribute when both a group and a dataset exist with the same name.")
+	elseif(groupExists)
+		objectTypeVar = 1
+	elseif(datasetExists)
+		objectTypeVar = 2
+	endif
+
+	if(!ParamisDefault(objectType))
+		objectType = objectTypeVar
+	endif
+
+	return !HDF5AttributeInfo(locationID, path, objectTypeVar, attribute, 2^0, di)
+End
+
 /// @brief Return 1 if the given HDF5 group exists, 0 otherwise.
 ///
 /// @param[in] locationID           HDF5 identifier, can be a file or group

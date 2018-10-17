@@ -213,7 +213,7 @@ Function LoadSourceAttribute(locationID, channel, p)
 	variable numStrings, i, error
 
 	attribute = "source"
-	ASSERT(!H5_DatasetExists(locationID, channel + "/" + attribute), "Could not find source attribute!")
+	ASSERT(H5_AttributeExists(locationID, channel, attribute), "Could not find source attribute!")
 
 	HDF5LoadData/O/A=(attribute)/N=tempAttributeWave/TYPE=1/Q/Z locationID, channel
 	error = V_flag
