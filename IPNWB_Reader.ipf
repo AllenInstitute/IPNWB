@@ -212,22 +212,8 @@ Function LoadSourceAttribute(locationID, channel, p)
 	string attribute, property, value
 	variable numStrings, i, error
 
-	attribute = "source"
-	ASSERT(H5_AttributeExists(locationID, channel, attribute), "Could not find source attribute!")
-
-	HDF5LoadData/O/A=(attribute)/N=tempAttributeWave/TYPE=1/Q/Z locationID, channel
-	error = V_flag
-	if(error)
-		HDf5DumpErrors/CLR=1
-		HDF5DumpState
-		HDF5CloseGroup/Z locationID
-		KillWaves/Z tempAttributeWave
-		ASSERT(0, "\rCould not load the HDF5 attribute '" + attribute + "' in channel '" + channel + "'\rError No: " + num2str(error))
-	endif
-
-	ASSERT(ItemsInList(S_WaveNames) == 1, "Expected only one wave")
-	WAVE/T wv = tempAttributeWave
-	ASSERT(IsTextWave(wv), "Expected a dataset of type text")
+	WAVE/T/Z wv = H5_LoadAttribute(locationID, channel, "source")
+	ASSERT(WaveExists(wv) && IsTextWave(wv), "Could not find the source attribute")
 
 	numStrings = DimSize(wv, ROWS)
 

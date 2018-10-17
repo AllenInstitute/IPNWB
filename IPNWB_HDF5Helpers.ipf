@@ -418,6 +418,43 @@ Function H5_AttributeExists(locationID, path, attribute, [objectType])
 	return !HDF5AttributeInfo(locationID, path, objectTypeVar, attribute, 2^0, di)
 End
 
+/// @brief Load the given attribute and return its contents
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  attribute  Name of the attribute to load
+Function/WAVE H5_LoadAttribute(locationID, path, attribute)
+	variable locationID
+	string path, attribute
+
+	variable objectType
+
+	if(!H5_AttributeExists(locationID, path, attribute, objectType = objectType))
+		return $""
+	endif
+
+	DFREF saveDFR = GetDataFolderDFR()
+	DFREF dfr = NewFreeDataFolder()
+
+	SetDataFolder dfr
+	HDF5LoadData/A=(attribute)/TYPE=(objectType)/Q/Z locationID, path
+	SetDataFolder saveDFR
+
+	if(V_Flag)
+		HDf5DumpErrors/CLR=1
+		HDF5DumpState
+		ASSERT(0, "Could not load the HDF5 attribute '" + attribute + "' from '" + path + "'\rError No: " + num2str(V_Flag))
+	endif
+
+	ASSERT(ItemsInList(S_waveNames) == 1, "unspecified data format")
+
+	WAVE/Z wv = dfr:$StringFromList(0, S_waveNames)
+	ASSERT(WaveExists(wv), "loaded wave not found")
+
+	return wv
+End
+
 /// @brief Return 1 if the given HDF5 group exists, 0 otherwise.
 ///
 /// @param[in] locationID           HDF5 identifier, can be a file or group
