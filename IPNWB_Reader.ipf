@@ -86,6 +86,13 @@ Function CheckIntegrity(fileID)
 	variable groupID
 	variable integrity = 1
 
+	WAVE/T/Z nwbVersion = H5_LoadAttribute(fileID, "/", "nwb_version")
+	if(WaveExists(nwbVersion) && GrepString(nwbVersion[0], "^2"))
+		print "NWB v2 is not yet supported."
+		// it does not make sense to continue as nothing will work
+		return 0
+	endif
+
 	deviceList = ReadDevices(fileID)
 	if (cmpstr(deviceList, ReadLabNoteBooks(fileID)))
 		print "labnotebook corrupt"
