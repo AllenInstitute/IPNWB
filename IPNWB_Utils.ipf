@@ -299,7 +299,7 @@ Function/S UniqueWaveName(dfr, baseName)
 	dfref dfr
 	string baseName
 
-	variable index
+	variable index, numRuns
 	string name
 	string path
 
@@ -307,7 +307,8 @@ Function/S UniqueWaveName(dfr, baseName)
 	ASSERT(DataFolderExistsDFR(dfr), "dfr does not exist")
 
 	// shorten basename so that we can attach some numbers
-	baseName = CleanupName(baseName[0, 26], 0)
+	numRuns = 10000
+	baseName = CleanupName(baseName[0, MAX_OBJECT_NAME_LENGTH_IN_BYTES - (ceil(log(numRuns)) + 1)], 0)
 	path = GetDataFolder(1, dfr)
 	name = baseName
 
@@ -319,9 +320,9 @@ Function/S UniqueWaveName(dfr, baseName)
 		name = baseName + "_" + num2istr(index)
 
 		index += 1
-	while(index < 10000)
+	while(index < numRuns)
 
-	DEBUGPRINT("Could not find a unique folder with 10000 trials")
+	DEBUGPRINT("Could not find a unique folder with trials:", var = numRuns)
 
 	return ""
 End
