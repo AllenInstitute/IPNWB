@@ -209,10 +209,13 @@ NWB file format description
   attributes IGORWaveScaling, IGORWaveType, IGORWaveUnits,
   IGORWaveNote. These attributes allow easy and convenient loading of
   the data into Igor Pro back.
-- For AD/DA/TTL groups the naming scheme is
-  data\_\ ``XXXXX``\ \_[AD/DA/TTL]\ ``suffix`` where ``XXXXX`` is a
-  running number incremented for every sweep and ``suffix`` the channel number
-  (TTL channels: plus TTL line).
+- For AD/DA/TTL groups the naming scheme is data\_\ ``XXXXX``\ \_[AD/DA/TTL] ``suffix``
+  where ``XXXXX`` is a running number and ``suffix`` the channel
+  number.  For some hardware types the ``suffix`` includes the TTL line as
+  well. It is important to note that the number of digits in ``XXXXX`` is
+  variable und subject to change, and that ``XXXXX`` is *not* the sweep number.
+- The sweep number is currently accessible from the source attribute only.
+  Example source contents: ``Device=ITC18USB_Dev_0;Sweep=0;AD=0;ElectrodeNumber=0;ElectrodeName=0``
 - For I=0 clamp mode neither the DA data nor the stimset is saved.
 - Some entries in the following tree are specific to MIES, these are marked
   as custom entries. Users running MIES are encouraged to use the same NWB
