@@ -256,7 +256,7 @@ The following tree describes the currently supported NWB layout
 
     stimulus:
         presentation: (empty if no acquired data is saved)
-            data_XXXXX_DA_Y: DA data as sent to the neuron, including delays, scaling, initial TP, etc.
+            data_XXXXX_DAY: DA data as sent to the neuron, including delays, scaling, initial TP, etc.
                     data           : 1D dataset
                     electrode_name : Name of the electrode headstage, more info in /general/intracellular_ephys/electrode_name
                     gain           :
