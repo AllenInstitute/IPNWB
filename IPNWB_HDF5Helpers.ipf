@@ -19,7 +19,7 @@ static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-
 /// @param str                                         Contents to write into the dataset
 /// @param wvText                                      Contents to write into the dataset
 /// @param overwrite [optional, defaults to false]     Should existing datasets be overwritten
-/// @param chunkedLayout [optional, defaults to false] Use chunked layout with compression and shuffling. Will be ignored for small waves.
+/// @param chunkedLayout [optional, defaults to false] Use chunked layout with compression and shuffling
 /// @param skipIfExists [optional, defaults to false]  Do nothing if the dataset already exists
 /// @param writeIgorAttr [optional, defaults to false] Add Igor specific attributes to the dataset, see the `/IGOR` flag of `HDF5SaveData`
 ///
@@ -52,7 +52,7 @@ End
 /// @param varType                                     Type of the data, must be given if `var` is supplied. See @ref IgorTypes
 /// @param wv                                          Contents to write into the dataset
 /// @param overwrite [optional, defaults to false]     Should existing datasets be overwritten
-/// @param chunkedLayout [optional, defaults to false] Use chunked layout with compression and shuffling. Will be ignored for small waves.
+/// @param chunkedLayout [optional, defaults to false] Use chunked layout with compression and shuffling
 /// @param skipIfExists [optional, defaults to false]  Do nothing if the dataset already exists
 /// @param writeIgorAttr [optional, defaults to false] Add Igor specific attributes to the dataset, see the `/IGOR` flag of `HDF5SaveData`
 ///
