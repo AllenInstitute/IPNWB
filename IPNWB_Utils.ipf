@@ -166,22 +166,24 @@ End
 
 /// @brief Write a text dataset only if it is not equal to #PLACEHOLDER
 ///
-/// @param locationID                                  HDF5 identifier, can be a file or group
-/// @param name                                        Name of the HDF5 dataset
-/// @param str                                         Contents to write into the dataset
-/// @param chunkedLayout [optional, defaults to false] Use chunked layout with compression and shuffling. Will be ignored for small waves.
-Function WriteTextDatasetIfSet(locationID, name, str, [chunkedLayout])
+/// @param locationID                                               HDF5 identifier, can be a file or group
+/// @param name                                                     Name of the HDF5 dataset
+/// @param str                                                      Contents to write into the dataset
+/// @param compressionMode [optional, defaults to #NO_COMPRESSION]  Type of compression to use, one of @ref CompressionMode
+Function WriteTextDatasetIfSet(locationID, name, str, [compressionMode])
 	variable locationID
 	string name, str
-	variable chunkedLayout
+	variable compressionMode
 
-	chunkedLayout = ParamIsDefault(chunkedLayout) ? 0 : !!chunkedLayout
+	if(ParamIsDefault(compressionMode))
+		compressionMode = NO_COMPRESSION
+	endif
 
 	if(!cmpstr(str, PLACEHOLDER))
 		return NaN
 	endif
 
-	H5_WriteTextDataset(locationID, name, str=str, chunkedLayout=chunkedLayout)
+	H5_WriteTextDataset(locationID, name, str=str, compressionMode=compressionMode)
 End
 
 /// @brief Return 1 if the wave is a text wave, zero otherwise

@@ -47,7 +47,7 @@ Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, subjectInfo]
 	H5_WriteTextDataset(locationID, "nwb_version", str=ti.nwb_version)
 	H5_WriteTextDataset(locationID, "identifier", str=ti.identifier)
 	// file_create_date needs to be appendable for the modified timestamps, and that is equivalent to having chunked layout
-	H5_WriteTextDataset(locationID, "file_create_date", wvText=ti.file_create_date, chunkedLayout=1)
+	H5_WriteTextDataset(locationID, "file_create_date", wvText=ti.file_create_date, compressionMode=CHUNKED_COMPRESSION)
 	H5_WriteTextDataset(locationID, "session_start_time", str=GetISO8601TimeStamp(secondsSinceIgorEpoch=ti.session_start_time, numFracSecondsDigits = 3))
 	H5_WriteTextDataset(locationID, "session_description", str=ti.session_description)
 
@@ -273,23 +273,24 @@ End
 
 /// @brief Write the data of a single channel to the NWB file
 ///
-/// @param locationID    HDF5 file identifier
-/// @param path          absolute path in the HDF5 file where the data should be stored
-/// @param p             filled WriteChannelParams structure
-/// @param tsp           filled TimeSeriesProperties structure, see the comment of this function on
-///                      how to easily create and fill that structure
-/// @param chunkedLayout [optional, defaults to false] Use chunked layout with compression and shuffling.
-Function WriteSingleChannel(locationID, path, p, tsp, [chunkedLayout])
+/// @param locationID                                             HDF5 file identifier
+/// @param path                                                   Absolute path in the HDF5 file where the data should be stored
+/// @param p                                                      Filled #IPNWB::WriteChannelParams structure
+/// @param tsp                                                    Filled #IPNWB::TimeSeriesProperties structure
+/// @param compressionMode [optional, defaults to NO_COMPRESSION] Type of compression to use, one of @ref CompressionMode
+Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
 	variable locationID
 	string path
 	STRUCT WriteChannelParams &p
 	STRUCT TimeSeriesProperties &tsp
-	variable chunkedLayout
+	variable compressionMode
 
 	variable groupID, numPlaces, numEntries, i
 	string ancestry, str, source, channelTypeStr, group, electrodeNumberStr
 
-	chunkedLayout = ParamIsDefault(chunkedLayout) ? 0 : !!chunkedLayout
+	if(ParamIsDefault(compressionMode))
+		compressionMode = NO_COMPRESSION
+	endif
 
 	if(p.channelType == CHANNEL_TYPE_OTHER)
 		channelTypeStr = "stimset"
@@ -398,7 +399,7 @@ Function WriteSingleChannel(locationID, path, p, tsp, [chunkedLayout])
 	// no data_link and timestamp_link attribute as we keep all data in one file
 	// skipping optional entry help
 
-	H5_WriteDataset(groupID, "data", wv=p.data, chunkedLayout=chunkedLayout, overwrite=1, writeIgorAttr=1)
+	H5_WriteDataset(groupID, "data", wv=p.data, compressionMode=compressionMode, overwrite=1, writeIgorAttr=1)
 
 	// TimeSeries: datasets and attributes
 	AddTimeSeriesUnitAndRes(groupID, group + "/data", WaveUnits(p.data, -1), overwrite=1)

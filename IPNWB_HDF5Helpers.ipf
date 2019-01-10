@@ -14,24 +14,28 @@ static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-
 
 /// @brief Write a string or text wave into a HDF5 dataset
 ///
-/// @param locationID                                  HDF5 identifier, can be a file or group
-/// @param name                                        Name of the HDF5 dataset
-/// @param str                                         Contents to write into the dataset
-/// @param wvText                                      Contents to write into the dataset
-/// @param overwrite [optional, defaults to false]     Should existing datasets be overwritten
-/// @param chunkedLayout [optional, defaults to false] Use chunked layout with compression and shuffling
-/// @param skipIfExists [optional, defaults to false]  Do nothing if the dataset already exists
-/// @param writeIgorAttr [optional, defaults to false] Add Igor specific attributes to the dataset, see the `/IGOR` flag of `HDF5SaveData`
+/// @param locationID                                               HDF5 identifier, can be a file or group
+/// @param name                                                     Name of the HDF5 dataset
+/// @param str                                                      Contents to write into the dataset
+/// @param wvText                                                   Contents to write into the dataset
+/// @param overwrite [optional, defaults to false]                  Should existing datasets be overwritten
+/// @param compressionMode [optional, defaults to NO_COMPRESSION]   Type of compression to use, one of @ref CompressionMode
+/// @param skipIfExists [optional, defaults to false]               Do nothing if the dataset already exists
+/// @param writeIgorAttr [optional, defaults to false]              Add Igor specific attributes to the dataset,
+///                                                                 see the `/IGOR` flag of `HDF5SaveData`
 ///
 /// Only one of `str` or `wvText` can be given.
-Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, chunkedLayout, skipIfExists, writeIgorAttr])
+Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr])
 	variable locationID
 	string name, str
 	Wave/Z/T wvText
-	variable overwrite, chunkedLayout, skipIfExists, writeIgorAttr
+	variable overwrite, compressionMode, skipIfExists, writeIgorAttr
+
+	if(ParamIsDefault(compressionMode))
+		compressionMode = NO_COMPRESSION
+	endif
 
 	overwrite     = ParamIsDefault(overwrite)     ? 0 : !!overwrite
-	chunkedLayout = ParamIsDefault(chunkedLayout) ? 0 : !!chunkedLayout
 	skipIfExists  = ParamIsDefault(skipIfExists)  ? 0 : !!skipIfExists
 	writeIgorAttr = ParamIsDefault(writeIgorAttr) ? 0 : !!writeIgorAttr
 
@@ -41,31 +45,34 @@ Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, chunkedL
 		Make/FREE/T/N=1 wvText = str
 	endif
 
-	H5_WriteDatasetLowLevel(locationID, name, wvText, overwrite, chunkedLayout, skipIfExists, writeIgorAttr)
+	H5_WriteDatasetLowLevel(locationID, name, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr)
 End
 
 /// @brief Write a variable or text wave into a HDF5 dataset
 ///
-/// @param locationID                                  HDF5 identifier, can be a file or group
-/// @param name                                        Name of the HDF5 dataset
-/// @param var                                         Contents to write into the dataset
-/// @param varType                                     Type of the data, must be given if `var` is supplied. See @ref IgorTypes
-/// @param wv                                          Contents to write into the dataset
-/// @param overwrite [optional, defaults to false]     Should existing datasets be overwritten
-/// @param chunkedLayout [optional, defaults to false] Use chunked layout with compression and shuffling
-/// @param skipIfExists [optional, defaults to false]  Do nothing if the dataset already exists
-/// @param writeIgorAttr [optional, defaults to false] Add Igor specific attributes to the dataset, see the `/IGOR` flag of `HDF5SaveData`
+/// @param locationID                                               HDF5 identifier, can be a file or group
+/// @param name                                                     Name of the HDF5 dataset
+/// @param var                                                      Contents to write into the dataset
+/// @param varType                                                  Type of the data, must be given if `var` is supplied. See @ref IgorTypes
+/// @param wv                                                       Contents to write into the dataset
+/// @param overwrite [optional, defaults to false]                  Should existing datasets be overwritten
+/// @param compressionMode [optional, defaults to NO_COMPRESSION]   Type of compression to use, one of @ref CompressionMode
+/// @param skipIfExists [optional, defaults to false]               Do nothing if the dataset already exists
+/// @param writeIgorAttr [optional, defaults to false]              Add Igor specific attributes to the dataset, see the `/IGOR` flag of `HDF5SaveData`
 ///
 /// Only one of `var` or `wv` can be given.
-Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, chunkedLayout, skipIfExists, writeIgorAttr])
+Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr])
 	variable locationID
 	string name
 	variable var, varType
 	Wave/Z wv
-	variable overwrite, chunkedLayout, skipIfExists, writeIgorAttr
+	variable overwrite, compressionMode, skipIfExists, writeIgorAttr
+
+	if(ParamIsDefault(compressionMode))
+		compressionMode = NO_COMPRESSION
+	endif
 
 	overwrite     = ParamIsDefault(overwrite)     ? 0 : !!overwrite
-	chunkedLayout = ParamIsDefault(chunkedLayout) ? 0 : !!chunkedLayout
 	skipIfExists  = ParamIsDefault(skipIfExists)  ? 0 : !!skipIfExists
 	writeIgorAttr = ParamIsDefault(writeIgorAttr) ? 0 : !!writeIgorAttr
 
@@ -76,24 +83,37 @@ Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, chunked
 		Make/FREE/Y=(varType)/N=1 wv = var
 	endif
 
-	H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, chunkedLayout, skipIfExists, writeIgorAttr)
+	H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr)
 End
 
-/// @brief Return a wave for the valid chunk sizes of each dimension.
-static Function/Wave H5_GetChunkSizes(wv)
+/// @brief Return a wave for the valid chunk sizes of each dimension taking
+///        into account the compression mode.
+static Function/Wave H5_GetChunkSizes(wv, compressionMode)
 	WAVE wv
+	variable compressionMode
 
-	MAKE/FREE/N=(WaveDims(wv))/I/U chunkSizes = (DimSize(wv, p) > H5_CHUNK_SIZE ? H5_CHUNK_SIZE : 32)
-
-	return chunkSizes
+	switch(compressionMode)
+		case NO_COMPRESSION:
+			return $""
+			break
+		case CHUNKED_COMPRESSION:
+			MAKE/FREE/N=(WaveDims(wv))/I/U chunkSizes = (DimSize(wv, p) > H5_CHUNK_SIZE ? H5_CHUNK_SIZE : 32)
+			return chunkSizes
+		case SINGLE_CHUNK_COMPRESSION:
+			MAKE/FREE/N=(WaveDims(wv))/I/U chunkSizes = DimSize(wv, p)
+			return chunkSizes
+		default:
+			ASSERT(0, "Invalid compression mode")
+			break
+	endswitch
 End
 
 /// @see H5_WriteTextDataset or H5_WriteDataset
-static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, chunkedLayout, skipIfExists, writeIgorAttr)
+static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr)
 	variable locationID
 	string name
 	Wave wv
-	variable overwrite, chunkedLayout, skipIfExists, writeIgorAttr
+	variable overwrite, compressionMode, skipIfExists, writeIgorAttr
 
 	variable numDims, attrFlag
 
@@ -107,9 +127,7 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, chunked
 
 	attrFlag = writeIgorAttr ? -1 : 0
 
-	if(chunkedLayout)
-		WAVE chunkSizes = H5_GetChunkSizes(wv)
-	endif
+	WAVE/Z chunkSizes = H5_GetChunkSizes(wv, compressionMode)
 
 	if(attrFlag & 16) // saving wave note as attribute
 		if(strlen(note(wv)) >= H5_ATTRIBUTE_SIZE_LIMIT)
@@ -124,7 +142,7 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, chunked
 	endif
 
 	if(overwrite)
-		if(chunkedLayout)
+		if(compressionMode != NO_COMPRESSION)
 			if(numDims == 1)
 				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS]}/MAXD={-1}/O/Z wv, locationID, name
 			elseif(numDims == 2)
@@ -140,7 +158,7 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, chunked
 			HDF5SaveData/IGOR=(attrFlag)/O/Z wv, locationID, name
 		endif
 	else
-		if(chunkedLayout)
+		if(compressionMode != NO_COMPRESSION)
 			if(numDims == 1)
 				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS]}/MAXD={-1}/Z wv, locationID, name
 			elseif(numDims == 2)
