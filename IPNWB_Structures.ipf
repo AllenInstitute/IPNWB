@@ -45,6 +45,20 @@ Structure ReadChannelParams
 	variable ttlBit           ///< unambigous ttl-channel-number
 EndStructure
 
+/// @brief Initialization routine for InitReadChannelParams
+Function InitReadChannelParams(p)
+	STRUCT ReadChannelParams &p
+
+	p.device          = ""
+	p.channelSuffix   = ""
+	p.sweep           = NaN
+	p.channelType     = NaN
+	p.channelNumber   = NaN
+	p.electrodeNumber = NaN
+	p.groupIndex      = NaN
+	p.ttlBit          = NaN
+End
+
 /// @brief Structure to hold all properties of the NWB file directly below `/general`
 Structure GeneralInfo
 	string session_id
