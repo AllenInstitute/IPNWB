@@ -264,8 +264,6 @@ Function LoadSourceAttribute(locationID, channel, p)
 			default:
 		endswitch
 	endfor
-
-	KillWaves/Z wv
 End
 
 /// @brief Load data wave from specified path
