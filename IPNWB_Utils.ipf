@@ -210,6 +210,86 @@ threadsafe Function IsNumericWave(wv)
 	return WaveType(wv, 1) == 1
 End
 
+/// @brief Read a text attribute as semicolon `;` separated list
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  name       Name of the attribute to load
+Function/S ReadTextAttributeAsList(locationID, path, name)
+	variable locationID
+	string path, name
+
+	return TextWaveToList(ReadTextAttribute(locationID, path, name), ";")
+End
+
+/// @brief Read a text attribute as text wave, return a single element
+///        wave with #PLACEHOLDER if it does not exist.
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  name       Name of the attribute to load
+Function/WAVE ReadTextAttribute(locationID, path, name)
+	variable locationID
+	string path, name
+
+	WAVE/T/Z wv = H5_LoadAttribute(locationID, path, name)
+
+	if(!WaveExists(wv))
+		Make/FREE/T/N=1 wv = PLACEHOLDER
+		return wv
+	endif
+
+	ASSERT(IsTextWave(wv), "Expected a text wave")
+
+	return wv
+End
+
+/// @brief Read a text attribute as string, return #PLACEHOLDER if it does not exist
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  name       Name of the attribute to load
+Function/S ReadTextAttributeAsString(locationID, path, name)
+	variable locationID
+	string path, name
+
+	WAVE/T/Z wv = H5_LoadAttribute(locationID, path, name)
+
+	if(!WaveExists(wv))
+		return PLACEHOLDER
+	endif
+
+	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT(IsTextWave(wv), "Expected a text wave")
+
+	return wv[0]
+End
+
+/// @brief Read a text attribute as number, return `NaN` if it does not exist
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  name       Name of the attribute to load
+Function ReadAttributeAsNumber(locationID, path, name)
+	variable locationID
+	string path, name
+
+	WAVE/Z wv = H5_LoadAttribute(locationID, path, name)
+
+	if(!WaveExists(wv))
+		return NaN
+	endif
+
+	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT(IsNumericWave(wv), "Expected a text wave")
+
+	return wv[0]
+End
+
 /// @brief Read a text dataset as text wave, return a single element
 ///        wave with #PLACEHOLDER if it does not exist.
 ///
@@ -474,4 +554,23 @@ Function ParseISO8601TimeStamp(timestamp)
 	endif
 
 	return secondsSinceEpoch
+End
+
+/// @brief Convert a text wave to string list
+Function/S TextWaveToList(txtWave, sep)
+	WAVE/T txtWave
+	string sep
+
+	string list = ""
+	variable i, numRows
+
+	ASSERT(IsTextWave(txtWave), "Expected a text wave")
+	ASSERT(DimSize(txtWave, COLS) == 0, "Expected a 1D wave")
+
+	numRows = DimSize(txtWave, ROWS)
+	for(i = 0; i < numRows; i += 1)
+		list = AddListItem(txtWave[i], list, sep, Inf)
+	endfor
+
+	return list
 End
