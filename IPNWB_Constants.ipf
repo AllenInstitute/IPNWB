@@ -62,3 +62,28 @@ Constant NOISE_GEN_MERSENNE_TWISTER    = 2
 
 /// Maximum length of a valid name in bytes in Igor Pro.
 Constant MAX_OBJECT_NAME_LENGTH_IN_BYTES = 31
+
+/// @brief Convenience getters
+///
+/// Igor Pro does not allow cross IM access to constants
+/// @{
+Function GetNoCompression()
+	return NO_COMPRESSION
+End
+
+Function GetChunkedCompression()
+	return CHUNKED_COMPRESSION
+End
+
+Function GetSingleChunkCompression()
+	return SINGLE_CHUNK_COMPRESSION
+End
+/// @}
+
+/// @name Constants for the compression modes
+/// @anchor CompressionMode
+/// @{
+Constant NO_COMPRESSION           = 0x0
+Constant CHUNKED_COMPRESSION      = 0x1
+Constant SINGLE_CHUNK_COMPRESSION = 0x2
+/// @}
