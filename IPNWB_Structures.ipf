@@ -146,14 +146,22 @@ End
 
 /// @brief Holds class specific entries for TimeSeries objects
 ///
-/// Usage:
+/// Usage for writers
 /// @code
-/// STRUCT TimeSeriesProperties tsp
-/// InitTimeSeriesProperties(tsp, channelType, clampMode)
-/// AddProperty(tsp, "gain", 1.23456)
-/// // more calls tp AddProperty()
-/// WriteSingleChannel(locationID, path, p, tsp)
+/// 	STRUCT TimeSeriesProperties tsp
+/// 	InitTimeSeriesProperties(tsp, channelType, clampMode)
+/// 	AddProperty(tsp, "gain", 1.23456)
+/// 	// more calls tp AddProperty()
+/// 	WriteSingleChannel(locationID, path, p, tsp)
 /// @endcode
+///
+/// and for readers
+/// @code
+/// 	STRUCT TimeSeriesProperties tsp
+/// 	InitTimeSeriesProperties(tsp, channelType, clampMode)
+/// 	ReadTimeSeriesProperties(groupID, channel, tsp)
+/// @endcode
+///
 Structure TimeSeriesProperties
 	WAVE/T names
 	WAVE   data

@@ -596,3 +596,53 @@ Function/S GetTimeSeriesMissingFields(channelType, clampMode)
 
 	return ""
 End
+
+/// @brief Derive the clamp mode from the `ancestry` attribute and return it
+///
+/// @param ancestry Contents of ancestry attribute
+Function GetClampModeFromAncestry(ancestry)
+	string ancestry
+
+	ancestry = RemoveEnding(ancestry, ";")
+
+	strswitch(ancestry)
+		case "TimeSeries;PatchClampSeries;VoltageClampSeries":
+		case "TimeSeries;PatchClampSeries;VoltageClampStimulusSeries":
+			return V_CLAMP_MODE
+		case "TimeSeries;PatchClampSeries;CurrentClampSeries":
+		case "TimeSeries;PatchClampSeries;CurrentClampStimulusSeries":
+			return I_CLAMP_MODE
+		case "TimeSeries;PatchClampSeries;CurrentClampSeries;IZeroClampSeries":
+			return I_EQUAL_ZERO_MODE
+		case "TimeSeries": // unassociated channel data
+			return NaN
+		default:
+			ASSERT(0, "Unknown ancestry: " + ancestry)
+			break
+	endswitch
+End
+
+/// @brief Derive the channel type, one of @ref IPNWB_ChannelTypes, from the
+///        `ancestry` attribute and return it
+///
+/// @param ancestry Contents of ancestry attribute
+Function GetChannelTypeFromAncestry(ancestry)
+	string ancestry
+
+	ancestry = RemoveEnding(ancestry, ";")
+
+	strswitch(ancestry)
+		case "TimeSeries;PatchClampSeries;VoltageClampSeries":
+		case "TimeSeries;PatchClampSeries;CurrentClampSeries":
+		case "TimeSeries;PatchClampSeries;CurrentClampSeries;IZeroClampSeries":
+			return CHANNEL_TYPE_ADC
+		case "TimeSeries;PatchClampSeries;VoltageClampStimulusSeries":
+		case "TimeSeries;PatchClampSeries;CurrentClampStimulusSeries":
+			return CHANNEL_TYPE_DAC
+		case "TimeSeries": // unassociated channel
+			return CHANNEL_TYPE_OTHER
+		default:
+			ASSERT(0, "Unknown ancestry: " + ancestry)
+			break
+	endswitch
+End
