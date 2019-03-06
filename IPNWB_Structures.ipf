@@ -181,20 +181,5 @@ Function InitTimeSeriesProperties(tsp, channelType, clampMode)
 	WAVE tsp.isCustom = isCustom
 
 	// AddProperty() will remove the entries on addition of values
-	if(channelType == CHANNEL_TYPE_ADC)
-		if(clampMode == V_CLAMP_MODE)
-			// VoltageClampSeries
-			 tsp.missing_fields = "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
-		elseif(clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
-			// CurrentClampSeries
-			 tsp.missing_fields = "gain;bias_current;bridge_balance;capacitance_compensation"
-		else
-			// unassociated channel
-			tsp.missing_fields = ""
-		endif
-	elseif(channelType == CHANNEL_TYPE_DAC)
-		tsp.missing_fields = "gain"
-	else
-		tsp.missing_fields = ""
-	endif
+	tsp.missing_fields = GetTimeSeriesMissingFields(channelType, clampMode)
 End

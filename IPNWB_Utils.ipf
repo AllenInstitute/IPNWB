@@ -574,3 +574,25 @@ Function/S TextWaveToList(txtWave, sep)
 
 	return list
 End
+
+/// @brief Return the initial values for the missing_fields attribute depending
+///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp mode.
+Function/S GetTimeSeriesMissingFields(channelType, clampMode)
+	variable channelType, clampMode
+
+	if(channelType == CHANNEL_TYPE_ADC)
+		if(clampMode == V_CLAMP_MODE)
+			// VoltageClampSeries
+			 return "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
+		elseif(clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
+			// CurrentClampSeries
+			 return "gain;bias_current;bridge_balance;capacitance_compensation"
+		endif
+	elseif(channelType == CHANNEL_TYPE_DAC)
+		if(clampMode == V_CLAMP_MODE || clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
+			return "gain"
+		endif
+	endif
+
+	return ""
+End
