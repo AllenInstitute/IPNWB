@@ -203,6 +203,13 @@ threadsafe Function IsTextWave(wv)
 	return WaveType(wv, 1) == 2
 End
 
+/// @brief Return 1 if the wave is a numeric wave, zero otherwise
+threadsafe Function IsNumericWave(wv)
+	WAVE wv
+
+	return WaveType(wv, 1) == 1
+End
+
 /// @brief Read a text dataset as text wave, return a single element
 ///        wave with #PLACEHOLDER if it does not exist.
 ///
@@ -259,7 +266,7 @@ Function ReadDataSetAsNumber(locationID, name)
 	endif
 
 	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(WaveType(wv, 1) == 1, "Expected a numeric wave")
+	ASSERT(IsNumericWave(wv), "Expected a numeric wave")
 
 	return wv[0]
 End
