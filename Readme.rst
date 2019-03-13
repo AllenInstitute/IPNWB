@@ -110,30 +110,12 @@ Example of reading from NWB
 
 .. code-block:: igorpro
 
-    Function PrintTimeSeriesProperties(groupID, elem)
-      variable groupID
-      string elem
-
-      string electrode_name
-      variable gain, scale, num_samples, starting_time
-
-      groupID = IPNWB#H5_OpenGroup(groupID, elem)
-
-      electrode_name = IPNWB#ReadTextDataSetAsString(groupID, "electrode_name")
-      gain           = IPNWB#ReadDataSetAsNumber(groupID, "gain")
-      scale          = IPNWB#ReadDataSetAsNumber(groupID, "scale")
-      num_samples    = IPNWB#ReadDataSetAsNumber(groupID, "num_samples")
-      starting_time  = IPNWB#ReadDataSetAsNumber(groupID, "starting_time")
-
-      printf "%s: Electrode %s, Gain %06g, Scale %06g, ", elem, electrode_name, gain, scale
-      printf "Number of samples % 9d, Starting time %g\r", num_samples, starting_time
-    End
-
     Function NWBReaderExample()
 
       variable fileID, groupID, integrityCheck, numChannels, i
       string contents, device, listOfDevices, elem, list
       STRUCT IPNWB#ReadChannelParams p
+      STRUCT IPNWB#TimeSeriesProperties tsp
 
       // Open a dialog for selecting an HDF5 file name
       fileID = IPNWB#H5_OpenFile("c:\\NWB-Sample-20160216.nwb")
@@ -160,7 +142,8 @@ Example of reading from NWB
         WAVE wv = IPNWB#LoadDataWave(groupID, elem)
         Duplicate/O wv, $elem
 
-        PrintTimeSeriesProperties(groupID, elem)
+        IPWN#ReadTimeSeriesProperties(groupID, elem, tsp)
+        print tsp
       endfor
 
       HDF5CloseGroup groupID
@@ -180,7 +163,8 @@ Example of reading from NWB
         WAVE wv = IPNWB#LoadDataWave(groupID, elem)
         Duplicate/O wv, $elem
 
-        PrintTimeSeriesProperties(groupID, elem)
+        IPWN#ReadTimeSeriesProperties(groupID, elem, tsp)
+        print tsp
       endfor
 
       HDF5CloseGroup groupID

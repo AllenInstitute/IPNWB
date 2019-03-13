@@ -1,5 +1,5 @@
 #pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3		// Use modern global access method and strict wave access.
+#pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
 #pragma IndependentModule=IPNWB
 #pragma version=0.18
@@ -17,6 +17,16 @@ Function IsFinite(var)
 	variable var
 
 	return numType(var) == 0
+End
+
+/// @brief Returns 1 if var is a NaN, 0 otherwise
+///
+/// @hidecallgraph
+/// @hidecallergraph
+threadsafe Function IsNaN(var)
+	variable var
+
+	return numType(var) == 2
 End
 
 /// @brief Returns 1 if str is null, 0 otherwise
@@ -193,6 +203,93 @@ threadsafe Function IsTextWave(wv)
 	return WaveType(wv, 1) == 2
 End
 
+/// @brief Return 1 if the wave is a numeric wave, zero otherwise
+threadsafe Function IsNumericWave(wv)
+	WAVE wv
+
+	return WaveType(wv, 1) == 1
+End
+
+/// @brief Read a text attribute as semicolon `;` separated list
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  name       Name of the attribute to load
+Function/S ReadTextAttributeAsList(locationID, path, name)
+	variable locationID
+	string path, name
+
+	return TextWaveToList(ReadTextAttribute(locationID, path, name), ";")
+End
+
+/// @brief Read a text attribute as text wave, return a single element
+///        wave with #PLACEHOLDER if it does not exist.
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  name       Name of the attribute to load
+Function/WAVE ReadTextAttribute(locationID, path, name)
+	variable locationID
+	string path, name
+
+	WAVE/T/Z wv = H5_LoadAttribute(locationID, path, name)
+
+	if(!WaveExists(wv))
+		Make/FREE/T/N=1 wv = PLACEHOLDER
+		return wv
+	endif
+
+	ASSERT(IsTextWave(wv), "Expected a text wave")
+
+	return wv
+End
+
+/// @brief Read a text attribute as string, return #PLACEHOLDER if it does not exist
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  name       Name of the attribute to load
+Function/S ReadTextAttributeAsString(locationID, path, name)
+	variable locationID
+	string path, name
+
+	WAVE/T/Z wv = H5_LoadAttribute(locationID, path, name)
+
+	if(!WaveExists(wv))
+		return PLACEHOLDER
+	endif
+
+	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT(IsTextWave(wv), "Expected a text wave")
+
+	return wv[0]
+End
+
+/// @brief Read a text attribute as number, return `NaN` if it does not exist
+///
+/// @param[in]  locationID HDF5 identifier, can be a file or group
+/// @param[in]  path       Additional path on top of `locationID` which identifies
+///                        the group or dataset
+/// @param[in]  name       Name of the attribute to load
+Function ReadAttributeAsNumber(locationID, path, name)
+	variable locationID
+	string path, name
+
+	WAVE/Z wv = H5_LoadAttribute(locationID, path, name)
+
+	if(!WaveExists(wv))
+		return NaN
+	endif
+
+	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT(IsNumericWave(wv), "Expected a text wave")
+
+	return wv[0]
+End
+
 /// @brief Read a text dataset as text wave, return a single element
 ///        wave with #PLACEHOLDER if it does not exist.
 ///
@@ -249,7 +346,7 @@ Function ReadDataSetAsNumber(locationID, name)
 	endif
 
 	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(WaveType(wv, 1) == 1, "Expected a numeric wave")
+	ASSERT(IsNumericWave(wv), "Expected a numeric wave")
 
 	return wv[0]
 End
@@ -457,4 +554,95 @@ Function ParseISO8601TimeStamp(timestamp)
 	endif
 
 	return secondsSinceEpoch
+End
+
+/// @brief Convert a text wave to string list
+Function/S TextWaveToList(txtWave, sep)
+	WAVE/T txtWave
+	string sep
+
+	string list = ""
+	variable i, numRows
+
+	ASSERT(IsTextWave(txtWave), "Expected a text wave")
+	ASSERT(DimSize(txtWave, COLS) == 0, "Expected a 1D wave")
+
+	numRows = DimSize(txtWave, ROWS)
+	for(i = 0; i < numRows; i += 1)
+		list = AddListItem(txtWave[i], list, sep, Inf)
+	endfor
+
+	return list
+End
+
+/// @brief Return the initial values for the missing_fields attribute depending
+///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp mode.
+Function/S GetTimeSeriesMissingFields(channelType, clampMode)
+	variable channelType, clampMode
+
+	if(channelType == CHANNEL_TYPE_ADC)
+		if(clampMode == V_CLAMP_MODE)
+			// VoltageClampSeries
+			 return "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
+		elseif(clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
+			// CurrentClampSeries
+			 return "gain;bias_current;bridge_balance;capacitance_compensation"
+		endif
+	elseif(channelType == CHANNEL_TYPE_DAC)
+		if(clampMode == V_CLAMP_MODE || clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
+			return "gain"
+		endif
+	endif
+
+	return ""
+End
+
+/// @brief Derive the clamp mode from the `ancestry` attribute and return it
+///
+/// @param ancestry Contents of ancestry attribute
+Function GetClampModeFromAncestry(ancestry)
+	string ancestry
+
+	ancestry = RemoveEnding(ancestry, ";")
+
+	strswitch(ancestry)
+		case "TimeSeries;PatchClampSeries;VoltageClampSeries":
+		case "TimeSeries;PatchClampSeries;VoltageClampStimulusSeries":
+			return V_CLAMP_MODE
+		case "TimeSeries;PatchClampSeries;CurrentClampSeries":
+		case "TimeSeries;PatchClampSeries;CurrentClampStimulusSeries":
+			return I_CLAMP_MODE
+		case "TimeSeries;PatchClampSeries;CurrentClampSeries;IZeroClampSeries":
+			return I_EQUAL_ZERO_MODE
+		case "TimeSeries": // unassociated channel data
+			return NaN
+		default:
+			ASSERT(0, "Unknown ancestry: " + ancestry)
+			break
+	endswitch
+End
+
+/// @brief Derive the channel type, one of @ref IPNWB_ChannelTypes, from the
+///        `ancestry` attribute and return it
+///
+/// @param ancestry Contents of ancestry attribute
+Function GetChannelTypeFromAncestry(ancestry)
+	string ancestry
+
+	ancestry = RemoveEnding(ancestry, ";")
+
+	strswitch(ancestry)
+		case "TimeSeries;PatchClampSeries;VoltageClampSeries":
+		case "TimeSeries;PatchClampSeries;CurrentClampSeries":
+		case "TimeSeries;PatchClampSeries;CurrentClampSeries;IZeroClampSeries":
+			return CHANNEL_TYPE_ADC
+		case "TimeSeries;PatchClampSeries;VoltageClampStimulusSeries":
+		case "TimeSeries;PatchClampSeries;CurrentClampStimulusSeries":
+			return CHANNEL_TYPE_DAC
+		case "TimeSeries": // unassociated channel
+			return CHANNEL_TYPE_OTHER
+		default:
+			ASSERT(0, "Unknown ancestry: " + ancestry)
+			break
+	endswitch
 End

@@ -1,5 +1,5 @@
 #pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3		// Use modern global access method and strict wave access.
+#pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
 #pragma IndependentModule=IPNWB
 #pragma version=0.18
@@ -44,6 +44,20 @@ Structure ReadChannelParams
 	variable groupIndex       ///< constant for all channels in this measurement.
 	variable ttlBit           ///< unambigous ttl-channel-number
 EndStructure
+
+/// @brief Initialization routine for InitReadChannelParams
+Function InitReadChannelParams(p)
+	STRUCT ReadChannelParams &p
+
+	p.device          = ""
+	p.channelSuffix   = ""
+	p.sweep           = NaN
+	p.channelType     = NaN
+	p.channelNumber   = NaN
+	p.electrodeNumber = NaN
+	p.groupIndex      = NaN
+	p.ttlBit          = NaN
+End
 
 /// @brief Structure to hold all properties of the NWB file directly below `/general`
 Structure GeneralInfo
@@ -132,14 +146,22 @@ End
 
 /// @brief Holds class specific entries for TimeSeries objects
 ///
-/// Usage:
+/// Usage for writers
 /// @code
-/// STRUCT TimeSeriesProperties tsp
-/// InitTimeSeriesProperties(tsp, channelType, clampMode)
-/// AddProperty(tsp, "gain", 1.23456)
-/// // more calls tp AddProperty()
-/// WriteSingleChannel(locationID, path, p, tsp)
+/// 	STRUCT TimeSeriesProperties tsp
+/// 	InitTimeSeriesProperties(tsp, channelType, clampMode)
+/// 	AddProperty(tsp, "gain", 1.23456)
+/// 	// more calls tp AddProperty()
+/// 	WriteSingleChannel(locationID, path, p, tsp)
 /// @endcode
+///
+/// and for readers
+/// @code
+/// 	STRUCT TimeSeriesProperties tsp
+/// 	InitTimeSeriesProperties(tsp, channelType, clampMode)
+/// 	ReadTimeSeriesProperties(groupID, channel, tsp)
+/// @endcode
+///
 Structure TimeSeriesProperties
 	WAVE/T names
 	WAVE   data
@@ -167,20 +189,5 @@ Function InitTimeSeriesProperties(tsp, channelType, clampMode)
 	WAVE tsp.isCustom = isCustom
 
 	// AddProperty() will remove the entries on addition of values
-	if(channelType == CHANNEL_TYPE_ADC)
-		if(clampMode == V_CLAMP_MODE)
-			// VoltageClampSeries
-			 tsp.missing_fields = "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
-		elseif(clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
-			// CurrentClampSeries
-			 tsp.missing_fields = "gain;bias_current;bridge_balance;capacitance_compensation"
-		else
-			// unassociated channel
-			tsp.missing_fields = ""
-		endif
-	elseif(channelType == CHANNEL_TYPE_DAC)
-		tsp.missing_fields = "gain"
-	else
-		tsp.missing_fields = ""
-	endif
+	tsp.missing_fields = GetTimeSeriesMissingFields(channelType, clampMode)
 End

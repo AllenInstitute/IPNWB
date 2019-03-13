@@ -1,4 +1,4 @@
-#pragma rtGlobals=3		// Use modern global access method and strict wave access.
+#pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
 #pragma IndependentModule=IPNWB
 #pragma version=0.18
@@ -264,8 +264,6 @@ Function LoadSourceAttribute(locationID, channel, p)
 			default:
 		endswitch
 	endfor
-
-	KillWaves/Z wv
 End
 
 /// @brief Load data wave from specified path
@@ -423,4 +421,56 @@ Function ReadSubjectInfo(fileID, subjectInfo)
 	subjectInfo.weight      = ReadTextDataSetAsString(groupID, "weight")
 
 	HDF5CloseGroup/Z groupID
+End
+
+/// @brief Read the TimeSeries properties from the given group in locationID
+///
+/// @param[in]  locationID TimeSeries group ID
+/// @param[in]  channel    TimeSeries group name
+/// @param[out] tsp        TimeSeriesProperties structure
+Function ReadTimeSeriesProperties(locationID, channel, tsp)
+	variable locationID
+	string channel
+	STRUCT TimeSeriesProperties &tsp
+
+	variable clampMode, i, numEntries, value, channelType, groupID, idx
+	string ancestry, entry, list
+
+	ancestry = ReadTextAttributeAsList(locationID, channel, "ancestry")
+	clampMode = GetClampModeFromAncestry(ancestry)
+	channelType = GetChannelTypeFromAncestry(ancestry)
+
+	InitTimeSeriesProperties(tsp, channelType, clampMode)
+
+	groupID = IPNWB#H5_OpenGroup(locationID, channel)
+
+	list = ""
+	numEntries = ItemsInList(tsp.missing_fields)
+	for(i = 0; i < numEntries; i += 1)
+		entry = StringFromList(i, tsp.missing_fields)
+
+		value = ReadDataSetAsNumber(groupID, entry)
+		if(IsNaN(value))
+			continue
+		endif
+
+		tsp.names[idx] = entry
+		tsp.data[idx] = value
+		tsp.isCustom[idx] = 0
+
+		idx += 1
+
+		list = AddListItem(entry, list, ";", inf)
+	endfor
+
+	HDF5CloseGroup/Z groupID
+
+	Redimension/N=(idx) tsp.names, tsp.data, tsp.isCustom
+
+	tsp.missing_fields = RemoveFromList(list, tsp.missing_fields)
+
+	if(strlen(tsp.missing_fields) > 0)
+		// unify list formatting to end with ;
+		tsp.missing_fields = RemoveEnding(tsp.missing_fields, ";") + ";"
+	endif
 End
