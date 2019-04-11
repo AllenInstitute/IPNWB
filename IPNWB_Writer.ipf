@@ -14,7 +14,7 @@
 /// @param toplevelInfo [optional, see ToplevelInfo() for defaults] datasets directly below `/`
 /// @param generalInfo [optional, see GeneralInfo() for defaults]   datasets directly below `/general`
 /// @param subjectInfo [optional, see SubjectInfo() for defaults]   datasets below `/general/subject`
-Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, subjectInfo])
+threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, subjectInfo])
 	variable locationID
 	STRUCT ToplevelInfo &toplevelInfo
 	STRUCT GeneralInfo &generalInfo
@@ -102,7 +102,7 @@ End
 ///
 /// @param locationID                                    HDF5 identifier
 /// @param filtering [optional, defaults to PLACEHOLDER] filtering information
-Function CreateIntraCellularEphys(locationID, [filtering])
+threadsafe Function CreateIntraCellularEphys(locationID, [filtering])
 	variable locationID
 	string filtering
 
@@ -118,7 +118,7 @@ Function CreateIntraCellularEphys(locationID, [filtering])
 End
 
 /// @brief Add an entry for the device `name` with contents `data`
-Function AddDevice(locationID, name, data)
+threadsafe Function AddDevice(locationID, name, data)
 	variable locationID
 	string name, data
 
@@ -129,7 +129,7 @@ Function AddDevice(locationID, name, data)
 End
 
 /// @brief Add an entry for the electrode `name` with contents `data`
-Function AddElectrode(locationID, name, data, device)
+threadsafe Function AddElectrode(locationID, name, data, device)
 	variable locationID
 	string name, data, device
 
@@ -147,7 +147,7 @@ Function AddElectrode(locationID, name, data, device)
 End
 
 /// @brief Add a modification timestamp to the NWB file
-Function AddModificationTimeEntry(locationID)
+threadsafe Function AddModificationTimeEntry(locationID)
 	variable locationID
 
 	Make/FREE/T/N=1 data = GetISO8601TimeStamp()
@@ -167,7 +167,7 @@ End
 ///
 /// @param locationID HDF5 identifier
 /// @param name       dataset or group name
-Function MarkAsCustomEntry(locationID, name)
+threadsafe Function MarkAsCustomEntry(locationID, name)
 	variable locationID
 	string name
 
@@ -181,7 +181,7 @@ End
 /// @param unitWithPrefix                                        unit with optional prefix of the data in the TimeSeries, @see ParseUnit
 /// @param resolution [optional, defaults to `NaN` for unknown]  experimental resolution
 /// @param overwrite [optional, defaults to false] 				 should existing attributes be overwritten
-Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPrefix, [resolution, overwrite])
+threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPrefix, [resolution, overwrite])
 	variable locationID
 	string fullAbsPath, unitWithPrefix
 	variable resolution, overwrite
@@ -208,7 +208,7 @@ Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPrefix, [resol
 End
 
 /// @brief Add a TimeSeries property to the `names` and `data` waves and removes it from `missing_fields` list
-Function AddProperty(tsp, nwbProp, value)
+threadsafe Function AddProperty(tsp, nwbProp, value)
 	STRUCT TimeSeriesProperties &tsp
 	string nwbProp
 	variable value
@@ -228,7 +228,7 @@ Function AddProperty(tsp, nwbProp, value)
 End
 
 /// @brief Add a custom TimeSeries property to the `names` and `data` waves
-Function AddCustomProperty(tsp, nwbProp, value)
+threadsafe Function AddCustomProperty(tsp, nwbProp, value)
 	STRUCT TimeSeriesProperties &tsp
 	string nwbProp
 	variable value
@@ -247,7 +247,7 @@ Function AddCustomProperty(tsp, nwbProp, value)
 End
 
 /// @brief Return the next free group index of the format `data_$NUM`
-Function GetNextFreeGroupIndex(locationID, path)
+threadsafe Function GetNextFreeGroupIndex(locationID, path)
 	variable locationID
 	string path
 
@@ -278,7 +278,7 @@ End
 /// @param p                                                      Filled #IPNWB::WriteChannelParams structure
 /// @param tsp                                                    Filled #IPNWB::TimeSeriesProperties structure
 /// @param compressionMode [optional, defaults to NO_COMPRESSION] Type of compression to use, one of @ref CompressionMode
-Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
+threadsafe Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
 	variable locationID
 	string path
 	STRUCT WriteChannelParams &p

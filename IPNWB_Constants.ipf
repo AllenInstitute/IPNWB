@@ -67,15 +67,15 @@ Constant MAX_OBJECT_NAME_LENGTH_IN_BYTES = 31
 ///
 /// Igor Pro does not allow cross IM access to constants
 /// @{
-Function GetNoCompression()
+threadsafe Function GetNoCompression()
 	return NO_COMPRESSION
 End
 
-Function GetChunkedCompression()
+threadsafe Function GetChunkedCompression()
 	return CHUNKED_COMPRESSION
 End
 
-Function GetSingleChunkCompression()
+threadsafe Function GetSingleChunkCompression()
 	return SINGLE_CHUNK_COMPRESSION
 End
 /// @}

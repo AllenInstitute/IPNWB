@@ -14,7 +14,7 @@ static StrConstant PATH_STIMSETS = "/general/stimsets"
 ///
 /// @param  fileID identifier of open HDF5 file
 /// @return        comma separated list of devices
-Function/S ReadDevices(fileID)
+threadsafe Function/S ReadDevices(fileID)
 	variable fileID
 
 	return RemovePrefixFromListItem("device_", H5_ListGroupMembers(fileID, "/general/devices"))
@@ -41,7 +41,7 @@ End
 ///
 /// @param  fileID identifier of open HDF5 file
 /// @return        comma separated list of channels
-Function/S ReadAcquisition(fileID)
+threadsafe Function/S ReadAcquisition(fileID)
 	variable fileID
 
 	return H5_ListGroups(fileID, "/acquisition/timeseries")
@@ -51,7 +51,7 @@ End
 ///
 /// @param  fileID identifier of open HDF5 file
 /// @return        comma separated list of channels
-Function/S ReadStimulus(fileID)
+threadsafe Function/S ReadStimulus(fileID)
 	variable fileID
 
 	return H5_ListGroups(fileID, "/stimulus/presentation")
@@ -61,7 +61,7 @@ End
 ///
 /// @param  fileID identifier of open HDF5 file
 /// @return        comma separated list of contents of the stimset group
-Function/S ReadStimsets(fileID)
+threadsafe Function/S ReadStimsets(fileID)
 	variable fileID
 
 	ASSERT_TS(H5_IsFileOpen(fileID), "ReadStimsets: given HDF5 file identifier is not valid")
@@ -79,7 +79,7 @@ End
 /// @return  True:   All checks successful
 ///          False:  Error(s) occured.
 ///                  The result of the analysis is printed to history.
-Function CheckIntegrity(fileID)
+threadsafe Function CheckIntegrity(fileID)
 	variable fileID
 
 	string deviceList, channelList
@@ -126,7 +126,7 @@ End
 /// @return  True:    All checks successful
 ///          False:   Error(s) occured.
 ///                   The result of the analysis is printed to history.
-Function CheckChannel(groupID, channel)
+threadsafe Function CheckChannel(groupID, channel)
 	variable groupID
 	string channel
 
@@ -156,7 +156,7 @@ End
 /// @return  True:       All checks successful
 ///          False:      Error(s) occured.
 ///                      The result of the analysis is printed to history.
-Function CheckChannels(groupID, channelList)
+threadsafe Function CheckChannels(groupID, channelList)
 	variable groupID
 	string channelList
 
@@ -181,7 +181,7 @@ End
 ///
 /// @param[in]  channel  Input channel name in form data_00000_TTL1_3
 /// @param[out] p        ReadChannelParams structure to get filled
-Function AnalyseChannelName(channel, p)
+threadsafe Function AnalyseChannelName(channel, p)
 	string channel
 	STRUCT ReadChannelParams &p
 
@@ -211,7 +211,7 @@ End
 /// @param[in]  locationID   HDF5 group specified channel is a member of
 /// @param[in]  channel      channel to load
 /// @param[out] p            ReadChannelParams structure to get filled
-Function LoadSourceAttribute(locationID, channel, p)
+threadsafe Function LoadSourceAttribute(locationID, channel, p)
 	variable locationID
 	string channel
 	STRUCT ReadChannelParams &p
@@ -273,7 +273,7 @@ End
 /// @param channel      name of channel for which data attribute is loaded
 /// @param path         use path to specify group inside hdf5 file where ./channel/data is located.
 /// @return             reference to free wave containing loaded data
-Function/Wave LoadDataWave(locationID, channel, [path])
+threadsafe Function/Wave LoadDataWave(locationID, channel, [path])
 	variable locationID
 	string channel, path
 
@@ -293,7 +293,7 @@ End
 /// @param locationID   id of an open hdf5 group or file
 /// @param channel      name of channel for which data attribute is loaded
 /// @return             reference to wave containing loaded data
-Function/Wave LoadTimeseries(locationID, channel)
+threadsafe Function/Wave LoadTimeseries(locationID, channel)
 	variable locationID
 	string channel
 
@@ -307,7 +307,7 @@ End
 /// @param locationID    id of an open hdf5 group or file
 /// @param channel       name of channel for which data attribute is loaded
 /// @return             reference to wave containing loaded data
-Function/Wave LoadStimulus(locationID, channel)
+threadsafe Function/Wave LoadStimulus(locationID, channel)
 	variable locationID
 	string channel
 
@@ -321,7 +321,7 @@ End
 /// @param fileID id of an open hdf5 group or file
 ///
 /// @return id of hdf5 group
-Function OpenAcquisition(fileID)
+threadsafe Function OpenAcquisition(fileID)
 	variable fileID
 
 	return H5_OpenGroup(fileID, "/acquisition/timeseries")
@@ -332,7 +332,7 @@ End
 /// @param fileID id of an open hdf5 group or file
 ///
 /// @return id of hdf5 group
-Function OpenStimulus(fileID)
+threadsafe Function OpenStimulus(fileID)
 	variable fileID
 
 	return H5_OpenGroup(fileID, "/stimulus/presentation")
@@ -343,7 +343,7 @@ End
 /// @param fileID id of an open hdf5 group or file
 ///
 /// @return id of hdf5 group
-Function OpenStimset(fileID)
+threadsafe Function OpenStimset(fileID)
 	variable fileID
 
 	ASSERT_TS(StimsetPathExists(fileID), "OpenStimset: Path is not in nwb file")
@@ -352,14 +352,14 @@ Function OpenStimset(fileID)
 End
 
 /// @brief Check if the path to the stimsets exist in the NWB file.
-Function StimsetPathExists(fileID)
+threadsafe Function StimsetPathExists(fileID)
 	variable fileID
 
 	return H5_GroupExists(fileID, PATH_STIMSETS)
 End
 
 /// @brief Read in all NWB datasets from the root group ('/')
-Function ReadTopLevelInfo(fileID, toplevelInfo)
+threadsafe Function ReadTopLevelInfo(fileID, toplevelInfo)
 	variable fileID
 	STRUCT ToplevelInfo &toplevelInfo
 
@@ -377,7 +377,7 @@ Function ReadTopLevelInfo(fileID, toplevelInfo)
 End
 
 /// @brief Read in all standard NWB datasets from the group '/general'
-Function ReadGeneralInfo(fileID, generalinfo)
+threadsafe Function ReadGeneralInfo(fileID, generalinfo)
 	variable fileID
 	STRUCT GeneralInfo &generalinfo
 
@@ -404,7 +404,7 @@ Function ReadGeneralInfo(fileID, generalinfo)
 End
 
 /// @brief Read in all NWB datasets from the root group '/general/subject'
-Function ReadSubjectInfo(fileID, subjectInfo)
+threadsafe Function ReadSubjectInfo(fileID, subjectInfo)
 	variable fileID
 	STRUCT SubjectInfo &subjectInfo
 
@@ -428,7 +428,7 @@ End
 /// @param[in]  locationID TimeSeries group ID
 /// @param[in]  channel    TimeSeries group name
 /// @param[out] tsp        TimeSeriesProperties structure
-Function ReadTimeSeriesProperties(locationID, channel, tsp)
+threadsafe Function ReadTimeSeriesProperties(locationID, channel, tsp)
 	variable locationID
 	string channel
 	STRUCT TimeSeriesProperties &tsp

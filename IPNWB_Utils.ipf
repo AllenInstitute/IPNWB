@@ -13,7 +13,7 @@
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-Function IsFinite(var)
+threadsafe Function IsFinite(var)
 	variable var
 
 	return numType(var) == 0
@@ -34,7 +34,7 @@ End
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-Function isNull(str)
+threadsafe Function isNull(str)
 	string& str
 
 	variable len = strlen(str)
@@ -46,7 +46,7 @@ End
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-Function isEmpty(str)
+threadsafe Function isEmpty(str)
 	string& str
 
 	variable len = strlen(str)
@@ -54,12 +54,12 @@ Function isEmpty(str)
 End
 
 /// @brief Return the seconds since Igor Pro epoch (1/1/1904) in UTC time zone
-Function DateTimeInUTC()
+threadsafe Function DateTimeInUTC()
 	return DateTime - date2secs(-1, -1, -1)
 End
 
 /// @brief Returns one if var is an integer and zero otherwise
-Function IsInteger(var)
+threadsafe Function IsInteger(var)
 	variable var
 
 	return IsFinite(var) && trunc(var) == var
@@ -69,7 +69,7 @@ End
 ///
 /// @param secondsSinceIgorEpoch [optional, defaults to number of seconds until now] Seconds since the Igor Pro epoch (1/1/1904) in UTC
 /// @param numFracSecondsDigits  [optional, defaults to zero] Number of sub-second digits
-Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits])
+threadsafe Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits])
 	variable secondsSinceIgorEpoch, numFracSecondsDigits
 
 	string str
@@ -132,7 +132,7 @@ End
 /// \endrst
 ///
 /// [1]: 8th edition of the SI Brochure (2014), http://www.bipm.org/en/publications/si-brochure
-Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
+threadsafe Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 	string unitWithPrefix
 	string &prefix
 	variable &numPrefix
@@ -157,7 +157,7 @@ End
 /// @brief Return the numerical value of a SI decimal multiplier
 ///
 /// @see ParseUnit
-Function GetDecimalMultiplierValue(prefix)
+threadsafe Function GetDecimalMultiplierValue(prefix)
 	string prefix
 
 	if(isEmpty(prefix))
@@ -180,7 +180,7 @@ End
 /// @param name                                                     Name of the HDF5 dataset
 /// @param str                                                      Contents to write into the dataset
 /// @param compressionMode [optional, defaults to #NO_COMPRESSION]  Type of compression to use, one of @ref CompressionMode
-Function WriteTextDatasetIfSet(locationID, name, str, [compressionMode])
+threadsafe Function WriteTextDatasetIfSet(locationID, name, str, [compressionMode])
 	variable locationID
 	string name, str
 	variable compressionMode
@@ -216,7 +216,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-Function/S ReadTextAttributeAsList(locationID, path, name)
+threadsafe Function/S ReadTextAttributeAsList(locationID, path, name)
 	variable locationID
 	string path, name
 
@@ -230,7 +230,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-Function/WAVE ReadTextAttribute(locationID, path, name)
+threadsafe Function/WAVE ReadTextAttribute(locationID, path, name)
 	variable locationID
 	string path, name
 
@@ -252,7 +252,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-Function/S ReadTextAttributeAsString(locationID, path, name)
+threadsafe Function/S ReadTextAttributeAsString(locationID, path, name)
 	variable locationID
 	string path, name
 
@@ -274,7 +274,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-Function ReadAttributeAsNumber(locationID, path, name)
+threadsafe Function ReadAttributeAsNumber(locationID, path, name)
 	variable locationID
 	string path, name
 
@@ -295,7 +295,7 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name    Name of the HDF5 dataset
-Function/WAVE ReadTextDataSet(locationID, name)
+threadsafe Function/WAVE ReadTextDataSet(locationID, name)
 	variable locationID
 	string name
 
@@ -315,7 +315,7 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name       Name of the HDF5 dataset
-Function/S ReadTextDataSetAsString(locationID, name)
+threadsafe Function/S ReadTextDataSetAsString(locationID, name)
 	variable locationID
 	string name
 
@@ -335,7 +335,7 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name       Name of the HDF5 dataset
-Function ReadDataSetAsNumber(locationID, name)
+threadsafe Function ReadDataSetAsNumber(locationID, name)
 	variable locationID
 	string name
 
@@ -347,13 +347,12 @@ Function ReadDataSetAsNumber(locationID, name)
 
 	ASSERT_TS(DimSize(wv, ROWS) == 1, "Expected exactly one row")
 	ASSERT_TS(IsNumericWave(wv), "Expected a numeric wave")
-
 	return wv[0]
 End
 
 /// @brief Remove a string prefix from each list item and
 /// return the new list
-Function/S RemovePrefixFromListItem(prefix, list, [listSep])
+threadsafe Function/S RemovePrefixFromListItem(prefix, list, [listSep])
 	string prefix, list
 	string listSep
 	if(ParamIsDefault(listSep))
@@ -378,7 +377,7 @@ Function/S RemovePrefixFromListItem(prefix, list, [listSep])
 End
 
 /// @brief Turn a persistent wave into a free wave
-Function/Wave MakeWaveFree(wv)
+threadsafe Function/Wave MakeWaveFree(wv)
 	WAVE wv
 
 	DFREF dfr = NewFreeDataFolder()
@@ -394,7 +393,7 @@ End
 ///
 /// @param dfr 	    datafolder reference where the new datafolder should be created
 /// @param baseName first part of the wave name, might be shorted due to Igor Pro limitations
-Function/S UniqueWaveName(dfr, baseName)
+threadsafe Function/S UniqueWaveName(dfr, baseName)
 	dfref dfr
 	string baseName
 
@@ -431,7 +430,7 @@ End
 /// Unlike DataFolderExists() a dfref pointing to an empty ("") dataFolder is considered non-existing here.
 /// @returns one if dfr is valid and references an existing or free datafolder, zero otherwise
 /// Taken from http://www.igorexchange.com/node/2055
-Function DataFolderExistsDFR(dfr)
+threadsafe Function DataFolderExistsDFR(dfr)
 	dfref dfr
 
 	string dataFolder
@@ -457,7 +456,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-Function/S GetBaseName(filePathWithSuffix, [sep])
+threadsafe Function/S GetBaseName(filePathWithSuffix, [sep])
 	string filePathWithSuffix, sep
 
 	if(ParamIsDefault(sep))
@@ -474,7 +473,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-Function/S GetFileSuffix(filePathWithSuffix, [sep])
+threadsafe Function/S GetFileSuffix(filePathWithSuffix, [sep])
 	string filePathWithSuffix, sep
 
 	if(ParamIsDefault(sep))
@@ -491,7 +490,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-Function/S GetFolder(filePathWithSuffix, [sep])
+threadsafe Function/S GetFolder(filePathWithSuffix, [sep])
 	string filePathWithSuffix, sep
 
 	if(ParamIsDefault(sep))
@@ -508,7 +507,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-Function/S GetFile(filePathWithSuffix, [sep])
+threadsafe Function/S GetFile(filePathWithSuffix, [sep])
 	string filePathWithSuffix, sep
 
 	if(ParamIsDefault(sep))
@@ -526,7 +525,7 @@ End
 /// - ` `/`T` between date and time
 /// - fractional seconds
 /// - `,`/`.` as decimal separator
-Function ParseISO8601TimeStamp(timestamp)
+threadsafe Function ParseISO8601TimeStamp(timestamp)
 	string timestamp
 
 	string year, month, day, hour, minute, second, regexp, fracSeconds
@@ -551,7 +550,7 @@ Function ParseISO8601TimeStamp(timestamp)
 End
 
 /// @brief Convert a text wave to string list
-Function/S TextWaveToList(txtWave, sep)
+threadsafe Function/S TextWaveToList(txtWave, sep)
 	WAVE/T txtWave
 	string sep
 
@@ -571,7 +570,7 @@ End
 
 /// @brief Return the initial values for the missing_fields attribute depending
 ///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp mode.
-Function/S GetTimeSeriesMissingFields(channelType, clampMode)
+threadsafe Function/S GetTimeSeriesMissingFields(channelType, clampMode)
 	variable channelType, clampMode
 
 	if(channelType == CHANNEL_TYPE_ADC)
@@ -594,7 +593,7 @@ End
 /// @brief Derive the clamp mode from the `ancestry` attribute and return it
 ///
 /// @param ancestry Contents of ancestry attribute
-Function GetClampModeFromAncestry(ancestry)
+threadsafe Function GetClampModeFromAncestry(ancestry)
 	string ancestry
 
 	ancestry = RemoveEnding(ancestry, ";")
@@ -620,7 +619,7 @@ End
 ///        `ancestry` attribute and return it
 ///
 /// @param ancestry Contents of ancestry attribute
-Function GetChannelTypeFromAncestry(ancestry)
+threadsafe Function GetChannelTypeFromAncestry(ancestry)
 	string ancestry
 
 	ancestry = RemoveEnding(ancestry, ";")

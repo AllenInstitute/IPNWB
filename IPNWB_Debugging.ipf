@@ -63,7 +63,7 @@ static StrConstant functionReturnMessage = "return value"
 ///
 ///@param var     numerical argument for debug output
 ///@param format  optional format string to override the default of "%g"
-Function DEBUGPRINTv(var, [format])
+threadsafe Function DEBUGPRINTv(var, [format])
 	variable var
 	string format
 
@@ -96,7 +96,7 @@ End
 ///
 ///@param str     string argument for debug output
 ///@param format  optional format string to override the default of "%s"
-Function/s DEBUGPRINTs(str, [format])
+threadsafe Function/s DEBUGPRINTs(str, [format])
 	string str, format
 
 	if(ParamIsDefault(format))
@@ -179,14 +179,14 @@ End
 /// // part two to benchmark
 /// DEBUGPRINT_ELAPSED(referenceTime)
 /// @endcode
-Function DEBUG_TIMER_START()
+threadsafe Function DEBUG_TIMER_START()
 
 	return stopmstimer(-2)
 End
 
 /// @brief Print the elapsed time for performance measurements
 /// @see DEBUG_TIMER_START()
-Function DEBUGPRINT_ELAPSED(referenceTime)
+threadsafe Function DEBUGPRINT_ELAPSED(referenceTime)
 	variable referenceTime
 
 	DEBUGPRINT("timestamp: ", var=(stopmstimer(-2) - referenceTime) / 1e6)
@@ -194,7 +194,7 @@ End
 
 #else
 
-Function DEBUGPRINTv(var, [format])
+threadsafe Function DEBUGPRINTv(var, [format])
 	variable var
 	string format
 
@@ -203,7 +203,7 @@ Function DEBUGPRINTv(var, [format])
 	return var
 End
 
-Function/s DEBUGPRINTs(str, [format])
+threadsafe Function/s DEBUGPRINTs(str, [format])
 	string str, format
 
 	// do nothing
@@ -211,7 +211,7 @@ Function/s DEBUGPRINTs(str, [format])
 	return str
 End
 
-Function DEBUGPRINT(msg, [var, str, format])
+threadsafe Function DEBUGPRINT(msg, [var, str, format])
 	string msg
 	variable var
 	string str, format
@@ -219,11 +219,11 @@ Function DEBUGPRINT(msg, [var, str, format])
 	// do nothing
 End
 
-Function DEBUG_TIMER_START()
+threadsafe Function DEBUG_TIMER_START()
 
 End
 
-Function DEBUGPRINT_ELAPSED(referenceTime)
+threadsafe Function DEBUGPRINT_ELAPSED(referenceTime)
 	variable referenceTime
 End
 
