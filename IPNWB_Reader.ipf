@@ -355,7 +355,7 @@ End
 Function StimsetPathExists(fileID)
 	variable fileID
 
-	return IPNWB#H5_GroupExists(fileID, PATH_STIMSETS)
+	return H5_GroupExists(fileID, PATH_STIMSETS)
 End
 
 /// @brief Read in all NWB datasets from the root group ('/')
@@ -442,7 +442,7 @@ Function ReadTimeSeriesProperties(locationID, channel, tsp)
 
 	InitTimeSeriesProperties(tsp, channelType, clampMode)
 
-	groupID = IPNWB#H5_OpenGroup(locationID, channel)
+	groupID = H5_OpenGroup(locationID, channel)
 
 	list = ""
 	numEntries = ItemsInList(tsp.missing_fields)
