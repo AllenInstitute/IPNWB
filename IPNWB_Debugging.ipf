@@ -240,3 +240,25 @@ Function DisableDebugMode()
 	Execute/P/Q "SetIgorOption poundUnDefine=DEBUGGING_ENABLED"
 	Execute/P/Q "COMPILEPROCEDURES "
 End
+
+// injected via script functionprofiling.sh
+Function DEBUG_STOREFUNCTION()
+	string funcName = GetRTStackInfo(2)
+	string callchain = GetRTStackInfo(0)
+	string caller = StringFromList(0, callchain)
+
+	WAVE/Z wv = root:IPNWB_functionids
+	if(!WaveExists(wv))
+		WAVE/T functionids = ListToTextWave(FunctionList("*", ";", "KIND:18,WIN:[IPNWB]"), ";")
+		Duplicate functionids root:IPNWB_functionids/WAVE=wv
+	endif
+	WAVE/Z count = root:IPNWB_functioncount
+	if(!WaveExists(count))
+		Make/U/L/N=(DimSize(wv, 0)) root:IPNWB_functioncount = 0
+		WAVE count = root:functioncount
+	endif
+	FindValue/TEXT=(funcName) wv
+	if(V_Value != -1)
+		count[V_Value] += 1
+	endif
+End
