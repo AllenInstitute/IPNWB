@@ -69,22 +69,39 @@ End
 ///
 /// @param secondsSinceIgorEpoch [optional, defaults to number of seconds until now] Seconds since the Igor Pro epoch (1/1/1904) in UTC
 /// @param numFracSecondsDigits  [optional, defaults to zero] Number of sub-second digits
-threadsafe Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits])
-	variable secondsSinceIgorEpoch, numFracSecondsDigits
+/// @param localTimeZone         [optional, defaults to false] Use the local time zone instead of UTC
+threadsafe Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits, localTimeZone])
+	variable secondsSinceIgorEpoch, numFracSecondsDigits, localTimeZone
 
 	string str
+	variable timezone
+
+	if(ParamIsDefault(localTimeZone))
+		localTimeZone = 0
+	else
+		localTimeZone = !!localTimeZone
+	endif
 
 	if(ParamIsDefault(numFracSecondsDigits))
 		numFracSecondsDigits = 0
 	else
-		ASSERT_TS(IsInteger(numFracSecondsDigits) && numFracSecondsDigits >= 0, "GetISO8601TimeStamp: Invalid value for numFracSecondsDigits")
+		ASSERT_TS(IsInteger(numFracSecondsDigits) && numFracSecondsDigits >= 0, "Invalid value for numFracSecondsDigits")
 	endif
 
 	if(ParamIsDefault(secondsSinceIgorEpoch))
-		secondsSinceIgorEpoch = DateTimeInUTC()
+		if(localTimeZone)
+			secondsSinceIgorEpoch = DateTime
+		else
+			secondsSinceIgorEpoch = DateTimeInUTC()
+		endif
 	endif
 
-	sprintf str, "%sT%sZ", Secs2Date(secondsSinceIgorEpoch, -2), Secs2Time(secondsSinceIgorEpoch, 3, numFracSecondsDigits)
+	if(localTimeZone)
+		timezone = Date2Secs(-1,-1,-1)
+		sprintf str, "%sT%s%+03d:%02d", Secs2Date(secondsSinceIgorEpoch, -2), Secs2Time(secondsSinceIgorEpoch, 3, numFracSecondsDigits), trunc(timezone / 3600), abs(mod(timezone / 60, 60))
+	else
+		sprintf str, "%sT%sZ", Secs2Date(secondsSinceIgorEpoch, -2), Secs2Time(secondsSinceIgorEpoch, 3, numFracSecondsDigits)
+	endif
 
 	return str
 End
@@ -528,11 +545,11 @@ End
 threadsafe Function ParseISO8601TimeStamp(timestamp)
 	string timestamp
 
-	string year, month, day, hour, minute, second, regexp, fracSeconds
+	string year, month, day, hour, minute, second, regexp, fracSeconds, tzOffsetHour, tzOffsetMinute
 	variable secondsSinceEpoch
 
-	regexp = "^([[:digit:]]+)-([[:digit:]]+)-([[:digit:]]+)[T ]{1}([[:digit:]]+):([[:digit:]]+):([[:digit:]]+)([.,][[:digit:]]+)?Z?$"
-	SplitString/E=regexp timestamp, year, month, day, hour, minute, second, fracSeconds
+	regexp = "^([[:digit:]]+)-([[:digit:]]+)-([[:digit:]]+)[T ]{1}([[:digit:]]+):([[:digit:]]+):([[:digit:]]+)([.,][[:digit:]]+)?(?:Z|\+([[:digit:]]+):([[:digit:]]+))?$"
+	SplitString/E=regexp timestamp, year, month, day, hour, minute, second, fracSeconds, tzOffsetHour , tzOffsetMinute
 
 	if(V_flag < 6)
 		return NaN
@@ -540,7 +557,13 @@ threadsafe Function ParseISO8601TimeStamp(timestamp)
 
 	secondsSinceEpoch  = date2secs(str2num(year), str2num(month), str2num(day))          // date
 	secondsSinceEpoch += 60 * 60* str2num(hour) + 60 * str2num(minute) + str2num(second) // time
-	// timetstamp is in UTC so we don't need to add/subtract anything
+
+	if(!IsEmpty(tzOffsetHour))
+		secondsSinceEpoch += Date2Secs(-1,-1,-1) - str2num(tzOffsetHour) * 3600
+		if(!IsEmpty(tzOffsetMinute))
+			secondsSinceEpoch -= str2num(tzOffsetMinute) * 60
+		endif
+	endif
 
 	if(!IsEmpty(fracSeconds))
 		secondsSinceEpoch += str2num(ReplaceString(",", fracSeconds, "."))
@@ -569,73 +592,213 @@ threadsafe Function/S TextWaveToList(txtWave, sep)
 End
 
 /// @brief Return the initial values for the missing_fields attribute depending
-///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp mode.
+///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp
+///        mode, one in @ref IPNWB_ClampModes.
 threadsafe Function/S GetTimeSeriesMissingFields(channelType, clampMode)
 	variable channelType, clampMode
 
-	if(channelType == CHANNEL_TYPE_ADC)
-		if(clampMode == V_CLAMP_MODE)
-			// VoltageClampSeries
-			 return "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
-		elseif(clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
-			// CurrentClampSeries
-			 return "gain;bias_current;bridge_balance;capacitance_compensation"
-		endif
-	elseif(channelType == CHANNEL_TYPE_DAC)
-		if(clampMode == V_CLAMP_MODE || clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
+	string neurodata_type = DetermineDataTypeFromProperties(channelType, clampMode)
+
+	strswitch(neurodata_type)
+		case "VoltageClampSeries":
+			return "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
+		case "CurrentClampSeries":
+			return "gain;bias_current;bridge_balance;capacitance_compensation"
+		case "VoltageClampStimulusSeries":
+		case "CurrentClampStimulusSeries":
+		case "IZeroClampSeries":
 			return "gain"
-		endif
-	endif
-
-	return ""
-End
-
-/// @brief Derive the clamp mode from the `ancestry` attribute and return it
-///
-/// @param ancestry Contents of ancestry attribute
-threadsafe Function GetClampModeFromAncestry(ancestry)
-	string ancestry
-
-	ancestry = RemoveEnding(ancestry, ";")
-
-	strswitch(ancestry)
-		case "TimeSeries;PatchClampSeries;VoltageClampSeries":
-		case "TimeSeries;PatchClampSeries;VoltageClampStimulusSeries":
-			return V_CLAMP_MODE
-		case "TimeSeries;PatchClampSeries;CurrentClampSeries":
-		case "TimeSeries;PatchClampSeries;CurrentClampStimulusSeries":
-			return I_CLAMP_MODE
-		case "TimeSeries;PatchClampSeries;CurrentClampSeries;IZeroClampSeries":
-			return I_EQUAL_ZERO_MODE
 		case "TimeSeries": // unassociated channel data
-			return NaN
 		default:
-			ASSERT_TS(0, "Unknown ancestry: " + ancestry)
-			break
+			return ""
 	endswitch
 End
 
 /// @brief Derive the channel type, one of @ref IPNWB_ChannelTypes, from the
-///        `ancestry` attribute and return it
+///        `neurodata_type` attribute and return it
 ///
-/// @param ancestry Contents of ancestry attribute
-threadsafe Function GetChannelTypeFromAncestry(ancestry)
-	string ancestry
+/// @param neurodata_type string with neurodata type specification defined in
+///                       `nwb.icephys.json`_
+threadsafe Function GetChannelTypeFromNeurodataType(neurodata_type)
+	string neurodata_type
 
-	ancestry = RemoveEnding(ancestry, ";")
-
-	strswitch(ancestry)
-		case "TimeSeries;PatchClampSeries;VoltageClampSeries":
-		case "TimeSeries;PatchClampSeries;CurrentClampSeries":
-		case "TimeSeries;PatchClampSeries;CurrentClampSeries;IZeroClampSeries":
+	strswitch(neurodata_type)
+		case "VoltageClampSeries":
+		case "CurrentClampSeries":
+		case "IZeroClampSeries":
 			return CHANNEL_TYPE_ADC
-		case "TimeSeries;PatchClampSeries;VoltageClampStimulusSeries":
-		case "TimeSeries;PatchClampSeries;CurrentClampStimulusSeries":
+		case "VoltageClampStimulusSeries":
+		case "CurrentClampStimulusSeries":
 			return CHANNEL_TYPE_DAC
-		case "TimeSeries": // unassociated channel
+		case "TimeSeries": // unassociated channel data
 			return CHANNEL_TYPE_OTHER
 		default:
-			ASSERT_TS(0, "Unknown ancestry: " + ancestry)
+			ASSERT_TS(0, "Unknown neurodata_type: " + neurodata_type)
 			break
 	endswitch
+
+End
+
+/// @brief Derive the clamp mode from the `neurodata_type` attribute and return
+///        it
+///
+/// @param neurodata_type string with neurodata type specification defined in
+///                       `nwb.icephys.json`_
+threadsafe Function GetClampModeFromNeurodataType(neurodata_type)
+	string neurodata_type
+
+	strswitch(neurodata_type)
+		case "VoltageClampSeries":
+		case "VoltageClampStimulusSeries":
+			return V_CLAMP_MODE
+		case "CurrentClampSeries":
+		case "CurrentClampStimulusSeries":
+			return I_CLAMP_MODE
+		case "IZeroClampSeries":
+			return I_EQUAL_ZERO_MODE
+		case "TimeSeries": // unassociated channel data
+			return NaN
+		default:
+			ASSERT_TS(0, "Unknown data type: " + neurodata_type)
+			break
+	endswitch
+End
+
+/// @brief Determine the neurodata type based on channel type and clamp mode
+///
+/// @see GetClampModeFromNeurodataType
+///
+/// @param channelType  one in @see IPNWB_ChannelTypes
+/// @param clampMode    one in @see IPNWB_ClampModes
+///
+/// @return neurodata_type string with neurodata type specification defined in
+///         `nwb.icephys.json`_
+threadsafe Function/S DetermineDataTypeFromProperties(channelType, clampMode)
+	variable channelType, clampMode
+
+	switch(channelType)
+		case CHANNEL_TYPE_ADC:
+			switch(clampMode)
+				case V_CLAMP_MODE:
+					return "VoltageClampSeries"
+				case I_CLAMP_MODE:
+					return "CurrentClampSeries"
+				case I_EQUAL_ZERO_MODE:
+					return "IZeroClampSeries"
+			endswitch
+		case CHANNEL_TYPE_DAC:
+			switch(clampMode)
+				case V_CLAMP_MODE:
+					return "VoltageClampStimulusSeries"
+				case I_CLAMP_MODE:
+					return "CurrentClampStimulusSeries"
+			endswitch
+	endswitch
+
+	return "TimeSeries"
+End
+
+/// @brief get the (major) version of the nwb file
+///
+/// @param fileID id of open hdf5 file
+/// @returns major version e.g. 1 or 2
+threadsafe Function/S ReadNWBVersion(fileID)
+	variable fileID
+
+	string version
+
+	if(!H5_AttributeExists(fileID, "/", "nwb_version"))
+		WAVE/T/Z nwbVersion = H5_LoadDataSet(fileID, "/nwb_version")
+	else
+		WAVE/T/Z nwbVersion = H5_LoadAttribute(fileID, "/", "nwb_version")
+	endif
+
+	if(!WaveExists(nwbVersion))
+		return ""
+	endif
+
+	return nwbVersion[0]
+End
+
+/// @brief convert version string to major version
+///
+/// @see GetNWBVersionString
+threadsafe Function GetNWBMajorVersion(version)
+	string version
+
+	variable majorVersion, version1, version2
+
+	AnalyzeNWBVersion(version, majorVersion, version1, version2)
+	EnsureValidNWBVersion(majorVersion)
+
+	return majorVersion
+End
+
+/// @brief convert version string to major and all minor numeric versions
+///
+/// @param[in]  version
+/// @param[out] version0 numeric first part of the version string (major
+///                      Version)
+/// @param[out] version1 numeric second part of the version string (minor
+///                      Version)
+/// @param[out] version2 numeric third part of the version string (sub Version)
+/// @returns analyzed numeric versions
+threadsafe Function AnalyzeNWBVersion(version, version0, version1, version2)
+	string version
+	variable &version0, &version1, &version2
+
+	string strVersion0, strVersion1, strVersion2, msg
+	string regexp = "^(?:NWB-)?([0-9]+)\.([0-9]+)\.*([b]|[0-9]+)"
+
+	SplitString/E=(regexp) version, strVersion0, strVersion1, strVersion2
+	sprintf msg, "Unexpected number of matches (%d) in nwb version string %s.", V_flag, version
+	ASSERT_TS(V_flag >= 2, msg)
+
+	version2 = str2num(strVersion2)
+	version1 = str2num(strVersion1)
+	version0 = str2num(strVersion0)
+
+	EnsureValidNWBVersion(version0)
+
+	return version0
+End
+
+threadsafe Function EnsureValidNWBVersion(version)
+	variable version
+
+	ASSERT_TS(version == 1 || version == 2, "Invalid version: " + num2str(version))
+End
+
+/// @brief Load the NWB specification from files in the main directory
+///
+/// Note: @c Open, @c FbinRead and @c Close are not threadsafe
+/// @returns JSON string
+Function/S LoadSpecification(specName)
+	string specName
+
+	variable refNum, err
+	string msg, fileName
+	string str = ""
+	sprintf filename, "%s%s.json", SpecificationsDiscLocation(), specName
+
+	try
+		Open/R refNum as fileName; AbortOnRTE
+		FReadLine/T="" refNum, str; AbortOnRTE
+		Close refNum; AbortOnRTE
+	catch
+		Close/A
+		err = GetRTError(1)
+		sprintf msg, "Could not read file at %s. Error %d\r", fileName, err
+		ASSERT_TS(0, msg)
+	endtry
+
+	return str
+End
+
+/// @brief Return Folder of NWB:N specifications.
+///
+/// Note: This is typically located at the location of the IPNWB program ipf files.
+///       @c FunctionPath is not threadsafe
+Function/S SpecificationsDiscLocation()
+	return GetFolder(FunctionPath(""))
 End

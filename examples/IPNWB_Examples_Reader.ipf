@@ -3,23 +3,22 @@
 
 Function NWBReaderExample()
 
-	variable fileID, groupID, integrityCheck, numChannels, i
+	variable fileID, groupID, integrityCheck, numChannels, i, version
 	string contents, device, listOfDevices, elem, list
-	STRUCT IPNWB#ReadChannelParams p
 	STRUCT IPNWB#TimeSeriesProperties tsp
 
 	// Open a dialog for selecting an HDF5 file name
 	fileID = IPNWB#H5_OpenFile("c:\\NWB-Sample-20160216.nwb")
-
-	listOfDevices = IPNWB#ReadDevices(fileID)
+	version = IPNWB#GetNWBMajorVersion(IPNWB#ReadNWBVersion(fileID))
 
 	integrityCheck = IPNWB#CheckIntegrity(fileID)
+	printf "NWB integrity check: %s\r", SelectString(integrityCheck, "failed", "passed")
 
-	printf "NWB integrity check: %s\r", SelectString(integrityCheck,"failed", "passed")
+	listOfDevices = IPNWB#ReadDevices(fileID, version)
 	printf "List of devices: %s\r", listOfDevices
 
-	list    = IPNWB#ReadAcquisition(fileID)
-	groupID = IPNWB#OpenAcquisition(fileID)
+	list    = IPNWB#ReadAcquisition(fileID, version)
+	groupID = IPNWB#OpenAcquisition(fileID, version)
 
 	numChannels = ItemsInList(list)
 
@@ -28,7 +27,7 @@ Function NWBReaderExample()
 	for(i = 0; i < numChannels; i += 1)
 		elem = StringFromList(i, list)
 
-		IPNWB#LoadSourceAttribute(groupID, elem, p)
+		printf "sweep number: %d\r", IPNWB#LoadSweepNumber(groupID, elem, version)
 
 		WAVE wv = IPNWB#LoadDataWave(groupID, elem)
 		Duplicate/O wv, $elem
@@ -49,7 +48,7 @@ Function NWBReaderExample()
 	for(i = 0; i < numChannels; i += 1)
 		elem = StringFromList(i, list)
 
-		IPNWB#LoadSourceAttribute(groupID, elem, p)
+		printf "sweep number: %d\r", IPNWB#LoadSweepNumber(groupID, elem, version)
 
 		WAVE wv = IPNWB#LoadDataWave(groupID, elem)
 		Duplicate/O wv, $elem

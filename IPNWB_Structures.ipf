@@ -132,15 +132,23 @@ Structure ToplevelInfo
 EndStructure
 
 /// @brief Initialization routine for ToplevelInfo
-threadsafe Function InitToplevelInfo(ti)
+///
+/// @param ti       TopLevelInfo Structure
+/// @param version  [optional] defaults to latest version specified in NWB_VERSION_LATEST
+threadsafe Function InitToplevelInfo(ti, version)
 	STRUCT ToplevelInfo &ti
+	variable version
 
 	ti.session_description = PLACEHOLDER
 	ti.session_start_time  = DateTimeInUTC()
-	ti.nwb_version         = NWB_VERSION
+	ti.nwb_version         = GetNWBVersionString(version)
 	ti.identifier          = Hash(GetISO8601TimeStamp() + num2str(enoise(1, NOISE_GEN_MERSENNE_TWISTER)), 1)
 
-	Make/N=1/T/FREE file_create_date = GetISO8601TimeStamp()
+	if(version == 1)
+		Make/N=1/T/FREE file_create_date = GetISO8601TimeStamp()
+	elseif(version == NWB_VERSION_LATEST)
+		Make/N=1/T/FREE file_create_date = GetISO8601TimeStamp(numFracSecondsDigits = 3, localTimeZone = 1)
+	endif
 	WAVE/T ti.file_create_date = file_create_date
 End
 
@@ -165,8 +173,8 @@ End
 Structure TimeSeriesProperties
 	WAVE/T names
 	WAVE   data
-	WAVE   isCustom ///< 1 if the entry should be marked as NWB custom
-	string missing_fields
+	WAVE   isCustom ///< NWBv1: 1 if the entry should be marked as NWB custom
+	string missing_fields ///< keep track of missing fields while reading
 EndStructure
 
 /// @brief Initialization of TimeSeriesProperties
@@ -185,9 +193,74 @@ threadsafe Function InitTimeSeriesProperties(tsp, channelType, clampMode)
 	Make/FREE data = NaN
 	WAVE tsp.data = data
 
-	Make/FREE isCustom = 0
+	Make/FREE isCustom = 0 // NWBv1 specific
 	WAVE tsp.isCustom = isCustom
 
 	// AddProperty() will remove the entries on addition of values
 	tsp.missing_fields = GetTimeSeriesMissingFields(channelType, clampMode)
+End
+
+Structure DynamicTable
+	string help
+	string colnames
+	string description
+	string namespace
+	string neurodata_type
+EndStructure
+
+threadsafe Function InitDynamicTable(dt)
+	STRUCT DynamicTable &dt
+
+	dt.help = "A column-centric table"
+	dt.colnames = ""
+	dt.description = "Description of what is in this dynamic table"
+	dt.namespace = "core"
+	dt.neurodata_type = "DynamicTable"
+End
+
+Structure ElementIdentifiers
+	string help
+	string namespace
+	string neurodata_type
+EndStructure
+
+threadsafe Function InitElementIdentifiers(eli)
+	STRUCT ElementIdentifiers &eli
+
+	eli.help = "unique identifiers for a list of elements"
+	eli.namespace = "core"
+	eli.neurodata_type = "ElementIdentifiers"
+End
+
+Structure VectorData
+	string help
+	string description
+	string namespace
+	string neurodata_type
+	string path
+EndStructure
+
+threadsafe Function InitVectorData(vd)
+	STRUCT VectorData &vd
+
+	vd.help = "Values for a list of elements"
+	vd.description = "A short description of what these vectors are"
+	vd.namespace = "core"
+	vd.neurodata_type = "VectorData"
+	vd.path = ""
+End
+
+Structure VectorIndex
+	string help
+	string namespace
+	string neurodata_type
+	STRUCT VectorData target
+EndStructure
+
+threadsafe Function InitVectorIndex(vi)
+	STRUCT VectorIndex &vi
+
+	vi.help = "indexes into a list of values for a list of elements"
+	vi.namespace = "core"
+	vi.neurodata_type = "VectorIndex"
 End

@@ -11,15 +11,18 @@ Main features
 ^^^^^^^^^^^^^
 
 
+
 * Read and write NWB compliant files
 
-  - `specification version 1.0.5 <NWB105HTML>`_, Aug 8 2016
+  - `specification version 1.0.5, Aug 8 2016 <https://github.com/NeurodataWithoutBorders/specification/raw/master/version_1.0.5_beta/nwb_file_format_specification_1.0.5_beta.pdf>`__
+  - `specification version 2.0b <NWB2HTML>`_, April 2017
 
 * Compatible with Igor Pro 7 or later on Windows/MacOSX
 * Requires the stock HDF5 XOP only
 
 .. _NWB105HTML: https://htmlpreview.github.io/?https://raw.githubusercontent.com/NeurodataWithoutBorders/specification_nwbn_1_0_x/master/version_1.0.5_beta/nwb_file_format_specification_1.0.5_beta.html
 .. _NWB105PDF: https://github.com/NeurodataWithoutBorders/specification/raw/master/version_1.0.5_beta/nwb_file_format_specification_1.0.5_beta.pdf
+.. _NWB2HTML: https://nwb-schema.readthedocs.io/en/latest/format_description.html
 
 Installation
 ^^^^^^^^^^^^
@@ -75,6 +78,7 @@ NWB File Organization
 ~~~~~~~~~~~~~~~~~~~~~
 
 - `NWB version 1`_
+- `NWB version 2`_
 
 NWB version 1
 """""""""""""
@@ -90,23 +94,59 @@ The following tree describes the NWB layout version 1
 .. literalinclude:: specifications_core_1_nwb.yaml
    :language: yaml
 
+NWB version 2
+"""""""""""""
+
+Recent NWB (version 2) schema specifications are `tracked in a separate
+repository <https://github.com/NeurodataWithoutBorders/nwb-schema>`_.  The
+schema is implemented in beta version 2.0b
+(e8ad58b012169295abb43f1328b17d5e2b34c119) with additional changes towards
+version 2.0.1.
+
+The complete tree is described in a hdmf compatible format:
+
+.. todo:: implement sphinx extension nwb_docutils
 
 
+.. literalinclude:: doc/nwb.base.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.behavior.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.ecephys.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.epoch.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.file.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.icephys.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.image.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.misc.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.ogen.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.ophys.yaml
+   :language: yaml
 
+.. literalinclude:: doc/nwb.retinotopy.yaml
+   :language: yaml
 
+The following deviations from `NWB schema 2.0.1
+<https://github.com/NeurodataWithoutBorders/nwb-schema/tree/2.0.1/core>`_ were
+recorded:
 
-
-
-
+.. literalinclude:: doc/schema.diff
+   :language: diff
 
 Online Resources
 ~~~~~~~~~~~~~~~~

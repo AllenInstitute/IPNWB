@@ -23,21 +23,25 @@ static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-
 /// @param skipIfExists [optional, defaults to false]               Do nothing if the dataset already exists
 /// @param writeIgorAttr [optional, defaults to false]              Add Igor specific attributes to the dataset,
 ///                                                                 see the `/IGOR` flag of `HDF5SaveData`
+/// @param appendData [optional, defaults to -1]                    Set the dimension to append to within the given dataset (requires compression)
+/// @param refMode [optional, defaults to NO_REFERENCE]             Set refMode, one in @ref ReferenceMode (DisplayHelpTopic "Saving Reference Data")
 ///
 /// Only one of `str` or `wvText` can be given.
-threadsafe Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr])
+threadsafe Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode])
 	variable locationID
 	string name, str
 	Wave/Z/T wvText
-	variable overwrite, compressionMode, skipIfExists, writeIgorAttr
+	variable overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode
 
 	if(ParamIsDefault(compressionMode))
 		compressionMode = NO_COMPRESSION
 	endif
 
-	overwrite     = ParamIsDefault(overwrite)     ? 0 : !!overwrite
-	skipIfExists  = ParamIsDefault(skipIfExists)  ? 0 : !!skipIfExists
-	writeIgorAttr = ParamIsDefault(writeIgorAttr) ? 0 : !!writeIgorAttr
+	overwrite     = ParamIsDefault(overwrite)     ?  0 : !!overwrite
+	skipIfExists  = ParamIsDefault(skipIfExists)  ?  0 : !!skipIfExists
+	writeIgorAttr = ParamIsDefault(writeIgorAttr) ?  0 : !!writeIgorAttr
+	appendData    = ParamIsDefault(appendData)    ? -1 : appendData
+	refMode       = ParamIsDefault(refMode)       ?  0 : refMode
 
 	ASSERT_TS(ParamIsDefault(str) + ParamIsDefault(wvText) == 1, "H5_WriteTextDataset: Need exactly one of str or wvText")
 
@@ -45,7 +49,7 @@ threadsafe Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrit
 		Make/FREE/T/N=1 wvText = str
 	endif
 
-	H5_WriteDatasetLowLevel(locationID, name, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr)
+	H5_WriteDatasetLowLevel(locationID, name, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode)
 End
 
 /// @brief Write a variable or text wave into a HDF5 dataset
@@ -59,22 +63,24 @@ End
 /// @param compressionMode [optional, defaults to NO_COMPRESSION]   Type of compression to use, one of @ref CompressionMode
 /// @param skipIfExists [optional, defaults to false]               Do nothing if the dataset already exists
 /// @param writeIgorAttr [optional, defaults to false]              Add Igor specific attributes to the dataset, see the `/IGOR` flag of `HDF5SaveData`
+/// @param appendData [optional, defaults to -1]                    Set the dimension to append to within the given dataset (requires compression)
 ///
 /// Only one of `var` or `wv` can be given.
-threadsafe Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr])
+threadsafe Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData])
 	variable locationID
 	string name
 	variable var, varType
 	Wave/Z wv
-	variable overwrite, compressionMode, skipIfExists, writeIgorAttr
+	variable overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData
 
 	if(ParamIsDefault(compressionMode))
 		compressionMode = NO_COMPRESSION
 	endif
 
-	overwrite     = ParamIsDefault(overwrite)     ? 0 : !!overwrite
-	skipIfExists  = ParamIsDefault(skipIfExists)  ? 0 : !!skipIfExists
-	writeIgorAttr = ParamIsDefault(writeIgorAttr) ? 0 : !!writeIgorAttr
+	overwrite     = ParamIsDefault(overwrite)     ?  0 : !!overwrite
+	skipIfExists  = ParamIsDefault(skipIfExists)  ?  0 : !!skipIfExists
+	writeIgorAttr = ParamIsDefault(writeIgorAttr) ?  0 : !!writeIgorAttr
+	appendData    = ParamIsDefault(appendData)    ? -1 : appendData
 
 	ASSERT_TS(ParamIsDefault(var) + ParamIsDefault(wv) == 1, "H5_WriteDataset: Need exactly one of var or wv")
 
@@ -83,7 +89,7 @@ threadsafe Function H5_WriteDataset(locationID, name, [var, varType, wv, overwri
 		Make/FREE/Y=(varType)/N=1 wv = var
 	endif
 
-	H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr)
+	H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, 0)
 End
 
 /// @brief Return a wave for the valid chunk sizes of each dimension taking
@@ -109,11 +115,11 @@ threadsafe static Function/Wave H5_GetChunkSizes(wv, compressionMode)
 End
 
 /// @see H5_WriteTextDataset or H5_WriteDataset
-threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr)
+threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode)
 	variable locationID
 	string name
 	Wave wv
-	variable overwrite, compressionMode, skipIfExists, writeIgorAttr
+	variable overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode
 
 	variable numDims, attrFlag
 
@@ -143,34 +149,34 @@ threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwri
 	if(overwrite)
 		if(compressionMode != NO_COMPRESSION)
 			if(numDims == 1)
-				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS]}/MAXD={-1}/O/Z wv, locationID, name
+				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS]}/MAXD={-1}/O/Z wv, locationID, name
 			elseif(numDims == 2)
-				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS]}/MAXD={-1, -1}/O/Z wv, locationID, name
+				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS]}/MAXD={-1, -1}/O/Z wv, locationID, name
 			elseif(numDims == 3)
-				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS]}/MAXD={-1, -1, -1}/O/Z wv, locationID, name
+				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS]}/MAXD={-1, -1, -1}/O/Z wv, locationID, name
 			elseif(numDims == 4)
-				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS], chunkSizes[CHUNKS]}/MAXD={-1, -1, -1, -1}/O/Z wv, locationID, name
+				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS], chunkSizes[CHUNKS]}/MAXD={-1, -1, -1, -1}/O/Z wv, locationID, name
 			else
 				ASSERT_TS(0, "H5_WriteDatasetLowLevel: unhandled numDims")
 			endif
 		else
-			HDF5SaveData/IGOR=(attrFlag)/O/Z wv, locationID, name
+			HDF5SaveData/IGOR=(attrFlag)/APND=(appendData)/REF=(refMode)/O/Z wv, locationID, name
 		endif
 	else
 		if(compressionMode != NO_COMPRESSION)
 			if(numDims == 1)
-				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS]}/MAXD={-1}/Z wv, locationID, name
+				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS]}/MAXD={-1}/Z wv, locationID, name
 			elseif(numDims == 2)
-				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS]}/MAXD={-1, -1}/Z wv, locationID, name
+				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS]}/MAXD={-1, -1}/Z wv, locationID, name
 			elseif(numDims == 3)
-				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS]}/MAXD={-1, -1, -1}/Z wv, locationID, name
+				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS]}/MAXD={-1, -1, -1}/Z wv, locationID, name
 			elseif(numDims == 4)
-				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS], chunkSizes[CHUNKS]}/MAXD={-1, -1, -1, -1}/Z wv, locationID, name
+				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS], chunkSizes[CHUNKS]}/MAXD={-1, -1, -1, -1}/Z wv, locationID, name
 			else
 				ASSERT_TS(0, "H5_WriteDatasetLowLevel: unhandled numDims")
 			endif
 		else
-			HDF5SaveData/IGOR=(attrFlag)/Z wv, locationID, name
+			HDF5SaveData/IGOR=(attrFlag)/APND=(appendData)/REF=(refMode)/Z wv, locationID, name
 		endif
 	endif
 
@@ -190,17 +196,25 @@ End
 /// @param list                                    Contents to write into the attribute, list will be always written as 1D-array
 /// @param str                                     Contents to write into the attribute
 /// @param overwrite [optional, defaults to false] Should existing attributes be overwritten
+/// @param refMode [optional, defaults to 0]       Set refMode, one in @ref ReferenceMode (DisplayHelpTopic "Saving Reference Data")
 ///
 /// Only one of `str ` or `list` can be given.
-threadsafe Function H5_WriteTextAttribute(locationID, attrName, path, [list, str, overwrite])
+threadsafe Function H5_WriteTextAttribute(locationID, attrName, path, [list, str, overwrite, refMode])
 	variable locationID
 	string attrName, path
 	string list, str
-	variable overwrite
+	variable overwrite, refMode
 
 	variable forceSimpleDataSpace
+	string msg
 
 	ASSERT_TS(ParamIsDefault(str) + ParamIsDefault(list) == 1, "H5_WriteTextAttribute: Need exactly one of str or list")
+	if(ParamIsDefault(refMode))
+		refMode = NO_REFERENCE
+	endif
+	if(refMode == OBJECT_REFERENCE && ParamIsDefault(str))
+		ASSERT_TS(0, "H5_WriteTextAttribute: refMode 1 needs a string")
+	endif
 
 	if(!ParamIsDefault(str))
 		Make/FREE/T/N=(1) data = str
@@ -212,15 +226,16 @@ threadsafe Function H5_WriteTextAttribute(locationID, attrName, path, [list, str
 	overwrite = ParamIsDefault(overwrite) ? 0 : !!overwrite
 
 	if(overwrite)
-		HDF5SaveData/A={attrName, forceSimpleDataSpace}/IGOR=0/O/Z data, locationID, path
+		HDF5SaveData/A={attrName, forceSimpleDataSpace}/IGOR=0/REF=(refMode)/O/Z data, locationID, path
 	else
-		HDF5SaveData/A={attrName, forceSimpleDataSpace}/IGOR=0/Z data, locationID, path
+		HDF5SaveData/A={attrName, forceSimpleDataSpace}/IGOR=0/REF=(refMode)/Z data, locationID, path
 	endif
 
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "H5_WriteTextAttribute: Could not write HDF5 attribute to file")
+		sprintf msg, "Could not write HDF5 attribute %s of %s to file.", attrName, path
+		ASSERT_TS(0, "H5_WriteTextAttribute: " + msg )
 	endif
 End
 
@@ -233,8 +248,6 @@ End
 /// @param var                                     Contents to write into the attribute
 /// @param varType                                 Type of the attribute, see @ref IgorTypes
 /// @param overwrite [optional, defaults to false] Should existing attributes be overwritten
-///
-/// Only one of `str `, `wvText` or `list` can be given.
 threadsafe Function H5_WriteAttribute(locationID, attrName, path, var, varType, [overwrite])
 	variable locationID
 	string attrName, path
@@ -255,6 +268,24 @@ threadsafe Function H5_WriteAttribute(locationID, attrName, path, var, varType, 
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
 		ASSERT_TS(0, "H5_WriteAttribute: Could not write HDF5 attribute to file")
+	endif
+End
+
+/// @brief Create a link to a group
+///
+/// @param locationID  HDF5 identifier, can be a file, group or dataset
+/// @param path        Name of the link
+/// @param target      The linked destination
+threadsafe Function H5_CreateSoftLink(locationID, path, target)
+	variable locationID
+	string path, target
+
+	HDF5CreateLink/HARD=0 0, target, locationID, path
+
+	if(V_flag)
+		HDf5DumpErrors/CLR=1
+		HDF5DumpState
+		ASSERT_TS(0, "H5_CreateSoftLink: Could not create HDF5 link")
 	endif
 End
 
@@ -561,11 +592,11 @@ End
 /// @brief Return true if `name` is a valid hdf5 identifier
 ///
 /// This is more restrictive than the actual HDF5 library checks.
-/// See the BNF Grammar [here](https://www.hdfgroup.org/HDF5/doc/UG/HDF5_Users_Guide-Responsive%20HTML5/index.html#t=HDF5_Users_Guide%2FGroups%2FHDF5_Groups.htm%3Frhtocid%3Dtoc4.0_1%23TOC_4_1_Introductionbc-1).
+/// See the BNF Grammar [here](https://support.hdfgroup.org/HDF5/doc/UG/HDF5_Users_Guide-Responsive%20HTML5/index.html#t=HDF5_Users_Guide%2FGroups%2FHDF5_Groups.htm%23TOC_4_2_3_HDF5_Path_Namesbc-5&rhtocid=4.1.0_3).
 threadsafe Function H5_IsValidIdentifier(name)
 	string name
 
-	return GrepString(name, "^[A-Za-z0-9_ -]+$")
+	return GrepString(name, "^(?:[A-Za-z0-9_ -]+[\.]*)+$")
 End
 
 /// @brief List all datasets at path (non-recursively)
@@ -672,3 +703,20 @@ threadsafe Function H5_FlushFile(fileID, discLocation, [write])
 End
 
 #endif
+
+/// @todo Needs HDF5 XOP support for reading link targets
+threadsafe Function/S H5_GetLinkTarget(discLocation, path)
+	string discLocation, path
+
+	string str, msg, regExp
+
+	sprintf msg, "H5_GetLinkTarget: Could not dump link %s in HDF5 file %s.", path, discLocation
+	HDF5Dump/Z/Q/L=path discLocation
+	ASSERT_TS(!V_flag, msg)
+
+	sprintf regExp, "LINK[[:space:]]+\"%s\"[[:space:]]*{[[:space:]]*LINKTARGET[[:space:]]+\"(.*)\"[[:space:]]*}", path
+	SplitString/E=regExp S_HDF5Dump, str
+	ASSERT_TS(V_flag == 1, msg)
+
+	return str
+End

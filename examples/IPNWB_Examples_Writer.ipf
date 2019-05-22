@@ -5,6 +5,7 @@ Function NWBWriterExample()
 
 	variable fileID
 	string contents, device
+	variable version = 1
 
 	// Open a dialog for selecting an HDF5 file name
 	HDF5CreateFile fileID as ""
@@ -16,7 +17,7 @@ Function NWBWriterExample()
 	STRUCT IPNWB#SubjectInfo si
 
 	// takes care of initializing
-	IPNWB#InitToplevelInfo(ti)
+	IPNWB#InitToplevelInfo(ti, version)
 	IPNWB#InitGeneralInfo(gi)
 	IPNWB#InitSubjectInfo(si)
 
@@ -49,7 +50,7 @@ Function NWBWriterExample()
 
 	IPNWB#CreateIntraCellularEphys(fileID)
 	sprintf contents, "Electrode %d", params.ElectrodeNumber
-	IPNWB#AddElectrode(fileID, params.electrodeName, contents, device)
+	IPNWB#AddElectrode(fileID, params.electrodeName, version, contents, device)
 
 	// calculate the timepoint of the first wave point relative to the session_start_time
 	// last time the wave was modified (UTC)
@@ -58,7 +59,7 @@ Function NWBWriterExample()
 	// we want the timestamp of the beginning of the measurement
 	params.startingTime -= IndexToScale(AD, DimSize(AD, 0) - 1, 0)
 
-	IPNWB#AddDevice(fileID, "Device name", "My hardware specs")
+	IPNWB#AddDevice(fileID, "Device name", version, "My hardware specs")
 
 	STRUCT IPNWB#TimeSeriesProperties tsp
 	IPNWB#InitTimeSeriesProperties(tsp, params.channelType, params.clampMode)
@@ -68,7 +69,7 @@ Function NWBWriterExample()
 	IPNWB#AddProperty(tsp, "capacitance_slow", 1.0)
 
 	// setting chunkedLayout to zero makes writing faster but increases the final filesize
-	IPNWB#WriteSingleChannel(fileID, "/acquisition/timeseries", params, tsp)
+	IPNWB#WriteSingleChannel(fileID, "/acquisition/timeseries", version, params, tsp)
 
 	// write DA, stimulus presentation and stimulus template accordingly
 	// ...

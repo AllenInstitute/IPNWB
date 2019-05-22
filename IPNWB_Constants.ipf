@@ -10,7 +10,38 @@
 /// @brief Constants
 
 StrConstant PLACEHOLDER = "PLACEHOLDER"
-StrConstant NWB_VERSION = "NWB-1.0.5"
+
+static StrConstant NWB_VERSION_V1 = "NWB-1.0.5"
+static StrConstant NWB_VERSION_V2 = "NWB-2.0b"
+Constant NWB_VERSION_LATEST = 2
+
+/// @name HDF5 file paths
+///
+/// @anchor IPNWB_GroupLocations
+/// @{
+StrConstant NWB_ROOT    = "/"
+StrConstant NWB_GENERAL = "/general"
+StrConstant NWB_SUBJECT = "/general/subject"
+StrConstant NWB_DEVICES = "/general/devices"
+StrConstant NWB_STIMULUS = "/general/stimsets"
+StrConstant NWB_LABNOTEBOOK = "/general/labnotebook"
+StrConstant NWB_INTRACELLULAR_EPHYS = "/general/intracellular_ephys"
+StrConstant NWB_STIMULUS_TEMPLATES = "/stimulus/templates"
+StrConstant NWB_STIMULUS_PRESENTATION = "/stimulus/presentation"
+static StrConstant NWB_PATCHCLAMPSERIES_V1 = "/acquisition/timeseries"
+static StrConstant NWB_PATCHCLAMPSERIES_V2 = "/acquisition"
+StrConstant NWB_IMAGES = "/acquisition/images"
+StrConstant NWB_EPOCHS = "/epochs"
+StrConstant NWB_PROCESSING = "/processing"
+StrConstant NWB_ANALYSIS = "/analysis"
+StrConstant NWB_SPECIFICATIONS = "/specifications"
+/// @}
+
+/// @name IPNWB naming conventions
+///
+/// @{
+StrConstant NWB_ELECTRODE_PREFIX = "electrode_"
+/// @}
 
 /// @name Constants for FunctionInfo and WaveType
 ///
@@ -78,6 +109,45 @@ End
 threadsafe Function GetSingleChunkCompression()
 	return SINGLE_CHUNK_COMPRESSION
 End
+
+/// @brief get location of the patchclamp series acquisition object
+///
+/// @param version  target NWB version
+/// @returns        full path to patchclampseries group
+threadsafe Function/S GetNWBgroupPatchClampSeries(version)
+	variable version
+
+	if(version == 1)
+		return NWB_PATCHCLAMPSERIES_V1
+	elseif(version == 2)
+		return NWB_PATCHCLAMPSERIES_V2
+	else
+		return ""
+	endif
+End
+
+/// @brief get NWB version for current Igor Pro implementation
+///
+/// @param version  maior NWB version e.g. 2
+/// @returns        full version string in the format `NWB-[1,2]\.[0-9](?:\.[0-9])?[b]?
+threadsafe Function/S GetNWBVersionString(version)
+	variable version
+
+	switch(version)
+		case 1:
+			return NWB_VERSION_V1
+		case NWB_VERSION_LATEST:
+			return NWB_VERSION_V2
+		default:
+			return ""
+	endswitch
+End
+
+/// @brief get latest supported NWB version
+/// @returns maior version
+threadsafe Function GetNWBVersion()
+	return NWB_VERSION_LATEST
+End
 /// @}
 
 /// @name Constants for the compression modes
@@ -86,4 +156,19 @@ End
 Constant NO_COMPRESSION           = 0x0
 Constant CHUNKED_COMPRESSION      = 0x1
 Constant SINGLE_CHUNK_COMPRESSION = 0x2
+/// @}
+
+/// @name Constants for the reference modes
+/// @anchor ReferenceMode
+/// @{
+Constant NO_REFERENCE     = 0x0
+Constant OBJECT_REFERENCE = 0x1
+Constant REGION_REFERENCE = 0x2
+/// @}
+
+/// @name Constants for NWB:N Core Specifications
+/// @{
+StrConstant NWB_CORE_VERSION = "2.0b"
+StrConstant NWB_SPEC_NAMESPACE = "nwb.namespace"
+StrConstant NWB_SPEC_NAMES = "nwb.base;nwb.behavior;nwb.ecephys;nwb.epoch;nwb.file;nwb.icephys;nwb.image;nwb.misc;nwb.ogen;nwb.ophys;nwb.retinotopy;"
 /// @}
