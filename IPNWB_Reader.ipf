@@ -185,7 +185,7 @@ threadsafe Function AnalyseChannelName(channel, p)
 	string channel
 	STRUCT ReadChannelParams &p
 
-	string groupIndex, channelTypeStr, channelNumber, channelSuffix, channelID
+	string groupIndex, channelTypeStr, channelNumber, channelID
 
 	SplitString/E="^(?i)data_([A-Z0-9]+)_([A-Z]+)([0-9]+)(?:_([A-Z0-9]+)){0,1}" channel, groupIndex, channelID, channelNumber, p.channelSuffix
 	p.groupIndex = str2num(groupIndex)
