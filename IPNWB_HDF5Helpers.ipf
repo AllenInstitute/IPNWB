@@ -375,6 +375,8 @@ Function/WAVE H5_LoadDataset(locationID, name)
 	variable locationID
 	string name
 
+	printf "locationID %d, name %s\r", locationID, name
+
 	if(!H5_DatasetExists(locationID, name))
 		return $""
 	endif
