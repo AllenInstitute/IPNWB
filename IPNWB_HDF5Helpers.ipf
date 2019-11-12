@@ -25,7 +25,7 @@ static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-
 ///                                                                 see the `/IGOR` flag of `HDF5SaveData`
 ///
 /// Only one of `str` or `wvText` can be given.
-Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr])
+threadsafe Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr])
 	variable locationID
 	string name, str
 	Wave/Z/T wvText
@@ -39,7 +39,7 @@ Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, compress
 	skipIfExists  = ParamIsDefault(skipIfExists)  ? 0 : !!skipIfExists
 	writeIgorAttr = ParamIsDefault(writeIgorAttr) ? 0 : !!writeIgorAttr
 
-	ASSERT(ParamIsDefault(str) + ParamIsDefault(wvText) == 1, "Need exactly one of str or wvText")
+	ASSERT_TS(ParamIsDefault(str) + ParamIsDefault(wvText) == 1, "H5_WriteTextDataset: Need exactly one of str or wvText")
 
 	if(!ParamIsDefault(str))
 		Make/FREE/T/N=1 wvText = str
@@ -61,7 +61,7 @@ End
 /// @param writeIgorAttr [optional, defaults to false]              Add Igor specific attributes to the dataset, see the `/IGOR` flag of `HDF5SaveData`
 ///
 /// Only one of `var` or `wv` can be given.
-Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr])
+threadsafe Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr])
 	variable locationID
 	string name
 	variable var, varType
@@ -76,10 +76,10 @@ Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, compres
 	skipIfExists  = ParamIsDefault(skipIfExists)  ? 0 : !!skipIfExists
 	writeIgorAttr = ParamIsDefault(writeIgorAttr) ? 0 : !!writeIgorAttr
 
-	ASSERT(ParamIsDefault(var) + ParamIsDefault(wv) == 1, "Need exactly one of var or wv")
+	ASSERT_TS(ParamIsDefault(var) + ParamIsDefault(wv) == 1, "H5_WriteDataset: Need exactly one of var or wv")
 
 	if(!ParamIsDefault(var))
-		ASSERT(!ParamIsDefault(varType), "var needs varType")
+		ASSERT_TS(!ParamIsDefault(varType), "H5_WriteDataset: var needs varType")
 		Make/FREE/Y=(varType)/N=1 wv = var
 	endif
 
@@ -88,7 +88,7 @@ End
 
 /// @brief Return a wave for the valid chunk sizes of each dimension taking
 ///        into account the compression mode.
-static Function/Wave H5_GetChunkSizes(wv, compressionMode)
+threadsafe static Function/Wave H5_GetChunkSizes(wv, compressionMode)
 	WAVE wv
 	variable compressionMode
 
@@ -103,13 +103,13 @@ static Function/Wave H5_GetChunkSizes(wv, compressionMode)
 			MAKE/FREE/N=(WaveDims(wv))/I/U chunkSizes = DimSize(wv, p)
 			return chunkSizes
 		default:
-			ASSERT(0, "Invalid compression mode")
+			ASSERT_TS(0, "Invalid compression mode")
 			break
 	endswitch
 End
 
 /// @see H5_WriteTextDataset or H5_WriteDataset
-static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr)
+threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr)
 	variable locationID
 	string name
 	Wave wv
@@ -117,7 +117,7 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compres
 
 	variable numDims, attrFlag
 
-	ASSERT(H5_IsValidIdentifier(GetFile(name, sep="/")), "name of saved dataset is not valid HDF5 format")
+	ASSERT_TS(H5_IsValidIdentifier(GetFile(name, sep="/")), "H5_WriteDatasetLowLevel: name of saved dataset is not valid HDF5 format")
 
 	numDims = WaveDims(wv)
 
@@ -133,7 +133,6 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compres
 		if(strlen(note(wv)) >= H5_ATTRIBUTE_SIZE_LIMIT)
 			// by default HDF5 attributes are stored in the object header and thus attributes are limited to 64k size
 			printf "The wave note of the wave \"%s\" (stored name: \"%s\") will be shortend to enable HDF5/NWB storage\r", NameOfWave(wv), name
-			ControlWindowToFront()
 
 			Duplicate/FREE wv, wvCopy
 			Note/K wvCopy, note(wv)[0, H5_ATTRIBUTE_SIZE_LIMIT]
@@ -152,7 +151,7 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compres
 			elseif(numDims == 4)
 				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS], chunkSizes[CHUNKS]}/MAXD={-1, -1, -1, -1}/O/Z wv, locationID, name
 			else
-				ASSERT(0, "unhandled numDims")
+				ASSERT_TS(0, "H5_WriteDatasetLowLevel: unhandled numDims")
 			endif
 		else
 			HDF5SaveData/IGOR=(attrFlag)/O/Z wv, locationID, name
@@ -168,7 +167,7 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compres
 			elseif(numDims == 4)
 				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS], chunkSizes[CHUNKS]}/MAXD={-1, -1, -1, -1}/Z wv, locationID, name
 			else
-				ASSERT(0, "unhandled numDims")
+				ASSERT_TS(0, "H5_WriteDatasetLowLevel: unhandled numDims")
 			endif
 		else
 			HDF5SaveData/IGOR=(attrFlag)/Z wv, locationID, name
@@ -178,7 +177,7 @@ static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compres
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "Could not store HDF5 dataset to file")
+		ASSERT_TS(0, "H5_WriteDatasetLowLevel: Could not store HDF5 dataset to file")
 	endif
 End
 
@@ -193,7 +192,7 @@ End
 /// @param overwrite [optional, defaults to false] Should existing attributes be overwritten
 ///
 /// Only one of `str ` or `list` can be given.
-Function H5_WriteTextAttribute(locationID, attrName, path, [list, str, overwrite])
+threadsafe Function H5_WriteTextAttribute(locationID, attrName, path, [list, str, overwrite])
 	variable locationID
 	string attrName, path
 	string list, str
@@ -201,7 +200,7 @@ Function H5_WriteTextAttribute(locationID, attrName, path, [list, str, overwrite
 
 	variable forceSimpleDataSpace
 
-	ASSERT(ParamIsDefault(str) + ParamIsDefault(list) == 1, "Need exactly one of str or list")
+	ASSERT_TS(ParamIsDefault(str) + ParamIsDefault(list) == 1, "H5_WriteTextAttribute: Need exactly one of str or list")
 
 	if(!ParamIsDefault(str))
 		Make/FREE/T/N=(1) data = str
@@ -221,7 +220,7 @@ Function H5_WriteTextAttribute(locationID, attrName, path, [list, str, overwrite
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "Could not write HDF5 attribute to file")
+		ASSERT_TS(0, "H5_WriteTextAttribute: Could not write HDF5 attribute to file")
 	endif
 End
 
@@ -236,7 +235,7 @@ End
 /// @param overwrite [optional, defaults to false] Should existing attributes be overwritten
 ///
 /// Only one of `str `, `wvText` or `list` can be given.
-Function H5_WriteAttribute(locationID, attrName, path, var, varType, [overwrite])
+threadsafe Function H5_WriteAttribute(locationID, attrName, path, var, varType, [overwrite])
 	variable locationID
 	string attrName, path
 	variable var, varType
@@ -255,7 +254,7 @@ Function H5_WriteAttribute(locationID, attrName, path, var, varType, [overwrite]
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "Could not write HDF5 attribute to file")
+		ASSERT_TS(0, "H5_WriteAttribute: Could not write HDF5 attribute to file")
 	endif
 End
 
@@ -264,7 +263,7 @@ End
 /// @param discLocation  full path to nwb file
 /// @param write         open file for writing. default is readonly.
 /// @return              ID for referencing open hdf5 file
-Function H5_OpenFile(discLocation, [write])
+threadsafe Function H5_OpenFile(discLocation, [write])
 	string discLocation
 	variable write
 	if(ParamIsDefault(write))
@@ -272,9 +271,6 @@ Function H5_OpenFile(discLocation, [write])
 	endif
 
 	variable fileID
-
-	GetFileFolderInfo/Q/Z discLocation
-	ASSERT(!V_Flag, "The given file does not exist.")
 
 	if(write)
 		HDF5OpenFile/Z fileID as discLocation
@@ -284,7 +280,7 @@ Function H5_OpenFile(discLocation, [write])
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "Could not open HDF5 file.")
+		ASSERT_TS(0, "H5_OpenFile: Could not open HDF5 file.")
 	endif
 
 	return fileID
@@ -294,7 +290,7 @@ End
 ///
 /// @param fileID  ID of open hdf5 file
 /// @return        open state as true/false
-Function H5_CloseFile(fileID)
+threadsafe Function H5_CloseFile(fileID)
 	variable fileID
 
 	if(H5_IsFileOpen(fileID))
@@ -309,7 +305,7 @@ End
 /// @brief Return 1 if the given HDF5 file is already open, 0 otherwise.
 ///
 /// @param fileID HDF5 locationID from `HDF5OpenFile`.
-Function H5_IsFileOpen(fileID)
+threadsafe Function H5_IsFileOpen(fileID)
 	variable fileID
 
 	// group "/" does exist, therefore the fileID refers to an open file
@@ -355,7 +351,7 @@ EndStructure
 /// @param[in] locationID           HDF5 identifier, can be a file or group
 /// @param[in] name                 Additional path on top of `locationID` which identifies
 ///                                 the dataset
-Function H5_DatasetExists(locationID, name)
+threadsafe Function H5_DatasetExists(locationID, name)
 	variable locationID
 	string name
 
@@ -371,7 +367,7 @@ End
 /// @param[in] name       path on top of `locationID` which identifies the dataset
 ///
 /// @return               reference to wave containing loaded data
-Function/WAVE H5_LoadDataset(locationID, name)
+threadsafe Function/WAVE H5_LoadDataset(locationID, name)
 	variable locationID
 	string name
 
@@ -389,13 +385,13 @@ Function/WAVE H5_LoadDataset(locationID, name)
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "Could not read HDF5 dataset " + name)
+		ASSERT_TS(0, "H5_LoadDataset: Could not read HDF5 dataset " + name)
 	endif
 
-	ASSERT(ItemsInList(S_waveNames) == 1, "unspecified data format")
+	ASSERT_TS(ItemsInList(S_waveNames) == 1, "H5_LoadDataset: unspecified data format")
 
 	WAVE/Z wv = dfr:$StringFromList(0, S_waveNames)
-	ASSERT(WaveExists(wv), "loaded wave not found")
+	ASSERT_TS(WaveExists(wv), "H5_LoadDataset: loaded wave not found")
 
 	return wv
 End
@@ -408,7 +404,7 @@ End
 /// @param[in]  attribute             Name of the attribute
 /// @param[out] objectType [optional] Return the type of the element to which the
 ///                                   attribute is attached to. Can be used for subsequent HDF5LoadData calls.
-Function H5_AttributeExists(locationID, path, attribute, [objectType])
+threadsafe Function H5_AttributeExists(locationID, path, attribute, [objectType])
 	variable locationID
 	string path, attribute
 	variable &objectType
@@ -422,7 +418,7 @@ Function H5_AttributeExists(locationID, path, attribute, [objectType])
 	groupExists = H5_GroupExists(locationID, path)
 
 	if(datasetExists && groupExists)
-		ASSERT(0, "Could not handle attribute when both a group and a dataset exist with the same name.")
+		ASSERT_TS(0, "Could not handle attribute when both a group and a dataset exist with the same name.")
 	elseif(groupExists)
 		objectTypeVar = 1
 	elseif(datasetExists)
@@ -442,7 +438,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  attribute  Name of the attribute to load
-Function/WAVE H5_LoadAttribute(locationID, path, attribute)
+threadsafe Function/WAVE H5_LoadAttribute(locationID, path, attribute)
 	variable locationID
 	string path, attribute
 
@@ -462,13 +458,13 @@ Function/WAVE H5_LoadAttribute(locationID, path, attribute)
 	if(V_Flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "Could not load the HDF5 attribute '" + attribute + "' from '" + path + "'\rError No: " + num2str(V_Flag))
+		ASSERT_TS(0, "Could not load the HDF5 attribute '" + attribute + "' from '" + path + "'\rError No: " + num2str(V_Flag))
 	endif
 
-	ASSERT(ItemsInList(S_waveNames) == 1, "unspecified data format")
+	ASSERT_TS(ItemsInList(S_waveNames) == 1, "unspecified data format")
 
 	WAVE/Z wv = dfr:$StringFromList(0, S_waveNames)
-	ASSERT(WaveExists(wv), "loaded wave not found")
+	ASSERT_TS(WaveExists(wv), "loaded wave not found")
 
 	return wv
 End
@@ -481,7 +477,7 @@ End
 /// @param[out] groupID [optional]  Allows to return the locationID of the group, zero in case
 ///                                 the group does not exist. If this parameter is not provided,
 ///                                 the group is closed before the function returns.
-Function H5_GroupExists(locationID, path, [groupID])
+threadsafe Function H5_GroupExists(locationID, path, [groupID])
 	variable locationID
 	string path
 	variable &groupID
@@ -510,7 +506,7 @@ End
 /// @param[out] groupID [optional] Allows to return the locationID of the group, zero in case
 ///                                the group could not be created. If this parameter is not
 ///                                provided, the group is closed before the function returns.
-Function H5_CreateGroupsRecursively(locationID, fullPath, [groupID])
+threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath, [groupID])
 	variable locationID
 	string fullPath
 	variable &groupID
@@ -533,13 +529,13 @@ Function H5_CreateGroupsRecursively(locationID, fullPath, [groupID])
 			group = StringFromList(i, fullPath, "/")
 			path += group
 
-			ASSERT(H5_IsValidIdentifier(group), "invalid HDF5 group name")
+			ASSERT_TS(H5_IsValidIdentifier(group), "H5_CreateGroupsRecursively: invalid HDF5 group name")
 
 			HDF5CreateGroup/Z locationID, path, id
 			if(V_flag)
 				HDf5DumpErrors/CLR=1
 				HDF5DumpState
-				ASSERT(0, "Could not create HDF5 group")
+				ASSERT_TS(0, "H5_CreateGroupsRecursively: Could not create HDF5 group")
 			endif
 
 			if(i != numElements - 1)
@@ -561,7 +557,7 @@ End
 ///
 /// This is more restrictive than the actual HDF5 library checks.
 /// See the BNF Grammar [here](https://www.hdfgroup.org/HDF5/doc/UG/HDF5_Users_Guide-Responsive%20HTML5/index.html#t=HDF5_Users_Guide%2FGroups%2FHDF5_Groups.htm%3Frhtocid%3Dtoc4.0_1%23TOC_4_1_Introductionbc-1).
-Function H5_IsValidIdentifier(name)
+threadsafe Function H5_IsValidIdentifier(name)
 	string name
 
 	return GrepString(name, "^[A-Za-z0-9_ -]+$")
@@ -572,17 +568,17 @@ End
 /// @param[in] locationID          HDF5 identifier, can be a file or group
 /// @param[in] path                Additional path on top of `locationID` which identifies
 ///                                the group
-Function/S H5_ListGroupMembers(locationID, path)
+threadsafe Function/S H5_ListGroupMembers(locationID, path)
 	variable locationID
 	string path
 
-	ASSERT(H5_GroupExists(locationID, path), path + " not in HDF5 file")
+	ASSERT_TS(H5_GroupExists(locationID, path), "H5_ListGroupMembers: " + path + " not in HDF5 file")
 
 	HDF5ListGroup/Z locationID, path
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "HDF5ListGroup returned error " + num2str(V_flag))
+		ASSERT_TS(0, "H5_ListGroupMembers: returned error " + num2str(V_flag))
 	endif
 
 	return S_HDF5ListGroup
@@ -592,17 +588,17 @@ End
 ///
 /// @param[in]  fileID        HDF5 file identifier
 /// @param[in]  path          Full path to the group inside fileID
-Function/S H5_ListGroups(fileID, path)
+threadsafe Function/S H5_ListGroups(fileID, path)
 	variable fileID
 	string path
 
-	ASSERT(H5_GroupExists(fileID, path), path + " not in HDF5 file")
+	ASSERT_TS(H5_GroupExists(fileID, path), "H5_ListGroups: " + path + " not in HDF5 file")
 
 	HDF5ListGroup/TYPE=1/Z fileID, path
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "HDF5ListGroup returned error " + num2str(V_flag))
+		ASSERT_TS(0, "H5_ListGroups: returned error " + num2str(V_flag))
 	endif
 
 	return S_HDF5ListGroup
@@ -612,13 +608,13 @@ End
 ///
 /// @param locationID  HDF5 file identifier
 /// @param path        Full path to the group inside locationID
-Function H5_OpenGroup(locationID, path)
+threadsafe Function H5_OpenGroup(locationID, path)
 	variable locationID
 	string path
 
 	variable id
 
-	ASSERT(H5_GroupExists(locationID, path, groupID = id), path + " not in HDF5 file")
+	ASSERT_TS(H5_GroupExists(locationID, path, groupID = id), "H5_OpenGroup: " + path + " not in HDF5 file")
 
 	return id
 End
@@ -631,7 +627,7 @@ End
 /// @param write        unused (for compatibility with the Igor Pro 7 version only)
 ///
 /// @return fileID  (for compatibility with the Igor Pro 7 version only)
-Function H5_FlushFile(fileID, discLocation, [write])
+threadsafe Function H5_FlushFile(fileID, discLocation, [write])
 	variable fileID
 	string discLocation
 	variable write
@@ -653,7 +649,7 @@ End
 /// @param write        [optional, defaults to false] Reopen the file for writing
 ///
 /// @return changed fileID
-Function H5_FlushFile(fileID, discLocation, [write])
+threadsafe Function H5_FlushFile(fileID, discLocation, [write])
 	variable fileID
 	string discLocation
 	variable write

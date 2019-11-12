@@ -13,7 +13,7 @@
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-Function IsFinite(var)
+threadsafe Function IsFinite(var)
 	variable var
 
 	return numType(var) == 0
@@ -34,7 +34,7 @@ End
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-Function isNull(str)
+threadsafe Function isNull(str)
 	string& str
 
 	variable len = strlen(str)
@@ -46,7 +46,7 @@ End
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-Function isEmpty(str)
+threadsafe Function isEmpty(str)
 	string& str
 
 	variable len = strlen(str)
@@ -54,12 +54,12 @@ Function isEmpty(str)
 End
 
 /// @brief Return the seconds since Igor Pro epoch (1/1/1904) in UTC time zone
-Function DateTimeInUTC()
+threadsafe Function DateTimeInUTC()
 	return DateTime - date2secs(-1, -1, -1)
 End
 
 /// @brief Returns one if var is an integer and zero otherwise
-Function IsInteger(var)
+threadsafe Function IsInteger(var)
 	variable var
 
 	return IsFinite(var) && trunc(var) == var
@@ -69,7 +69,7 @@ End
 ///
 /// @param secondsSinceIgorEpoch [optional, defaults to number of seconds until now] Seconds since the Igor Pro epoch (1/1/1904) in UTC
 /// @param numFracSecondsDigits  [optional, defaults to zero] Number of sub-second digits
-Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits])
+threadsafe Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits])
 	variable secondsSinceIgorEpoch, numFracSecondsDigits
 
 	string str
@@ -77,7 +77,7 @@ Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits])
 	if(ParamIsDefault(numFracSecondsDigits))
 		numFracSecondsDigits = 0
 	else
-		ASSERT(IsInteger(numFracSecondsDigits) && numFracSecondsDigits >= 0, "Invalid value for numFracSecondsDigits")
+		ASSERT_TS(IsInteger(numFracSecondsDigits) && numFracSecondsDigits >= 0, "GetISO8601TimeStamp: Invalid value for numFracSecondsDigits")
 	endif
 
 	if(ParamIsDefault(secondsSinceIgorEpoch))
@@ -132,7 +132,7 @@ End
 /// \endrst
 ///
 /// [1]: 8th edition of the SI Brochure (2014), http://www.bipm.org/en/publications/si-brochure
-Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
+threadsafe Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 	string unitWithPrefix
 	string &prefix
 	variable &numPrefix
@@ -140,7 +140,7 @@ Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 
 	string expr
 
-	ASSERT(!isEmpty(unitWithPrefix), "empty unit")
+	ASSERT_TS(!isEmpty(unitWithPrefix), "ParseUnit: empty unit")
 
 	prefix    = ""
 	numPrefix = NaN
@@ -149,7 +149,7 @@ Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 	expr = "(Y|Z|E|P|T|G|M|k|h|d|c|m|mu|n|p|f|a|z|y)?[[:space:]]*(m|kg|s|A|K|mol|cd|Hz|V|N|W|J|a.u.)"
 
 	SplitString/E=(expr) unitWithPrefix, prefix, unit
-	ASSERT(V_flag >= 1, "Could not parse unit string")
+	ASSERT_TS(V_flag >= 1, "ParseUnit: Could not parse unit string")
 
 	numPrefix = GetDecimalMultiplierValue(prefix)
 End
@@ -157,7 +157,7 @@ End
 /// @brief Return the numerical value of a SI decimal multiplier
 ///
 /// @see ParseUnit
-Function GetDecimalMultiplierValue(prefix)
+threadsafe Function GetDecimalMultiplierValue(prefix)
 	string prefix
 
 	if(isEmpty(prefix))
@@ -168,9 +168,9 @@ Function GetDecimalMultiplierValue(prefix)
 	Make/FREE/D values   = {1e24, 1e21, 1e18, 1e15, 1e12, 1e9, 1e6, 1e3, 1e2, 1e1, 1e-1, 1e-2, 1e-3, 1e-6, 1e-9, 1e-12, 1e-15, 1e-18, 1e-21, 1e-24}
 
 	FindValue/Z/TXOP=(1 + 4)/TEXT=(prefix) prefixes
-	ASSERT(V_Value != -1, "Could not find prefix")
+	ASSERT_TS(V_Value != -1, "GetDecimalMultiplierValue: Could not find prefix")
+	ASSERT_TS(DimSize(prefixes, ROWS) == DimSize(values, ROWS), "GetDecimalMultiplierValue: prefixes and values wave sizes must match")
 
-	ASSERT(DimSize(prefixes, ROWS) == DimSize(values, ROWS), "prefixes and values wave sizes must match")
 	return values[V_Value]
 End
 
@@ -180,7 +180,7 @@ End
 /// @param name                                                     Name of the HDF5 dataset
 /// @param str                                                      Contents to write into the dataset
 /// @param compressionMode [optional, defaults to #NO_COMPRESSION]  Type of compression to use, one of @ref CompressionMode
-Function WriteTextDatasetIfSet(locationID, name, str, [compressionMode])
+threadsafe Function WriteTextDatasetIfSet(locationID, name, str, [compressionMode])
 	variable locationID
 	string name, str
 	variable compressionMode
@@ -216,7 +216,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-Function/S ReadTextAttributeAsList(locationID, path, name)
+threadsafe Function/S ReadTextAttributeAsList(locationID, path, name)
 	variable locationID
 	string path, name
 
@@ -230,7 +230,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-Function/WAVE ReadTextAttribute(locationID, path, name)
+threadsafe Function/WAVE ReadTextAttribute(locationID, path, name)
 	variable locationID
 	string path, name
 
@@ -241,7 +241,7 @@ Function/WAVE ReadTextAttribute(locationID, path, name)
 		return wv
 	endif
 
-	ASSERT(IsTextWave(wv), "Expected a text wave")
+	ASSERT_TS(IsTextWave(wv), "Expected a text wave")
 
 	return wv
 End
@@ -252,7 +252,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-Function/S ReadTextAttributeAsString(locationID, path, name)
+threadsafe Function/S ReadTextAttributeAsString(locationID, path, name)
 	variable locationID
 	string path, name
 
@@ -262,8 +262,8 @@ Function/S ReadTextAttributeAsString(locationID, path, name)
 		return PLACEHOLDER
 	endif
 
-	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(IsTextWave(wv), "Expected a text wave")
+	ASSERT_TS(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT_TS(IsTextWave(wv), "Expected a text wave")
 
 	return wv[0]
 End
@@ -274,7 +274,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-Function ReadAttributeAsNumber(locationID, path, name)
+threadsafe Function ReadAttributeAsNumber(locationID, path, name)
 	variable locationID
 	string path, name
 
@@ -284,8 +284,8 @@ Function ReadAttributeAsNumber(locationID, path, name)
 		return NaN
 	endif
 
-	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(IsNumericWave(wv), "Expected a text wave")
+	ASSERT_TS(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT_TS(IsNumericWave(wv), "Expected a text wave")
 
 	return wv[0]
 End
@@ -295,7 +295,7 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name    Name of the HDF5 dataset
-Function/WAVE ReadTextDataSet(locationID, name)
+threadsafe Function/WAVE ReadTextDataSet(locationID, name)
 	variable locationID
 	string name
 
@@ -306,7 +306,7 @@ Function/WAVE ReadTextDataSet(locationID, name)
 		return wv
 	endif
 
-	ASSERT(IsTextWave(wv), "Expected a text wave")
+	ASSERT_TS(IsTextWave(wv), "Expected a text wave")
 
 	return wv
 End
@@ -315,7 +315,7 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name       Name of the HDF5 dataset
-Function/S ReadTextDataSetAsString(locationID, name)
+threadsafe Function/S ReadTextDataSetAsString(locationID, name)
 	variable locationID
 	string name
 
@@ -325,8 +325,8 @@ Function/S ReadTextDataSetAsString(locationID, name)
 		return PLACEHOLDER
 	endif
 
-	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(IsTextWave(wv), "Expected a text wave")
+	ASSERT_TS(DimSize(wv, ROWS) == 1, "ReadTextDataSetAsString: Expected exactly one row")
+	ASSERT_TS(IsTextWave(wv), "Expected a text wave")
 
 	return wv[0]
 End
@@ -335,7 +335,7 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name       Name of the HDF5 dataset
-Function ReadDataSetAsNumber(locationID, name)
+threadsafe Function ReadDataSetAsNumber(locationID, name)
 	variable locationID
 	string name
 
@@ -345,15 +345,14 @@ Function ReadDataSetAsNumber(locationID, name)
 		return NaN
 	endif
 
-	ASSERT(DimSize(wv, ROWS) == 1, "Expected exactly one row")
-	ASSERT(IsNumericWave(wv), "Expected a numeric wave")
-
+	ASSERT_TS(DimSize(wv, ROWS) == 1, "Expected exactly one row")
+	ASSERT_TS(IsNumericWave(wv), "Expected a numeric wave")
 	return wv[0]
 End
 
 /// @brief Remove a string prefix from each list item and
 /// return the new list
-Function/S RemovePrefixFromListItem(prefix, list, [listSep])
+threadsafe Function/S RemovePrefixFromListItem(prefix, list, [listSep])
 	string prefix, list
 	string listSep
 	if(ParamIsDefault(listSep))
@@ -378,7 +377,7 @@ Function/S RemovePrefixFromListItem(prefix, list, [listSep])
 End
 
 /// @brief Turn a persistent wave into a free wave
-Function/Wave MakeWaveFree(wv)
+threadsafe Function/Wave MakeWaveFree(wv)
 	WAVE wv
 
 	DFREF dfr = NewFreeDataFolder()
@@ -394,7 +393,7 @@ End
 ///
 /// @param dfr 	    datafolder reference where the new datafolder should be created
 /// @param baseName first part of the wave name, might be shorted due to Igor Pro limitations
-Function/S UniqueWaveName(dfr, baseName)
+threadsafe Function/S UniqueWaveName(dfr, baseName)
 	dfref dfr
 	string baseName
 
@@ -402,8 +401,8 @@ Function/S UniqueWaveName(dfr, baseName)
 	string name
 	string path
 
-	ASSERT(!isEmpty(baseName), "baseName must not be empty" )
-	ASSERT(DataFolderExistsDFR(dfr), "dfr does not exist")
+	ASSERT_TS(!isEmpty(baseName), "UniqueWaveName: baseName must not be empty" )
+	ASSERT_TS(DataFolderExistsDFR(dfr), "UniqueWaveName: dfr does not exist")
 
 	// shorten basename so that we can attach some numbers
 	numRuns = 10000
@@ -431,7 +430,7 @@ End
 /// Unlike DataFolderExists() a dfref pointing to an empty ("") dataFolder is considered non-existing here.
 /// @returns one if dfr is valid and references an existing or free datafolder, zero otherwise
 /// Taken from http://www.igorexchange.com/node/2055
-Function DataFolderExistsDFR(dfr)
+threadsafe Function DataFolderExistsDFR(dfr)
 	dfref dfr
 
 	string dataFolder
@@ -445,15 +444,9 @@ Function DataFolderExistsDFR(dfr)
 		case 3: // free data folders always exist
 			return 1
 		default:
-			Abort "unknown status"
+			ASSERT_TS(0, "DataFolderExistsDFR: unknown status")
 			return 0
 	endswitch
-End
-
-/// @brief Bring the control window (the window with the command line) to the
-///        front of the desktop
-Function ControlWindowToFront()
-	DoWindow/H
 End
 
 /// @brief Return the base name of the file
@@ -463,7 +456,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-Function/S GetBaseName(filePathWithSuffix, [sep])
+threadsafe Function/S GetBaseName(filePathWithSuffix, [sep])
 	string filePathWithSuffix, sep
 
 	if(ParamIsDefault(sep))
@@ -480,7 +473,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-Function/S GetFileSuffix(filePathWithSuffix, [sep])
+threadsafe Function/S GetFileSuffix(filePathWithSuffix, [sep])
 	string filePathWithSuffix, sep
 
 	if(ParamIsDefault(sep))
@@ -497,7 +490,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-Function/S GetFolder(filePathWithSuffix, [sep])
+threadsafe Function/S GetFolder(filePathWithSuffix, [sep])
 	string filePathWithSuffix, sep
 
 	if(ParamIsDefault(sep))
@@ -514,7 +507,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-Function/S GetFile(filePathWithSuffix, [sep])
+threadsafe Function/S GetFile(filePathWithSuffix, [sep])
 	string filePathWithSuffix, sep
 
 	if(ParamIsDefault(sep))
@@ -532,7 +525,7 @@ End
 /// - ` `/`T` between date and time
 /// - fractional seconds
 /// - `,`/`.` as decimal separator
-Function ParseISO8601TimeStamp(timestamp)
+threadsafe Function ParseISO8601TimeStamp(timestamp)
 	string timestamp
 
 	string year, month, day, hour, minute, second, regexp, fracSeconds
@@ -557,15 +550,15 @@ Function ParseISO8601TimeStamp(timestamp)
 End
 
 /// @brief Convert a text wave to string list
-Function/S TextWaveToList(txtWave, sep)
+threadsafe Function/S TextWaveToList(txtWave, sep)
 	WAVE/T txtWave
 	string sep
 
 	string list = ""
 	variable i, numRows
 
-	ASSERT(IsTextWave(txtWave), "Expected a text wave")
-	ASSERT(DimSize(txtWave, COLS) == 0, "Expected a 1D wave")
+	ASSERT_TS(IsTextWave(txtWave), "Expected a text wave")
+	ASSERT_TS(DimSize(txtWave, COLS) == 0, "Expected a 1D wave")
 
 	numRows = DimSize(txtWave, ROWS)
 	for(i = 0; i < numRows; i += 1)
@@ -577,7 +570,7 @@ End
 
 /// @brief Return the initial values for the missing_fields attribute depending
 ///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp mode.
-Function/S GetTimeSeriesMissingFields(channelType, clampMode)
+threadsafe Function/S GetTimeSeriesMissingFields(channelType, clampMode)
 	variable channelType, clampMode
 
 	if(channelType == CHANNEL_TYPE_ADC)
@@ -600,7 +593,7 @@ End
 /// @brief Derive the clamp mode from the `ancestry` attribute and return it
 ///
 /// @param ancestry Contents of ancestry attribute
-Function GetClampModeFromAncestry(ancestry)
+threadsafe Function GetClampModeFromAncestry(ancestry)
 	string ancestry
 
 	ancestry = RemoveEnding(ancestry, ";")
@@ -617,7 +610,7 @@ Function GetClampModeFromAncestry(ancestry)
 		case "TimeSeries": // unassociated channel data
 			return NaN
 		default:
-			ASSERT(0, "Unknown ancestry: " + ancestry)
+			ASSERT_TS(0, "Unknown ancestry: " + ancestry)
 			break
 	endswitch
 End
@@ -626,7 +619,7 @@ End
 ///        `ancestry` attribute and return it
 ///
 /// @param ancestry Contents of ancestry attribute
-Function GetChannelTypeFromAncestry(ancestry)
+threadsafe Function GetChannelTypeFromAncestry(ancestry)
 	string ancestry
 
 	ancestry = RemoveEnding(ancestry, ";")
@@ -642,7 +635,7 @@ Function GetChannelTypeFromAncestry(ancestry)
 		case "TimeSeries": // unassociated channel
 			return CHANNEL_TYPE_OTHER
 		default:
-			ASSERT(0, "Unknown ancestry: " + ancestry)
+			ASSERT_TS(0, "Unknown ancestry: " + ancestry)
 			break
 	endswitch
 End

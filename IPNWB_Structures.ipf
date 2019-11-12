@@ -27,7 +27,7 @@ Structure WriteChannelParams
 EndStructure
 
 /// @brief Initialize WriteChannelParams structure
-Function InitWriteChannelParams(p)
+threadsafe Function InitWriteChannelParams(p)
 	STRUCT WriteChannelParams &p
 
 	p.groupIndex = NaN
@@ -46,7 +46,7 @@ Structure ReadChannelParams
 EndStructure
 
 /// @brief Initialization routine for InitReadChannelParams
-Function InitReadChannelParams(p)
+threadsafe Function InitReadChannelParams(p)
 	STRUCT ReadChannelParams &p
 
 	p.device          = ""
@@ -78,7 +78,7 @@ Structure GeneralInfo
 EndStructure
 
 /// @brief Initialization routine for GeneralInfo
-Function InitGeneralInfo(gi)
+threadsafe Function InitGeneralInfo(gi)
 	STRUCT GeneralInfo &gi
 
 	gi.session_id             = PLACEHOLDER
@@ -109,7 +109,7 @@ Structure SubjectInfo
 EndStructure
 
 /// @brief Initialization routine for SubjectInfo
-Function InitSubjectInfo(si)
+threadsafe Function InitSubjectInfo(si)
 	STRUCT SubjectInfo &si
 
 	si.subject_id  = PLACEHOLDER
@@ -132,7 +132,7 @@ Structure ToplevelInfo
 EndStructure
 
 /// @brief Initialization routine for ToplevelInfo
-Function InitToplevelInfo(ti)
+threadsafe Function InitToplevelInfo(ti)
 	STRUCT ToplevelInfo &ti
 
 	ti.session_description = PLACEHOLDER
@@ -174,7 +174,7 @@ EndStructure
 /// @param[out] tsp         structure to initialize
 /// @param[in]  channelType one of @ref IPNWB_ChannelTypes
 /// @param[in]  clampMode   one of @ref IPNWB_ClampModes
-Function InitTimeSeriesProperties(tsp, channelType, clampMode)
+threadsafe Function InitTimeSeriesProperties(tsp, channelType, clampMode)
 	STRUCT TimeSeriesProperties &tsp
 	variable channelType
 	variable clampMode

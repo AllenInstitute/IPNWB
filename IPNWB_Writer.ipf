@@ -14,7 +14,7 @@
 /// @param toplevelInfo [optional, see ToplevelInfo() for defaults] datasets directly below `/`
 /// @param generalInfo [optional, see GeneralInfo() for defaults]   datasets directly below `/general`
 /// @param subjectInfo [optional, see SubjectInfo() for defaults]   datasets below `/general/subject`
-Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, subjectInfo])
+threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, subjectInfo])
 	variable locationID
 	STRUCT ToplevelInfo &toplevelInfo
 	STRUCT GeneralInfo &generalInfo
@@ -102,7 +102,7 @@ End
 ///
 /// @param locationID                                    HDF5 identifier
 /// @param filtering [optional, defaults to PLACEHOLDER] filtering information
-Function CreateIntraCellularEphys(locationID, [filtering])
+threadsafe Function CreateIntraCellularEphys(locationID, [filtering])
 	variable locationID
 	string filtering
 
@@ -118,7 +118,7 @@ Function CreateIntraCellularEphys(locationID, [filtering])
 End
 
 /// @brief Add an entry for the device `name` with contents `data`
-Function AddDevice(locationID, name, data)
+threadsafe Function AddDevice(locationID, name, data)
 	variable locationID
 	string name, data
 
@@ -129,14 +129,14 @@ Function AddDevice(locationID, name, data)
 End
 
 /// @brief Add an entry for the electrode `name` with contents `data`
-Function AddElectrode(locationID, name, data, device)
+threadsafe Function AddElectrode(locationID, name, data, device)
 	variable locationID
 	string name, data, device
 
 	string path
 	variable groupID
 
-	ASSERT(H5_IsValidIdentifier(name), "The electrode name must be a valid HDF5 identifier")
+	ASSERT_TS(H5_IsValidIdentifier(name), "AddElectrode: The electrode name must be a valid HDF5 identifier")
 
 	sprintf path, "/general/intracellular_ephys/electrode_%s", name
 	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
@@ -147,7 +147,7 @@ Function AddElectrode(locationID, name, data, device)
 End
 
 /// @brief Add a modification timestamp to the NWB file
-Function AddModificationTimeEntry(locationID)
+threadsafe Function AddModificationTimeEntry(locationID)
 	variable locationID
 
 	Make/FREE/T/N=1 data = GetISO8601TimeStamp()
@@ -156,7 +156,7 @@ Function AddModificationTimeEntry(locationID)
 	if(V_flag)
 		HDF5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT(0, "Could not append to the HDF5 dataset")
+		ASSERT_TS(0, "AddModificationTimeEntry: Could not append to the HDF5 dataset")
 	endif
 End
 
@@ -167,7 +167,7 @@ End
 ///
 /// @param locationID HDF5 identifier
 /// @param name       dataset or group name
-Function MarkAsCustomEntry(locationID, name)
+threadsafe Function MarkAsCustomEntry(locationID, name)
 	variable locationID
 	string name
 
@@ -181,7 +181,7 @@ End
 /// @param unitWithPrefix                                        unit with optional prefix of the data in the TimeSeries, @see ParseUnit
 /// @param resolution [optional, defaults to `NaN` for unknown]  experimental resolution
 /// @param overwrite [optional, defaults to false] 				 should existing attributes be overwritten
-Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPrefix, [resolution, overwrite])
+threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPrefix, [resolution, overwrite])
 	variable locationID
 	string fullAbsPath, unitWithPrefix
 	variable resolution, overwrite
@@ -208,27 +208,27 @@ Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPrefix, [resol
 End
 
 /// @brief Add a TimeSeries property to the `names` and `data` waves and removes it from `missing_fields` list
-Function AddProperty(tsp, nwbProp, value)
+threadsafe Function AddProperty(tsp, nwbProp, value)
 	STRUCT TimeSeriesProperties &tsp
 	string nwbProp
 	variable value
 
-	ASSERT(FindListItem(nwbProp, tsp.missing_fields) != -1, "incorrect missing_fields")
+	ASSERT_TS(FindListItem(nwbProp, tsp.missing_fields) != -1, "AddProperty: incorrect missing_fields")
 	tsp.missing_fields = RemoveFromList(nwbProp, tsp.missing_fields)
 
 	WAVE/T propNames = tsp.names
 	WAVE propData    = tsp.data
 
 	FindValue/TEXT=""/TXOP=(4) propNames
-	ASSERT(V_Value != -1, "Could not find space for new entry")
-	ASSERT(!IsFinite(propData[V_Value]), "data row already filled")
+	ASSERT_TS(V_Value != -1, "AddProperty: Could not find space for new entry")
+	ASSERT_TS(!IsFinite(propData[V_Value]), "AddProperty: data row already filled")
 
 	propNames[V_value] = nwbProp
 	propData[V_value]  = value
 End
 
 /// @brief Add a custom TimeSeries property to the `names` and `data` waves
-Function AddCustomProperty(tsp, nwbProp, value)
+threadsafe Function AddCustomProperty(tsp, nwbProp, value)
 	STRUCT TimeSeriesProperties &tsp
 	string nwbProp
 	variable value
@@ -238,8 +238,8 @@ Function AddCustomProperty(tsp, nwbProp, value)
 	WAVE isCustom    = tsp.isCustom
 
 	FindValue/TEXT=""/TXOP=(4) propNames
-	ASSERT(V_Value != -1, "Could not find space for new entry")
-	ASSERT(!IsFinite(propData[V_Value]), "data row already filled")
+	ASSERT_TS(V_Value != -1, "AddCustomProperty: Could not find space for new entry")
+	ASSERT_TS(!IsFinite(propData[V_Value]), "AddCustomProperty: data row already filled")
 
 	propNames[V_value] = nwbProp
 	propData[V_value]  = value
@@ -247,7 +247,7 @@ Function AddCustomProperty(tsp, nwbProp, value)
 End
 
 /// @brief Return the next free group index of the format `data_$NUM`
-Function GetNextFreeGroupIndex(locationID, path)
+threadsafe Function GetNextFreeGroupIndex(locationID, path)
 	variable locationID
 	string path
 
@@ -266,7 +266,7 @@ Function GetNextFreeGroupIndex(locationID, path)
 
 	str = StringFromList(ItemsInList(list) - 1, list)
 	sscanf str, "data_%d.*", idx
-	ASSERT(V_Flag == 1, "Could not find running data index")
+	ASSERT_TS(V_Flag == 1, "GetNextFreeGroupIndex: Could not find running data index")
 
 	return idx + 1
 End
@@ -278,7 +278,7 @@ End
 /// @param p                                                      Filled #IPNWB::WriteChannelParams structure
 /// @param tsp                                                    Filled #IPNWB::TimeSeriesProperties structure
 /// @param compressionMode [optional, defaults to NO_COMPRESSION] Type of compression to use, one of @ref CompressionMode
-Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
+threadsafe Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
 	variable locationID
 	string path
 	STRUCT WriteChannelParams &p
@@ -302,8 +302,8 @@ Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
 		endif
 
 		channelTypeStr = StringFromList(p.channelType, CHANNEL_NAMES)
-		ASSERT(!IsEmpty(channelTypeStr), "invalid channel type string")
-		ASSERT(IsFinite(p.channelNumber), "invalid channel number")
+		ASSERT_TS(!IsEmpty(channelTypeStr), "WriteSingleChannel: invalid channel type string")
+		ASSERT_TS(IsFinite(p.channelNumber), "WriteSingleChannel: invalid channel number")
 
 		if(strlen(p.channelSuffix) > 0)
 			str = "_" + p.channelSuffix
@@ -338,8 +338,8 @@ Function WriteSingleChannel(locationID, path, p, tsp, [compressionMode])
 	sprintf source, "Device=%s;Sweep=%d;%s;ElectrodeNumber=%s;ElectrodeName=%s", p.device, p.sweep, str, electrodeNumberStr, p.electrodeName
 
 	if(strlen(p.channelSuffixDesc) > 0 && strlen(p.channelSuffix) > 0)
-		ASSERT(strsearch(p.channelSuffix, "=", 0) == -1, "channelSuffix must not contain an equals (=) symbol")
-		ASSERT(strsearch(p.channelSuffixDesc, "=", 0) == -1, "channelSuffixDesc must not contain an equals (=) symbol")
+		ASSERT_TS(strsearch(p.channelSuffix, "=", 0) == -1, "WriteSingleChannel: channelSuffix must not contain an equals (=) symbol")
+		ASSERT_TS(strsearch(p.channelSuffixDesc, "=", 0) == -1, "WriteSingleChannel: channelSuffixDesc must not contain an equals (=) symbol")
 		source += ";" + p.channelSuffixDesc + "=" + p.channelSuffix
 	endif
 	H5_WriteTextAttribute(groupID, "source", group, str=source, overwrite=1)
