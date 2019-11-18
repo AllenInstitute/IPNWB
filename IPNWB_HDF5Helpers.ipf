@@ -327,6 +327,8 @@ threadsafe static Function InitHDF5DataInfo(di)				// Sets input fields.
 	di.structName = "HDF5DataInfo"
 End
 
+#if IgorVersion() < 9
+
 static Structure HDF5DataInfo					// Use with HDF5DatasetInfo and HDF5AttributeInfo functions
 	// Input fields (inputs to HDF5 XOP)
 	uint32 version							// Must be set to kHDF5DataInfoVersion
@@ -344,6 +346,9 @@ static Structure HDF5DataInfo					// Use with HDF5DatasetInfo and HDF5AttributeI
 	double dims[H5S_MAX_RANK];			// Size of each dimension.
 	double maxdims[H5S_MAX_RANK];		// Maximum size of each dimension.
 EndStructure
+
+#endif
+
 /// @}
 
 /// @brief Return 1 if the given HDF5 dataset exists, 0 otherwise.
