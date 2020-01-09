@@ -1,14 +1,18 @@
 namespaces:
 - author:
+  - Andrew Tritt
+  - Oliver Ruebel
+  - Ryan Ly
+  - Ben Dichter
   - Keith Godfrey
   - Jeff Teeters
-  - Oliver Ruebel
-  - Andrew Tritt
   contact:
+  - ajtritt@lbl.gov
+  - oruebel@lbl.gov
+  - rly@lbl.gov
+  - bdichter@lbl.gov
   - keithg@alleninstitute.org
   - jteeters@berkeley.edu
-  - oruebel@lbl.gov
-  - ajtritt@lbl.gov
   doc: NWB namespace
   full_name: NWB core
   name: core
@@ -49,4 +53,4 @@ namespaces:
   - doc: This source module contains neurodata_type for retinotopy data.
     source: nwb.retinotopy
     title: Retinotopy
-  version: 2.0.1
+  version: 2.1.0

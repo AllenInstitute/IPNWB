@@ -15,7 +15,7 @@ Main features
 * Read and write NWB compliant files
 
   - `specification version 1.0.5, Aug 8 2016 <https://github.com/NeurodataWithoutBorders/specification/raw/master/version_1.0.5_beta/nwb_file_format_specification_1.0.5_beta.pdf>`__
-  - `specification version 2.0.1 <NWB2HTML>`_, March 2019
+  - `specification version 2.1.0 <NWB2HTML>`_, September 2019
 
 * Compatible with Igor Pro 7 or later on Windows/MacOSX
 * Requires the stock HDF5 XOP only
@@ -99,8 +99,8 @@ NWB version 2
 
 Recent NWB (version 2) schema specifications are `tracked in a separate
 repository <https://github.com/NeurodataWithoutBorders/nwb-schema>`_.  The
-schema is implemented in version 2.0.1
-(34c424037acc99da6e357dab8bcaf46e3b7f96e7) with some changes due to the Igor
+schema is implemented in version 2.1.0
+(da3bcd72d63c83c512dd56e9959f409230c5756e) with some changes due to the Igor
 Pro HDF5 limitations.
 
 The complete tree is described in a hdmf compatible format:
@@ -141,8 +141,8 @@ The complete tree is described in a hdmf compatible format:
 .. literalinclude:: doc/nwb.retinotopy.yaml
    :language: yaml
 
-The following deviations from `NWB schema 2.0.1
-<https://github.com/NeurodataWithoutBorders/nwb-schema/tree/2.0.1/core>`_ were
+The following deviations from `NWB schema 2.1.0
+<https://github.com/NeurodataWithoutBorders/nwb-schema/tree/2.1.0/core>`_ were
 recorded:
 
 .. literalinclude:: doc/schema.diff

@@ -248,7 +248,7 @@ threadsafe Function LoadSweepNumber(locationID, channel, version)
 		LoadSourceAttribute(locationID, channel, params)
 		return params.sweep
 	elseif(version == NWB_VERSION_LATEST)
-		return NaN
+		return ReadAttributeAsNumber(locationID, channel, "sweep_number")
 	endif
 End
 

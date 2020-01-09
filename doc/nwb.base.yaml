@@ -1,77 +1,70 @@
 datasets:
-- attributes:
-  - doc: Short description of what this type of Interface contains.
-    dtype: text
-    name: help
-  doc: The attributes specified here are included in all interfaces.
+- doc: An abstract data type for a dataset.
   neurodata_type_def: NWBData
 - attributes:
-  - doc: a help string
-    dtype: text
-    name: help
-    value: indexes into a list of values for a list of elements
-  - doc: the target dataset that this index applies to
+  - doc: Target dataset that this index applies to.
     dtype:
       reftype: object
       target_type: NWBData
     name: target
-  doc: Pointers that index data values
+  doc: Pointers that index data values.
   neurodata_type_def: Index
   neurodata_type_inc: NWBData
 - attributes:
-  - doc: a help string
-    dtype: text
-    name: help
-    value: Values for a list of elements
-  - doc: A short description of what these vectors are
+  - doc: Description of what these vectors represent.
     dtype: text
     name: description
-  doc: Data values indexed by pointer
+  doc: A 1-dimensional dataset. This can be indexed using a VectorIndex to encode
+    a 2-dimensional ragged array in 1 dimension. The first vector is at VectorData[0:VectorIndex(0)+1].
+    The second vector is at VectorData[VectorIndex(0)+1:VectorIndex(1)+1]. And so
+    on.
   neurodata_type_def: VectorData
   neurodata_type_inc: NWBData
 - attributes:
-  - doc: the target dataset that this index applies to
+  - doc: Reference to the target dataset that this index applies to.
     dtype:
       reftype: object
       target_type: VectorData
     name: target
-  doc: Pointers that index data values
+  doc: An array of indices into the first dimension of the target VectorData. Can
+    be used with VectorData to encode a 2-dimensional ragged array in 1 dimension.
   neurodata_type_def: VectorIndex
   neurodata_type_inc: Index
-- attributes:
-  - doc: a help string
-    dtype: text
-    name: help
-    value: unique identifiers for a list of elements
-  default_name: element_id
-  doc: a unique identifier for each element
+- default_name: element_id
+  dims:
+  - num_elements
+  doc: A list of unique identifiers for values within a dataset, e.g. rows of a DynamicTable.
   dtype: int
   neurodata_type_def: ElementIdentifiers
   neurodata_type_inc: NWBData
   shape:
   - null
 - attributes:
-  - doc: value is 'a subset (i.e. slice or region) of a DynamicTable'
-    dtype: text
-    name: help
-    value: a subset (i.e. slice or region) of a DynamicTable
-  - doc: a reference to the DynamicTable this region applies to
+  - doc: Reference to the DynamicTable object that this region applies to.
     dtype:
       reftype: object
       target_type: DynamicTable
     name: table
-  - doc: Description of what this table region points to
+  - doc: Description of what this table region points to.
     dtype: text
     name: description
-  doc: a region/index into a DynamicTable
+  doc: A region/index into a DynamicTable.
   dtype: int
   neurodata_type_def: DynamicTableRegion
   neurodata_type_inc: VectorData
-- attributes:
-  - doc: base image (use GrayscaleImage, RGBImage, RGBAImage, etc.)
-    dtype: text
-    name: help
-  doc: Image base type.
+- attributes: []
+  dims:
+  - - num_x
+    - num_y
+  - - num_x
+    - num_y
+    - (r, g, b)
+  - - num_x
+    - num_y
+    - (r, g, b, a)
+  doc: An abstract data type for an image. Shape can be 2-D (x, y), or 3-D where the
+    third dimension can have three or four elements, e.g. (x, y, (r, g, b)) or (x,
+    y, (r, g, b, a)).
   neurodata_type_def: Image
   neurodata_type_inc: NWBData
   shape:
@@ -84,46 +77,19 @@ datasets:
     - null
     - 4
 groups:
-- attributes:
-  - doc: Short description of what this type of NWBContainer contains.
-    dtype: text
-    name: help
-  doc: The attributes specified here are included in all interfaces.
+- doc: An abstract data type for a generic container storing collections of data and
+    metadata. Base type for all data and metadata containers.
   neurodata_type_def: NWBContainer
-- doc: An abstract data type for differentiating experimental data from metadata
+- doc: An abstract data type for a generic container storing collections of data,
+    as opposed to metadata.
   neurodata_type_def: NWBDataInterface
   neurodata_type_inc: NWBContainer
-- attributes:
-  - doc: Value is 'General time series object'
-    dtype: text
-    name: help
-    value: General time series object
+- attributes: []
   datasets:
-  - dims:
-    - num_times
-    doc: 'Numerical labels that apply to each element in data[]. COMMENT: Optional
-      field. If present, the control array should have the same number of elements
-      as data[].'
-    dtype: uint8
-    name: control
-    quantity: '?'
-    shape:
-    - null
-  - dims:
-    - num_control_values
-    doc: 'Description of each control value. COMMENT: Array length should be as long
-      as the highest number in control minus one, generating an zero-based indexed
-      array for control values.'
-    dtype: text
-    name: control_description
-    quantity: '?'
-    shape:
-    - null
   - attributes:
-    - doc: 'The base unit of measure used to store data. This should be in the SI
-        unit. COMMENT: This is the SI unit (when appropriate) of the stored data,
-        such as Volts. If the actual data is stored in millivolts, the field ''conversion''
-        below describes how to convert the data to the specified SI unit.'
+    - doc: Base unit of measurement for working with the data. Actual stored values
+        are not necessarily stored in these units. To access the data in these units,
+        multiply 'data' by 'conversion'.
       dtype: text
       name: unit
     dims:
@@ -137,9 +103,9 @@ groups:
       - num_DIM2
       - num_DIM3
       - num_DIM4
-    doc: 'Data values. Can also store binary data (eg, image frames) COMMENT: This
-      field may be a link to data stored in an external file, especially in the case
-      of raw data.'
+    doc: Data values. Data can be in 1-D, 2-D, 3-D, or 4-D. The first dimension should
+      always represent time. This can also be used to store binary data (e.g., image
+      frames). This can also be a link to data stored in an external file.
     name: data
     shape:
     - - null
@@ -153,16 +119,16 @@ groups:
       - null
       - null
   - attributes:
-    - doc: 'Sampling rate, in Hz COMMENT: Rate information is stored in Hz'
+    - doc: Sampling rate, in Hz.
       dtype: float32
       name: rate
-    - doc: Value is 'Seconds'
+    - doc: Unit of measurement for time, which is fixed to 'seconds'.
       dtype: text
       name: unit
-      value: Seconds
-    doc: 'The timestamp of the first sample. COMMENT: When timestamps are uniformly
-      spaced, the timestamp of the first sample can be specified and all subsequent
-      ones calculated from the sampling rate.'
+      value: seconds
+    doc: Timestamp of the first sample in seconds. When timestamps are uniformly spaced,
+      the timestamp of the first sample can be specified and all subsequent ones calculated
+      from the sampling rate attribute.
     dtype: float64
     name: starting_time
     quantity: '?'
@@ -171,90 +137,99 @@ groups:
       dtype: int32
       name: interval
       value: 1
-    - doc: Value is 'Seconds'
+    - doc: Unit of measurement for timestamps, which is fixed to 'seconds'.
       dtype: text
       name: unit
-      value: Seconds
+      value: seconds
     dims:
     - num_times
-    doc: 'Timestamps for samples stored in data.COMMENT: Timestamps here have all
-      been corrected to the common experiment master-clock. Time is stored as seconds
-      and all timestamps are relative to experiment start time.'
+    doc: Timestamps for samples stored in data, in seconds, relative to the common
+      experiment master-clock stored in NWBFile.timestamps_reference_time.
     dtype: float64
     name: timestamps
     quantity: '?'
     shape:
     - null
+  - dims:
+    - num_times
+    doc: Numerical labels that apply to each time point in data for the purpose of
+      querying and slicing data by these values. If present, the length of this array
+      should be the same size as the first dimension of data.
+    dtype: uint8
+    name: control
+    quantity: '?'
+    shape:
+    - null
+  - dims:
+    - num_control_values
+    doc: Description of each control value. Must be present if control is present.
+      If present, control_description[0] should describe time points where control
+      == 0.
+    dtype: text
+    name: control_description
+    quantity: '?'
+    shape:
+    - null
   doc: General purpose time series.
   groups:
-  - doc: 'Lab specific time and sync information as provided directly from hardware
+  - doc: Lab-specific time and sync information as provided directly from hardware
       devices and that is necessary for aligning all acquired time information to
-      a common timebase. The timestamp array stores time in the common timebase. COMMENT:
-      This group will usually only be populated in TimeSeries that are stored external
+      a common timebase. The timestamp array stores time in the common timebase. This
+      group will usually only be populated in TimeSeries that are stored external
       to the NWB file, in files storing raw data. Once timestamp data is calculated,
-      the contents of ''sync'' are mostly for archival purposes.'
+      the contents of 'sync' are mostly for archival purposes.
     name: sync
     quantity: '?'
   neurodata_type_def: TimeSeries
   neurodata_type_inc: NWBDataInterface
 - attributes:
-  - doc: Description of Module
+  - doc: Description of this collection of processed data.
     dtype: text
     name: description
-  - doc: Value is 'A collection of analysis outputs from processing of data'
-    dtype: text
-    name: help
-    value: A collection of analysis outputs from processing of data
-  doc: Module.  Name should be descriptive. Stores a collection of related data organized
-    by contained interfaces.  Each interface is a contract specifying content related
-    to a particular type of data.
+  doc: A collection of processed data.
   groups:
-  - doc: Interface objects containing data output from processing steps
+  - doc: Data objects stored in this collection.
     neurodata_type_inc: NWBDataInterface
     quantity: '*'
   neurodata_type_def: ProcessingModule
   neurodata_type_inc: NWBContainer
 - attributes:
-  - doc: Description of images in this container
+  - doc: Description of this collection of images.
     dtype: text
     name: description
-  - doc: Value is 'A collection of images that have some meaningful relationship'
-    dtype: text
-    name: help
-    value: A collection of images that have some meaningful relationship
   datasets:
-  - doc: Images stored in this NWBDataInterface
+  - doc: Images stored in this collection.
     neurodata_type_inc: Image
     quantity: +
   default_name: Images
-  doc: A NWBDataInterface for storing images that have some relationship
+  doc: A collection of images.
   neurodata_type_def: Images
   neurodata_type_inc: NWBDataInterface
 - attributes:
-  - doc: Value is 'A column-centric table'
-    dtype: text
-    name: help
-    value: A column-centric table
-  - doc: The names of the columns in this table. This should be used to specifying
-      an order to the columns
+  - dims:
+    - num_columns
+    doc: The names of the columns in this table. This should be used to specify an
+      order to the columns.
     dtype: text
     name: colnames
     shape:
     - null
-  - doc: Description of what is in this dynamic table
+  - doc: Description of what is in this dynamic table.
     dtype: text
     name: description
   datasets:
-  - doc: The unique identifier for the rows in this dynamic table
+  - dims:
+    - num_rows
+    doc: Array of unique identifiers for the rows of this dynamic table.
     dtype: int
     name: id
     neurodata_type_inc: ElementIdentifiers
     shape:
     - null
-  - doc: The vector columns in this dynamic table
+  - doc: Vector columns of this dynamic table.
     neurodata_type_inc: VectorData
     quantity: '*'
-  - doc: The indices for the vector columns in this dynamic table
+  - doc: Indices for the vector columns of this dynamic table.
     neurodata_type_inc: VectorIndex
     quantity: '*'
   doc: A group containing multiple datasets that are aligned on the first dimension
