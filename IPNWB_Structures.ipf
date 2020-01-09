@@ -99,12 +99,13 @@ End
 
 /// @brief Structure to hold all properties of the NWB file directly below `/general/subject`
 Structure SubjectInfo
-	string subject_id
+	string age
+	string date_of_birth // isodatetime
 	string description
-	string species
 	string genotype
 	string sex
-	string age
+	string species
+	string subject_id
 	string weight
 EndStructure
 
@@ -112,12 +113,13 @@ EndStructure
 threadsafe Function InitSubjectInfo(si)
 	STRUCT SubjectInfo &si
 
-	si.subject_id  = PLACEHOLDER
-	si.description = PLACEHOLDER
-	si.species     = PLACEHOLDER
+	si.age         = PLACEHOLDER
+	si.date_of_birth = GetISO8601TimeStamp()
+	si.description = "Description of subject and where subject came from (e.g., breeder, if animal)."
 	si.genotype    = PLACEHOLDER
 	si.sex         = PLACEHOLDER
-	si.age         = PLACEHOLDER
+	si.species     = PLACEHOLDER
+	si.subject_id  = PLACEHOLDER
 	si.weight      = PLACEHOLDER
 End
 
@@ -251,7 +253,6 @@ threadsafe Function InitVectorData(vd)
 End
 
 Structure VectorIndex
-	string help
 	string namespace
 	string neurodata_type
 	STRUCT VectorData target
@@ -260,7 +261,6 @@ EndStructure
 threadsafe Function InitVectorIndex(vi)
 	STRUCT VectorIndex &vi
 
-	vi.help = "indexes into a list of values for a list of elements"
 	vi.namespace = "core"
 	vi.neurodata_type = "VectorIndex"
 End

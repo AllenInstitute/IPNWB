@@ -35,10 +35,6 @@ datasets:
       reftype: object
       target_type: VectorData
     name: target
-  - doc: a help string
-    dtype: text
-    name: help
-    value: indexes into a list of values for a list of elements
   doc: Pointers that index data values
   neurodata_type_def: VectorIndex
   neurodata_type_inc: Index
@@ -124,20 +120,6 @@ groups:
     shape:
     - null
   - attributes:
-    - default_value: 1
-      doc: Scalar to multiply each element in data to convert it to the specified
-        unit
-      dtype: float32
-      name: conversion
-      required: false
-    - default_value: 0
-      doc: 'Smallest meaningful difference between values in data, stored in the specified
-        by unit. COMMENT: E.g., the change in value of the least significant bit,
-        or a larger number if signal noise is known to be present. If unknown, use
-        -1.0'
-      dtype: float32
-      name: resolution
-      required: false
     - doc: 'The base unit of measure used to store data. This should be in the SI
         unit. COMMENT: This is the SI unit (when appropriate) of the stored data,
         such as Volts. If the actual data is stored in millivolts, the field ''conversion''

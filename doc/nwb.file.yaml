@@ -8,7 +8,7 @@ groups:
       format with trailing major, minor and patch numbers.'
     dtype: text
     name: nwb_version
-    value: 2.0b
+    value: 2.0.1
   datasets:
   - dims:
     - '*unlimited*'

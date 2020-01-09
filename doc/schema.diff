@@ -2,22 +2,7 @@
  34c424037acc99da6e357dab8bcaf46e3b7f96e7 specifications (2.0.1)
 
 # diff NWB vs IPNWB specifications for nwb.base
-61a62,67
->         },
->         {
->           "doc": "a help string",
->           "dtype": "text",
->           "name": "help",
->           "value": "indexes into a list of values for a list of elements"
-154a161,167
->       "attributes": [
->         {
->           "doc": "Short description of what this type of NWBContainer contains.",
->           "dtype": "text",
->           "name": "help"
->         }
->       ],
-362c375
+362c362
 <           "dtype": "ascii",
 ---
 >           "dtype": "text",
@@ -25,348 +10,74 @@
 # diff NWB vs IPNWB specifications for nwb.behavior
 
 # diff NWB vs IPNWB specifications for nwb.ecephys
-21a22,26
->             ],
->             [
->               "num_times",
->               "num_channels",
->               "num_samples"
-31a37,41
->               null,
->               null
->             ],
->             [
->               null,
 
 # diff NWB vs IPNWB specifications for nwb.epoch
-9a10,22
->         },
->         {
->           "doc": "The names of the columns in this table. This should be used to specifying an order to the columns",
->           "dtype": "text",
->           "name": "colnames",
->           "shape": [
->             null
->           ]
->         },
->         {
->           "doc": "Description of what is in this dynamic table",
->           "dtype": "text",
->           "name": "description"
 
 # diff NWB vs IPNWB specifications for nwb.file
-225a226,232
->               "attributes": [
->                 {
->                   "doc": "Short description of what this type of NWBContainer contains.",
->                   "dtype": "text",
->                   "name": "help"
->                 }
->               ],
+15c15
+<           "value": "2.0b"
+---
+>           "value": "2.0.1"
 
 # diff NWB vs IPNWB specifications for nwb.icephys
-18a19,25
->           "attributes": [
->             {
->               "doc": "The base unit of measure used to store data. This should be in the SI unit. COMMENT: This is the SI unit (when appropriate) of the stored data, such as Volts. If the actual data is stored in millivolts, the field 'conversion' below describes how to convert the data to the specified SI unit.",
->               "dtype": "text",
->               "name": "unit"
->             }
->           ],
-53a61,65
->         },
->         {
->           "doc": "the protocol/stimulus name for this patch-clamp dataset",
->           "dtype": "text",
->           "name": "stimulus_description"
-86a99,103
->         },
->         {
->           "doc": "the protocol/stimulus name for this patch-clamp dataset",
->           "dtype": "text",
->           "name": "stimulus_description"
-99a117,121
->         },
->         {
->           "doc": "the protocol/stimulus name for this patch-clamp dataset",
->           "dtype": "text",
->           "name": "stimulus_description"
-112a135,139
->         },
->         {
->           "doc": "the protocol/stimulus name for this patch-clamp dataset",
->           "dtype": "text",
->           "name": "stimulus_description"
-176a204,208
->         },
->         {
->           "doc": "the protocol/stimulus name for this patch-clamp dataset",
->           "dtype": "text",
->           "name": "stimulus_description"
-252a285,297
->         },
->         {
->           "doc": "The names of the columns in this table. This should be used to specifying an order to the columns",
->           "dtype": "text",
->           "name": "colnames",
->           "shape": [
->             null
->           ]
->         },
->         {
->           "doc": "Description of what is in this dynamic table",
->           "dtype": "text",
->           "name": "description"
-266c311
+266c266
 <           "dtype": "uint64",
 ---
 >           "dtype": "uint",
 
 # diff NWB vs IPNWB specifications for nwb.image
-3a4,10
->       "attributes": [
->         {
->           "doc": "base image (use GrayscaleImage, RGBImage, RGBAImage, etc.)",
->           "dtype": "text",
->           "name": "help"
->         }
->       ],
-16a24,30
->       "attributes": [
->         {
->           "doc": "base image (use GrayscaleImage, RGBImage, RGBAImage, etc.)",
->           "dtype": "text",
->           "name": "help"
->         }
->       ],
-31a46,52
->       "attributes": [
->         {
->           "doc": "base image (use GrayscaleImage, RGBImage, RGBAImage, etc.)",
->           "dtype": "text",
->           "name": "help"
->         }
->       ],
-58a80,86
->           "attributes": [
->             {
->               "doc": "The base unit of measure used to store data. This should be in the SI unit. COMMENT: This is the SI unit (when appropriate) of the stored data, such as Volts. If the actual data is stored in millivolts, the field 'conversion' below describes how to convert the data to the specified SI unit.",
->               "dtype": "text",
->               "name": "unit"
->             }
->           ],
-217a246,252
->           "attributes": [
->             {
->               "doc": "The base unit of measure used to store data. This should be in the SI unit. COMMENT: This is the SI unit (when appropriate) of the stored data, such as Volts. If the actual data is stored in millivolts, the field 'conversion' below describes how to convert the data to the specified SI unit.",
->               "dtype": "text",
->               "name": "unit"
->             }
->           ],
 
 # diff NWB vs IPNWB specifications for nwb.misc
-145a146,153
->       "attributes": [
->         {
->           "doc": "Value is 'General time series object'",
->           "dtype": "text",
->           "name": "help",
->           "value": "General time series object"
->         }
->       ],
-147a156,162
->           "attributes": [
->             {
->               "doc": "The base unit of measure used to store data. This should be in the SI unit. COMMENT: This is the SI unit (when appropriate) of the stored data, such as Volts. If the actual data is stored in millivolts, the field 'conversion' below describes how to convert the data to the specified SI unit.",
->               "dtype": "text",
->               "name": "unit"
->             }
->           ],
-256c271
-<           "doc": "HDF5 link to TimesSeries that this data was calculated from. Metadata about electrodes and their position can be read from that ElectricalSeries so it's not necessary to store that information here",
----
->           "doc": "HDF5 link to TimesSeries that this data was calculated from. Metadata about electrodes and their position can be read from that ElectricalSeries so it is not necessary to store that information here",
-257a273
->           "quantity": "?",
-270a287,299
->         },
->         {
->           "doc": "The names of the columns in this table. This should be used to specifying an order to the columns",
->           "dtype": "text",
->           "name": "colnames",
->           "shape": [
->             null
->           ]
->         },
->         {
->           "doc": "Description of what is in this dynamic table",
->           "dtype": "text",
->           "name": "description"
 
 # diff NWB vs IPNWB specifications for nwb.namespace
-5,6c5
-<         "Keith Godfrey",
-<         "Jeff Teeters",
----
->         "Andrew Tritt",
-8c7,10
-<         "Andrew Tritt"
----
->         "Ryan Ly",
->         "Ben Dichter",
->         "Keith Godfrey",
->         "Jeff Teeters"
-11,12c13
-<         "keithg@alleninstitute.org",
-<         "jteeters@berkeley.edu",
----
->         "ajtritt@lbl.gov",
-14c15,18
-<         "ajtritt@lbl.gov"
----
->         "rly@lbl.gov",
->         "bdichter@lbl.gov",
->         "keithg@alleninstitute.org",
->         "jteeters@berkeley.edu"
-21,23c25
-<           "doc": "This source module contains base data types used throughout the NWB:N data format.",
+22c22
 <           "source": "nwb.base.yaml",
-<           "title": "Base data types"
 ---
->           "source": "nwb.base"
-26,28c28
-<           "doc": "This source module contains neurodata_types for epoch data.",
+>           "source": "nwb.base",
+27c27
 <           "source": "nwb.epoch.yaml",
-<           "title": "Epochs"
 ---
->           "source": "nwb.epoch"
-31,33c31
-<           "doc": "This source module contains neurodata_types for image data.",
+>           "source": "nwb.epoch",
+32c32
 <           "source": "nwb.image.yaml",
-<           "title": "Image data"
 ---
->           "source": "nwb.image"
-36,38c34
-<           "doc": "Main NWB:N file specification.",
+>           "source": "nwb.image",
+37c37
 <           "source": "nwb.file.yaml",
-<           "title": "NWB:N file"
 ---
->           "source": "nwb.file"
-41,43c37
-<           "doc": "Miscellaneous types.",
+>           "source": "nwb.file",
+42c42
 <           "source": "nwb.misc.yaml",
-<           "title": "Miscellaneous neurodata_types."
 ---
->           "source": "nwb.misc"
-46,48c40
-<           "doc": "This source module contains neurodata_types for behavior data.",
+>           "source": "nwb.misc",
+47c47
 <           "source": "nwb.behavior.yaml",
-<           "title": "Behavior"
 ---
->           "source": "nwb.behavior"
-51,53c43
-<           "doc": "This source module contains neurodata_types for extracellular electrophysiology data.",
+>           "source": "nwb.behavior",
+52c52
 <           "source": "nwb.ecephys.yaml",
-<           "title": "Extracellular electrophysiology"
 ---
->           "source": "nwb.ecephys"
-56,58c46
-<           "doc": "This source module contains neurodata_types for intracellular electrophysiology data.",
+>           "source": "nwb.ecephys",
+57c57
 <           "source": "nwb.icephys.yaml",
-<           "title": "Intracellular electrophysiology"
 ---
->           "source": "nwb.icephys"
-61,63c49
-<           "doc": "This source module contains neurodata_types for opto-genetics data.",
+>           "source": "nwb.icephys",
+62c62
 <           "source": "nwb.ogen.yaml",
-<           "title": "Optogenetics"
 ---
->           "source": "nwb.ogen"
-66,68c52
-<           "doc": "This source module contains neurodata_types for optical physiology data.",
+>           "source": "nwb.ogen",
+67c67
 <           "source": "nwb.ophys.yaml",
-<           "title": "Optical physiology"
 ---
->           "source": "nwb.ophys"
-71,73c55
-<           "doc": "This source module contains neurodata_type for retinotopy data.",
+>           "source": "nwb.ophys",
+72c72
 <           "source": "nwb.retinotopy.yaml",
-<           "title": "Retinotopy"
 ---
->           "source": "nwb.retinotopy"
+>           "source": "nwb.retinotopy",
 
 # diff NWB vs IPNWB specifications for nwb.ogen
 
 # diff NWB vs IPNWB specifications for nwb.ophys
-12c12,31
-<       "datasets": [],
----
->       "datasets": [
->         {
->           "dims": [
->             "width|height",
->             "width|height|depth"
->           ],
->           "doc": "Width, height and depth of image, or imaged area (meters).",
->           "dtype": "float32",
->           "name": "field_of_view",
->           "quantity": "?",
->           "shape": [
->             [
->               2
->             ],
->             [
->               3
->             ]
->           ]
->         }
->       ],
-34a54,60
->           "attributes": [
->             {
->               "doc": "The base unit of measure used to store data. This should be in the SI unit. COMMENT: This is the SI unit (when appropriate) of the stored data, such as Volts. If the actual data is stored in millivolts, the field 'conversion' below describes how to convert the data to the specified SI unit.",
->               "dtype": "text",
->               "name": "unit"
->             }
->           ],
-127a154,166
->             },
->             {
->               "doc": "The names of the columns in this table. This should be used to specifying an order to the columns",
->               "dtype": "text",
->               "name": "colnames",
->               "shape": [
->                 null
->               ]
->             },
->             {
->               "doc": "Description of what is in this dynamic table",
->               "dtype": "text",
->               "name": "description"
-224a264,282
->             },
->             {
->               "doc": "The unique identifier for the rows in this dynamic table",
->               "dtype": "int",
->               "name": "id",
->               "neurodata_type_inc": "ElementIdentifiers",
->               "shape": [
->                 null
->               ]
->             },
->             {
->               "doc": "The vector columns in this dynamic table",
->               "neurodata_type_inc": "VectorData",
->               "quantity": "*"
->             },
->             {
->               "doc": "The indices for the vector columns in this dynamic table",
->               "neurodata_type_inc": "VectorIndex",
->               "quantity": "*"
-326c384
-<           "doc": "Describes position and reference frame of manifold based on position of first element in manifold. For example, text description of anotomical location or vectors needed to rotate to common anotomical axis (eg, AP/DV/ML). COMMENT: This field is necessary to interpret manifold. If manifold is not present then this field is not required",
----
->           "doc": "Describes position and reference frame of manifold based on position of first element in manifold. For example, text description of anatomical location or vectors needed to rotate to common anatomical axis (eg, AP/DV/ML). COMMENT: This field is necessary to interpret manifold. If manifold is not present then this field is not required",
 
 # diff NWB vs IPNWB specifications for nwb.retinotopy
 

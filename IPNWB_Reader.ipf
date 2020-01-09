@@ -248,7 +248,7 @@ threadsafe Function LoadSweepNumber(locationID, channel, version)
 		LoadSourceAttribute(locationID, channel, params)
 		return params.sweep
 	elseif(version == NWB_VERSION_LATEST)
-		return ReadAttributeAsNumber(locationID, channel, "sweep_number")
+		return NaN
 	endif
 End
 
@@ -496,4 +496,32 @@ threadsafe Function/S ReadNeuroDataType(fileID, name)
 	endif
 
 	return neurodata_type
+End
+
+/// @brief Return the two SweepTable data columns `sweep_number` and `series`
+///
+/// @todo Allow Executions for files with missing SweepTable entry using @ref
+/// LoadSweepNumber
+///
+/// @param locationID  HDF5 identifier
+/// @param version      major NWB version
+///
+/// @return sweep_number and path to TimeSeries as waves
+Function [WAVE/Z sweep_number, WAVE/Z/T series] LoadSweepTable(variable locationID, variable version)
+
+	string path
+	variable groupID
+
+	ASSERT_TS(version == 2, "SweepTable is only available for NWB version 2")
+	sprintf path, "%s/%s", NWB_INTRACELLULAR_EPHYS, "sweep_table"
+
+	if(IPNWB#H5_GroupExists(locationID, path, groupID = groupID))
+		WAVE sweep_number = IPNWB#H5_LoadDataset(groupID, "sweep_number")
+		WAVE/T series = IPNWB#H5_LoadDataset(groupID, "series")
+		series[] = (series[p])[2,inf] // Remove leading group linker "G:"
+		HDF5CloseGroup/Z groupID
+		return [sweep_number, series]
+	endif
+
+	return [$"", $""]
 End

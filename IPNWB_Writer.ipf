@@ -154,7 +154,6 @@ threadsafe Function AddDevice(locationID, name, version, description)
 		H5_WriteTextDataset(groupID, path, str=description, skipIfExists=1)
 	elseif(version == NWB_VERSION_LATEST)
 		H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
-		H5_WriteTextDataSet(groupID, "description", str=description, overwrite=1)
 		WriteBasicAttributes(groupID, path, "A recording device e.g. amplifier", "core", "Device")
 	endif
 
@@ -229,12 +228,15 @@ End
 ///
 /// @param locationID                                            HDF5 identifier
 /// @param fullAbsPath                                           absolute path to the TimeSeries dataset
+/// @param version                                               major NWB version
 /// @param unitWithPrefix                                        unit with optional prefix of the data in the TimeSeries, @see ParseUnit
 /// @param resolution [optional, defaults to `NaN` for unknown]  experimental resolution
 /// @param overwrite [optional, defaults to false] 				 should existing attributes be overwritten
-threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPrefix, [resolution, overwrite])
+threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, version, unitWithPrefix, [resolution, overwrite])
 	variable locationID
-	string fullAbsPath, unitWithPrefix
+	string fullAbsPath
+	variable version
+	string unitWithPrefix
 	variable resolution, overwrite
 
 	string prefix, unit
@@ -253,9 +255,11 @@ threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPre
 		ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 	endif
 
-	H5_WriteTextAttribute(locationID, "unit"      , fullAbsPath, str=unit)
-	H5_WriteAttribute(locationID    , "conversion", fullAbsPath, numPrefix, IGOR_TYPE_32BIT_FLOAT)
-	H5_WriteAttribute(locationID    , "resolution", fullAbsPath, resolution, IGOR_TYPE_32BIT_FLOAT)
+	H5_WriteTextAttribute(locationID, "unit", fullAbsPath, str=unit)
+	if(version == 1)
+		H5_WriteAttribute(locationID, "conversion", fullAbsPath, numPrefix, IGOR_TYPE_32BIT_FLOAT)
+		H5_WriteAttribute(locationID, "resolution", fullAbsPath, resolution, IGOR_TYPE_32BIT_FLOAT)
+	endif
 End
 
 /// @brief Add a TimeSeries property to the `names` and `data` waves and removes it from `missing_fields` list
@@ -386,7 +390,6 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 	endif
 
 	H5_CreateGroupsRecursively(locationID, group, groupID=groupID)
-	H5_WriteTextAttribute(groupID, "description", group, str=PLACEHOLDER, overwrite=1)
 
 	// write source attribute
 	if(version == 1)
@@ -403,7 +406,6 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 		endif
 		H5_WriteTextAttribute(groupID, "source", group, str=source, overwrite=1)
 	elseif(version == NWB_VERSION_LATEST)
-		H5_WriteAttribute(groupID, "sweep_number", group, p.sweep, IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, overwrite=1)
 		AppendToSweepTable(locationID, group, p.sweep)
 	endif
 
@@ -411,8 +413,6 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 	if(p.channelType != CHANNEL_TYPE_OTHER)
 		if(version == 1)
 			H5_WriteTextAttribute(groupID, "comment", group, str=note(p.data), overwrite=1)
-		elseif(version == NWB_VERSION_LATEST)
-			H5_WriteTextAttribute(groupID, "comments", group, str=note(p.data), overwrite=1)
 		endif
 	endif
 
@@ -451,7 +451,7 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 
 	// TimeSeries: datasets and attributes
 	// no timestamps, control, control_description and sync
-	AddTimeSeriesUnitAndRes(groupID, group + "/data", WaveUnits(p.data, -1), overwrite=1)
+	AddTimeSeriesUnitAndRes(groupID, group + "/data", version, WaveUnits(p.data, -1), overwrite=1)
 	if(version == 1)
 		H5_WriteDataset(groupID, "num_samples", var=DimSize(p.data, ROWS), varType=IGOR_TYPE_32BIT_INT, overwrite=1)
 	endif
@@ -572,12 +572,12 @@ threadsafe static Function AppendToSweepTable(locationID, reference, sweepNumber
 	STRUCT VectorIndex series_index
 	InitVectorIndex(series_index)
 	series_index.target = series
-	WriteBasicAttributes(groupID, "series_index", series_index.help, series_index.namespace, series_index.neurodata_type)
+	WriteBasicAttributes(groupID, "series_index", "", series_index.namespace, series_index.neurodata_type)
 	H5_WriteTextAttribute(groupID, "target", "series_index", str = "D:" + series_index.target.path, refMode = OBJECT_REFERENCE)
 
 	STRUCT VectorData sweep_number
 	InitVectorData(sweep_number)
-	sweep_number.description = "Sweep number of the entries in that row"
+	sweep_number.description = "The sweep number of the PatchClampSeries in that row"
 	WriteBasicAttributes(groupID, "sweep_number", sweep_number.help, sweep_number.namespace, sweep_number.neurodata_type)
 	H5_WriteTextAttribute(groupID, "description", "sweep_number", str = sweep_number.description)
 
