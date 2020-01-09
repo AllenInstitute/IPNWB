@@ -42,11 +42,11 @@ End
 /// @see AddElectrode
 ///
 /// @param discLocation full path to file in Igor disc path notation
-/// @param channelName  name of channel to get associated electrode
+/// @param seriesPath   Full Path inside HDF5 structure to TimeSeries group
 /// @param version      major NWB version
 /// @return the name of the electrode or "" for unassociated channels
-threadsafe Function/S ReadElectrodeName(discLocation, channelName, version)
-	string discLocation, channelName
+threadsafe Function/S ReadElectrodeName(discLocation, seriesPath, version)
+	string discLocation, seriesPath
 	variable version
 
 	string h5path, link, regExp, electrode, electrodeName
@@ -55,19 +55,8 @@ threadsafe Function/S ReadElectrodeName(discLocation, channelName, version)
 
 	EnsureValidNWBVersion(version)
 
-	AnalyseChannelName(channelName, p)
-	switch(p.channelType)
-		case CHANNEL_TYPE_ADC:
-			sprintf h5path, "%s/%s/electrode", GetNWBgroupPatchClampSeries(version), channelName
-			break
-		case CHANNEL_TYPE_DAC:
-		case CHANNEL_TYPE_TTL:
-			sprintf h5path, "%s/%s/electrode", NWB_STIMULUS_PRESENTATION, channelName
-			break
-		case CHANNEL_TYPE_OTHER:
-		default:
-			return ""
-	endswitch
+	AnalyseChannelName(seriesPath, p)
+	sprintf h5path, "%s/electrode", seriesPath
 
 	if(version == 1)
 		h5path += "_name"
@@ -112,9 +101,13 @@ End
 threadsafe Function/S ReadAcquisition(fileID, version)
 	variable fileID, version
 
+	string group
+
 	EnsureValidNWBVersion(version)
 
-	return H5_ListGroups(fileID, GetNWBgroupPatchClampSeries(version))
+	group = GetNWBgroupPatchClampSeries(version)
+
+	return AddPrefixToEachListItem(group + "/", H5_ListGroups(fileID, group))
 End
 
 /// @brief List all stimulus channels.
@@ -124,7 +117,7 @@ End
 threadsafe Function/S ReadStimulus(fileID)
 	variable fileID
 
-	return H5_ListGroups(fileID, NWB_STIMULUS_PRESENTATION)
+	return AddPrefixToEachListItem(NWB_STIMULUS_PRESENTATION + "/", H5_ListGroups(fileID, NWB_STIMULUS_PRESENTATION))
 End
 
 /// @brief List all stimsets
@@ -152,6 +145,8 @@ threadsafe Function AnalyseChannelName(channel, p)
 	STRUCT ReadChannelParams &p
 
 	string groupIndex, channelTypeStr, channelNumber, channelID
+
+	channel = GetBaseName(channel, sep = "/")
 
 	SplitString/E="^(?i)data_([A-Z0-9]+)_([A-Z]+)([0-9]+)(?:_([A-Z0-9]+)){0,1}" channel, groupIndex, channelID, channelNumber, p.channelSuffix
 	p.groupIndex = str2num(groupIndex)
@@ -279,34 +274,34 @@ threadsafe Function/Wave LoadDataWave(locationID, channel, [path])
 	return H5_LoadDataset(locationID, path)
 End
 
-/// @brief Load single channel data as a wave from NWB_PATCHCLAMPSERIES_V[12]
+/// @brief Load single TimeSeries data as a wave from @c NWB_PATCHCLAMPSERIES_V[12]
 ///
 /// @param locationID   id of an open hdf5 group or file
-/// @param channel      name of channel for which data attribute is loaded
+/// @param path         name or path of TimeSeries for which data is loaded
 /// @param version      NWB major version
 /// @return             reference to wave containing loaded data
-threadsafe Function/Wave LoadTimeseries(locationID, channel, version)
+threadsafe Function/Wave LoadTimeseries(locationID, path, version)
 	variable locationID
-	string channel
+	string path
 	variable version
 
 	EnsureValidNWBVersion(version)
 
-	WAVE data = LoadDataWave(locationID, channel, path = GetNWBgroupPatchClampSeries(version))
+	WAVE data = LoadDataWave(locationID, GetBaseName(path, sep = "/"), path = GetNWBgroupPatchClampSeries(version))
 
 	return data
 End
 
-/// @brief Load single channel data as a wave from NWB_STIMULUS_PRESENTATION
+/// @brief Load single TimeSeries data as a wave from @c NWB_STIMULUS_PRESENTATION
 ///
-/// @param locationID    id of an open hdf5 group or file
-/// @param channel       name of channel for which data attribute is loaded
+/// @param locationID   id of an open hdf5 group or file
+/// @param path         name or path of TimeSeries for which data is loaded
 /// @return             reference to wave containing loaded data
-threadsafe Function/Wave LoadStimulus(locationID, channel)
+threadsafe Function/Wave LoadStimulus(locationID, path)
 	variable locationID
-	string channel
+	string path
 
-	WAVE data = LoadDataWave(locationID, channel, path = NWB_STIMULUS_PRESENTATION)
+	WAVE data = LoadDataWave(locationID, GetBaseName(path, sep = "/"), path = NWB_STIMULUS_PRESENTATION)
 
 	return data
 End

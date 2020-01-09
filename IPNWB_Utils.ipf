@@ -802,3 +802,19 @@ End
 Function/S SpecificationsDiscLocation()
 	return GetFolder(FunctionPath(""))
 End
+
+/// @brief Add a string prefix to each list item and
+/// return the new list
+threadsafe Function/S AddPrefixToEachListItem(prefix, list)
+	string prefix, list
+
+	string result = ""
+	variable numEntries, i
+
+	numEntries = ItemsInList(list)
+	for(i = 0; i < numEntries; i += 1)
+		result = AddListItem(prefix + StringFromList(i, list), result, ";", inf)
+	endfor
+
+	return result
+End
