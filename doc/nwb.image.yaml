@@ -1,18 +1,20 @@
 datasets:
 - dims:
-  - y
   - x
+  - y
   doc: A grayscale image.
+  dtype: numeric
   neurodata_type_def: GrayscaleImage
   neurodata_type_inc: Image
   shape:
   - null
   - null
 - dims:
-  - y
   - x
-  - R, G, B
+  - y
+  - r, g, b
   doc: A color image.
+  dtype: numeric
   neurodata_type_def: RGBImage
   neurodata_type_inc: Image
   shape:
@@ -20,10 +22,11 @@ datasets:
   - null
   - 3
 - dims:
-  - y
   - x
-  - R, G, B, A
+  - y
+  - r, g, b, a
   doc: A color image with transparency.
+  dtype: numeric
   neurodata_type_def: RGBAImage
   neurodata_type_inc: Image
   shape:
@@ -34,12 +37,12 @@ groups:
 - datasets:
   - dims:
     - - frame
-      - y
       - x
+      - y
     - - frame
-      - z
-      - y
       - x
+      - y
+      - z
     doc: Binary data representing images across frames.
     dtype: numeric
     name: data
@@ -75,7 +78,7 @@ groups:
         file that holds all of the frames of the ImageSeries (and so there is a single
         element in the 'external_file' dataset), then this attribute should have value
         [0].
-      dtype: int
+      dtype: int32
       name: starting_frame
       shape:
       - null
@@ -102,7 +105,7 @@ groups:
     Sometimes the image data is stored in the file in a raw format while other times
     it will be stored as a series of external image files in the host file system.
     The data field will either be binary data, if the data is stored in the NWB file,
-    or empty, if the data is stored in an external image stack. [frame][y][x] or [frame][z][y][x].
+    or empty, if the data is stored in an external image stack. [frame][x][y] or [frame][x][y][z].
   neurodata_type_def: ImageSeries
   neurodata_type_inc: TimeSeries
 - doc: An alpha mask that is applied to a presented visual stimulus. The 'data' array
@@ -147,7 +150,7 @@ groups:
   - dims:
     - num_times
     doc: Index of the frame in the referenced ImageSeries.
-    dtype: int
+    dtype: int32
     name: data
     shape:
     - null

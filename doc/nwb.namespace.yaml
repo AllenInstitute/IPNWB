@@ -17,10 +17,14 @@ namespaces:
   full_name: NWB core
   name: core
   schema:
+  - namespace: hdmf-common
   - doc: This source module contains base data types used throughout the NWB:N data
       format.
     source: nwb.base
     title: Base data types
+  - doc: This source module contains neurodata_types for device data.
+    source: nwb.device
+    title: Devices
   - doc: This source module contains neurodata_types for epoch data.
     source: nwb.epoch
     title: Epochs
@@ -53,4 +57,4 @@ namespaces:
   - doc: This source module contains neurodata_type for retinotopy data.
     source: nwb.retinotopy
     title: Retinotopy
-  version: 2.1.0
+  version: 2.2.0

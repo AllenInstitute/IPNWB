@@ -1,13 +1,11 @@
 
- da3bcd72d63c83c512dd56e9959f409230c5756e specifications (2.1.0)
+ 62c73400565afc28f67ede4f2e86023c33167cf8 specifications (2.2.0)
 
 # diff NWB vs IPNWB specifications for nwb.base
-313c313
-<           "dtype": "ascii",
----
->           "dtype": "text",
 
 # diff NWB vs IPNWB specifications for nwb.behavior
+
+# diff NWB vs IPNWB specifications for nwb.device
 
 # diff NWB vs IPNWB specifications for nwb.ecephys
 
@@ -16,57 +14,57 @@
 # diff NWB vs IPNWB specifications for nwb.file
 
 # diff NWB vs IPNWB specifications for nwb.icephys
-324c324
-<           "dtype": "uint64",
----
->           "dtype": "uint",
 
 # diff NWB vs IPNWB specifications for nwb.image
 
 # diff NWB vs IPNWB specifications for nwb.misc
 
 # diff NWB vs IPNWB specifications for nwb.namespace
-26c26
+29c29
 <           "source": "nwb.base.yaml",
 ---
 >           "source": "nwb.base",
-31c31
+34c34
+<           "source": "nwb.device.yaml",
+---
+>           "source": "nwb.device",
+39c39
 <           "source": "nwb.epoch.yaml",
 ---
 >           "source": "nwb.epoch",
-36c36
+44c44
 <           "source": "nwb.image.yaml",
 ---
 >           "source": "nwb.image",
-41c41
+49c49
 <           "source": "nwb.file.yaml",
 ---
 >           "source": "nwb.file",
-46c46
+54c54
 <           "source": "nwb.misc.yaml",
 ---
 >           "source": "nwb.misc",
-51c51
+59c59
 <           "source": "nwb.behavior.yaml",
 ---
 >           "source": "nwb.behavior",
-56c56
+64c64
 <           "source": "nwb.ecephys.yaml",
 ---
 >           "source": "nwb.ecephys",
-61c61
+69c69
 <           "source": "nwb.icephys.yaml",
 ---
 >           "source": "nwb.icephys",
-66c66
+74c74
 <           "source": "nwb.ogen.yaml",
 ---
 >           "source": "nwb.ogen",
-71c71
+79c79
 <           "source": "nwb.ophys.yaml",
 ---
 >           "source": "nwb.ophys",
-76c76
+84c84
 <           "source": "nwb.retinotopy.yaml",
 ---
 >           "source": "nwb.retinotopy",

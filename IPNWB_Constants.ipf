@@ -12,7 +12,7 @@
 StrConstant PLACEHOLDER = "PLACEHOLDER"
 
 static StrConstant NWB_VERSION_V1 = "NWB-1.0.5"
-static StrConstant NWB_VERSION_V2 = "NWB-2.1.0"
+static StrConstant NWB_VERSION_V2 = "NWB-2.2.0"
 Constant NWB_VERSION_LATEST = 2
 
 /// @name HDF5 file paths
@@ -168,7 +168,10 @@ Constant REGION_REFERENCE = 0x2
 
 /// @name Constants for NWB:N Core Specifications
 /// @{
-StrConstant NWB_CORE_VERSION = "2.1.0"
+StrConstant NWB_CORE_VERSION = "2.2.0"
 StrConstant NWB_SPEC_NAMESPACE = "nwb.namespace"
-StrConstant NWB_SPEC_NAMES = "nwb.base;nwb.behavior;nwb.ecephys;nwb.epoch;nwb.file;nwb.icephys;nwb.image;nwb.misc;nwb.ogen;nwb.ophys;nwb.retinotopy;"
+StrConstant NWB_SPEC_NAMES = "nwb.base;nwb.behavior;nwb.device;nwb.ecephys;nwb.epoch;nwb.file;nwb.icephys;nwb.image;nwb.misc;nwb.ogen;nwb.ophys;nwb.retinotopy;"
+StrConstant HDMF_CORE_VERSION = "1.1.0"
+StrConstant HDMF_SPEC_NAMESPACE = "hdmf.namespace"
+StrConstant HDMF_SPEC_NAMES = "hdmf.table;hdmf.sparse;"
 /// @}

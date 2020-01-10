@@ -3,7 +3,8 @@ groups:
   - attributes:
     - doc: Base unit of measurement for working with the data. This value is fixed
         to 'volts'. Actual stored values are not necessarily stored in these units.
-        To access the data in these units, multiply 'data' by 'conversion'.
+        To access the data in these units, multiply 'data' by 'conversion' and 'channel_conversion'
+        (if present).
       dtype: text
       name: unit
       value: volts
@@ -28,6 +29,27 @@ groups:
       from.
     name: electrodes
     neurodata_type_inc: DynamicTableRegion
+  - attributes:
+    - doc: The zero-indexed axis of the 'data' dataset that the channel-specific conversion
+        factor corresponds to. This value is fixed to 1.
+      dtype: int32
+      name: axis
+      value: 1
+    dims:
+    - num_channels
+    doc: Channel-specific conversion factor. Multiply the data in the 'data' dataset
+      by these values along the channel axis (as indicated by axis attribute) AND
+      by the global conversion factor in the 'conversion' attribute of 'data' to get
+      the data values in Volts, i.e, data in Volts = data * data.conversion * channel_conversion.
+      This approach allows for both global and per-channel data conversion factors
+      needed to support the storage of electrical recordings as native values generated
+      by data acquisition systems. If this dataset is not present, then there is no
+      channel-specific conversion factor, i.e. it is 1 for all channels.
+    dtype: float32
+    name: channel_conversion
+    quantity: '?'
+    shape:
+    - null
   doc: A time series of acquired voltage data from extracellular recordings. The data
     field is an int or float array storing data in volts. The first dimension should
     always represent time. The second dimension, if present, should represent channels.
@@ -196,10 +218,23 @@ groups:
     dtype: text
     name: description
   - doc: Location of electrode group. Specify the area, layer, comments on estimation
-      of area/layer, stereotaxic coordinates if in vivo, etc. Use standard atlas names
-      for anatomical regions when possible.
+      of area/layer, etc. Use standard atlas names for anatomical regions when possible.
     dtype: text
     name: location
+  datasets:
+  - doc: stereotaxic or common framework coordinates
+    dtype:
+    - doc: x coordinate
+      dtype: float32
+      name: x
+    - doc: y coordinate
+      dtype: float32
+      name: y
+    - doc: z coordinate
+      dtype: float32
+      name: z
+    name: position
+    quantity: '?'
   doc: A physical grouping of electrodes, e.g. a shank of an array.
   links:
   - doc: Link to the device that was used to record from this electrode group.

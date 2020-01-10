@@ -42,7 +42,7 @@ groups:
   - attributes:
     - doc: Smallest meaningful difference between values in data. Annotations have
         no units, so the value is fixed to -1.0.
-      dtype: float
+      dtype: float32
       name: resolution
       value: -1
     - doc: Base unit of measurement for working with the data. Annotations have no
@@ -67,7 +67,7 @@ groups:
   - attributes:
     - doc: Smallest meaningful difference between values in data. Annotations have
         no units, so the value is fixed to -1.0.
-      dtype: float
+      dtype: float32
       name: resolution
       value: -1
     - doc: Base unit of measurement for working with the data. Annotations have no
@@ -125,7 +125,7 @@ groups:
       - low, high
       doc: Low and high limit of each band in Hz. If it is a Gaussian filter, use
         2 SD on either side of the center.
-      dtype: float
+      dtype: float32
       name: band_limits
       neurodata_type_inc: VectorData
       shape:
@@ -134,7 +134,7 @@ groups:
     - dims:
       - num_bands
       doc: The mean Gaussian filters, in Hz.
-      dtype: float
+      dtype: float32
       name: band_mean
       neurodata_type_inc: VectorData
       shape:
@@ -142,7 +142,7 @@ groups:
     - dims:
       - num_bands
       doc: The standard deviation of Gaussian filters, in Hz.
-      dtype: float
+      dtype: float32
       name: band_stdev
       neurodata_type_inc: VectorData
       shape:
@@ -165,8 +165,9 @@ groups:
     name: spike_times_index
     neurodata_type_inc: VectorIndex
     quantity: '?'
-  - doc: Spike times for each unit.
-    dtype: double
+  - attributes: []
+    doc: Spike times for each unit.
+    dtype: float64
     name: spike_times
     neurodata_type_inc: VectorData
     quantity: '?'
@@ -178,7 +179,7 @@ groups:
     - num_intervals
     - start|end
     doc: Observation intervals for each unit.
-    dtype: double
+    dtype: float64
     name: obs_intervals
     neurodata_type_inc: VectorData
     quantity: '?'
@@ -200,14 +201,15 @@ groups:
     name: electrode_group
     neurodata_type_inc: VectorData
     quantity: '?'
-  - dims:
+  - attributes: []
+    dims:
     - - num_units
       - num_samples
     - - num_units
       - num_samples
       - num_electrodes
     doc: Spike waveform mean for each spike unit.
-    dtype: float
+    dtype: float32
     name: waveform_mean
     neurodata_type_inc: VectorData
     quantity: '?'
@@ -217,14 +219,15 @@ groups:
     - - null
       - null
       - null
-  - dims:
+  - attributes: []
+    dims:
     - - num_units
       - num_samples
     - - num_units
       - num_samples
       - num_electrodes
     doc: Spike waveform standard deviation for each spike unit.
-    dtype: float
+    dtype: float32
     name: waveform_sd
     neurodata_type_inc: VectorData
     quantity: '?'

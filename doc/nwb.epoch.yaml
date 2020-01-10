@@ -1,11 +1,11 @@
 groups:
 - datasets:
   - doc: Start time of epoch, in seconds.
-    dtype: float
+    dtype: float32
     name: start_time
     neurodata_type_inc: VectorData
   - doc: Stop time of epoch, in seconds.
-    dtype: float
+    dtype: float32
     name: stop_time
     neurodata_type_inc: VectorData
   - doc: User-defined tags that identify or categorize events.

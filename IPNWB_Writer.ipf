@@ -155,6 +155,7 @@ threadsafe Function AddDevice(locationID, name, version, description)
 	elseif(version == NWB_VERSION_LATEST)
 		H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
 		WriteBasicAttributes(groupID, path, "core", "Device")
+		H5_WriteTextAttribute(groupID, "description", path, str = description)
 	endif
 
 	HDF5CloseGroup/Z groupID
@@ -601,7 +602,6 @@ Function WriteSpecifications(locationID)
 	string path, specName, specDefinition
 
 	sprintf path, "%s/core/%s", NWB_SPECIFICATIONS, NWB_CORE_VERSION
-
 	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
 	H5_WriteTextDataset(groupID, "namespace", str=LoadSpecification(NWB_SPEC_NAMESPACE))
 	numSpecs = ItemsInList(NWB_SPEC_NAMES)
@@ -611,6 +611,18 @@ Function WriteSpecifications(locationID)
 		H5_WriteTextDataset(groupID, specName, str=specDefinition)
 	endfor
 	HDF5CloseGroup groupID
+
+	sprintf path, "%s/hdmf-common/%s", NWB_SPECIFICATIONS, HDMF_CORE_VERSION
+	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
+	H5_WriteTextDataset(groupID, "namespace", str=LoadSpecification(HDMF_SPEC_NAMESPACE))
+	numSpecs = ItemsInList(HDMF_SPEC_NAMES)
+	for(i = 0; i < numSpecs; i += 1)
+		specName = StringFromList(i, HDMF_SPEC_NAMES)
+		specDefinition = LoadSpecification(specName)
+		H5_WriteTextDataset(groupID, specName, str=specDefinition)
+	endfor
+	HDF5CloseGroup groupID
+
 	sprintf path, "G:%s", NWB_SPECIFICATIONS
 	H5_WriteTextAttribute(locationID, ".specloc", NWB_ROOT, str=path, refMode = OBJECT_REFERENCE)
 End

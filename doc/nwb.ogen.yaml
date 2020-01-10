@@ -25,7 +25,7 @@ groups:
     dtype: text
     name: description
   - doc: Excitation wavelength, in nm.
-    dtype: float
+    dtype: float32
     name: excitation_lambda
   - doc: Location of the stimulation site. Specify the area, layer, comments on estimation
       of area/layer, stereotaxic coordinates if in vivo, etc. Use standard atlas names

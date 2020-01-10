@@ -55,6 +55,9 @@ groups:
     - doc: Acquired, raw data.
       neurodata_type_inc: NWBDataInterface
       quantity: '*'
+    - doc: Tabular data that is relevent to acquisition
+      neurodata_type_inc: DynamicTable
+      quantity: '*'
     name: acquisition
   - doc: Lab-specific and custom scientific analysis of data. There is no defined
       format for the content of this group - the format is up to the individual user/lab.
@@ -67,6 +70,9 @@ groups:
     groups:
     - doc: Custom analysis results.
       neurodata_type_inc: NWBContainer
+      quantity: '*'
+    - doc: Tabular data that is relevent to data stored in analysis
+      neurodata_type_inc: DynamicTable
       quantity: '*'
     name: analysis
   - datasets:
@@ -84,6 +90,9 @@ groups:
     groups:
     - doc: Any one-off containers
       neurodata_type_inc: NWBContainer
+      quantity: '*'
+    - doc: Any one-off tables
+      neurodata_type_inc: DynamicTable
       quantity: '*'
     name: scratch
     quantity: '?'
@@ -239,10 +248,9 @@ groups:
     - doc: Description of hardware devices used during experiment, e.g., monitors,
         ADC boards, microscopes, etc.
       groups:
-      - doc: A data acquisition device, e.g. recording system.
-        neurodata_type_def: Device
-        neurodata_type_inc: NWBContainer
-        quantity: +
+      - doc: Data acquisition devices.
+        neurodata_type_inc: Device
+        quantity: '*'
       name: devices
       quantity: '?'
     - datasets:
@@ -291,30 +299,30 @@ groups:
         neurodata_type_inc: ElectrodeGroup
         quantity: '*'
       - datasets:
-        - doc: x coordinate of the channel location.
-          dtype: float
+        - doc: x coordinate of the channel location in the brain (+x is posterior).
+          dtype: float32
           name: x
           neurodata_type_inc: VectorData
-        - doc: y coordinate of the channel location.
-          dtype: float
+        - doc: y coordinate of the channel location in the brain (+y is inferior).
+          dtype: float32
           name: y
           neurodata_type_inc: VectorData
-        - doc: z coordinate of the channel location.
-          dtype: float
+        - doc: z coordinate of the channel location in the brain (+z is right).
+          dtype: float32
           name: z
           neurodata_type_inc: VectorData
         - doc: Impedance of the channel.
-          dtype: float
+          dtype: float32
           name: imp
           neurodata_type_inc: VectorData
         - doc: Location of the electrode (channel). Specify the area, layer, comments
             on estimation of area/layer, stereotaxic coordinates if in vivo, etc.
             Use standard atlas names for anatomical regions when possible.
-          dtype: ascii
+          dtype: text
           name: location
           neurodata_type_inc: VectorData
         - doc: Description of hardware filtering.
-          dtype: float
+          dtype: float32
           name: filtering
           neurodata_type_inc: VectorData
         - doc: Reference to the ElectrodeGroup this electrode is a part of.
@@ -324,9 +332,29 @@ groups:
           name: group
           neurodata_type_inc: VectorData
         - doc: Name of the ElectrodeGroup this electrode is a part of.
-          dtype: ascii
+          dtype: text
           name: group_name
           neurodata_type_inc: VectorData
+        - doc: x coordinate in electrode group
+          dtype: float32
+          name: rel_x
+          neurodata_type_inc: VectorData
+          quantity: '?'
+        - doc: y coordinate in electrode group
+          dtype: float32
+          name: rel_y
+          neurodata_type_inc: VectorData
+          quantity: '?'
+        - doc: z coordinate in electrode group
+          dtype: float32
+          name: rel_z
+          neurodata_type_inc: VectorData
+          quantity: '?'
+        - doc: Description of the reference used for this electrode.
+          dtype: text
+          name: reference
+          neurodata_type_inc: VectorData
+          quantity: '?'
         doc: A table of all electrodes (i.e. channels) used for recording.
         name: electrodes
         neurodata_type_inc: DynamicTable

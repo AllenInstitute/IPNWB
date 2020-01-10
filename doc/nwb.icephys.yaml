@@ -18,7 +18,7 @@ groups:
     shape:
     - null
   - doc: Gain of the recording, in units Volt/Amp (v-clamp) or Volt/Volt (c-clamp).
-    dtype: float
+    dtype: float32
     name: gain
     quantity: '?'
   doc: An abstract base class for patch-clamp data - stimulus or response, current
@@ -221,7 +221,7 @@ groups:
   neurodata_type_inc: NWBContainer
 - datasets:
   - doc: Sweep number of the PatchClampSeries in that row.
-    dtype: uint
+    dtype: uint32
     name: sweep_number
     neurodata_type_inc: VectorData
   - doc: The PatchClampSeries with the sweep number in that row.

@@ -10,12 +10,10 @@ parts of the specification in easy to use functions.
 Main features
 ^^^^^^^^^^^^^
 
-
-
 * Read and write NWB compliant files
 
   - `specification version 1.0.5, Aug 8 2016 <https://github.com/NeurodataWithoutBorders/specification/raw/master/version_1.0.5_beta/nwb_file_format_specification_1.0.5_beta.pdf>`__
-  - `specification version 2.1.0 <NWB2HTML>`_, September 2019
+  - `specification version 2.2.0 <NWB2HTML>`_, January 2020
 
 * Compatible with Igor Pro 7 or later on Windows/MacOSX
 * Requires the stock HDF5 XOP only
