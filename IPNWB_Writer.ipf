@@ -51,7 +51,7 @@ threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, s
 		H5_WriteTextDataset(locationID, "nwb_version", str=ti.nwb_version)
 	elseif(version == NWB_VERSION_LATEST)
 		H5_WriteTextAttribute(locationID, "nwb_version", NWB_ROOT, str=ti.nwb_version)
-		WriteBasicAttributes(locationID, NWB_ROOT, "core", "NWBFile")
+		WriteNeuroDataType(locationID, NWB_ROOT, "NWBFile")
 	endif
 
 	session_start_time_ts = GetISO8601TimeStamp(secondsSinceIgorEpoch=ti.session_start_time, numFracSecondsDigits = 3)
@@ -84,7 +84,7 @@ threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, s
 
 	H5_CreateGroupsRecursively(locationID, NWB_SUBJECT, groupID=groupID)
 	if(version == NWB_VERSION_LATEST)
-		WriteBasicAttributes(locationID, NWB_SUBJECT, "core", "Subject")
+		WriteNeuroDataType(locationID, NWB_SUBJECT, "Subject")
 	endif
 
 	WriteTextDatasetIfSet(groupID, "subject_id" , si.subject_id)
@@ -154,7 +154,7 @@ threadsafe Function AddDevice(locationID, name, version, description)
 		H5_WriteTextDataset(groupID, path, str=description, skipIfExists=1)
 	elseif(version == NWB_VERSION_LATEST)
 		H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
-		WriteBasicAttributes(groupID, path, "core", "Device")
+		WriteNeuroDataType(groupID, path, "Device")
 		H5_WriteTextAttribute(groupID, "description", path, str = description)
 	endif
 
@@ -180,7 +180,7 @@ threadsafe Function AddElectrode(locationID, name, version, data, device)
 	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
 
 	if(version == NWB_VERSION_LATEST)
-		WriteBasicAttributes(groupID, path, "core", "IntracellularElectrode")
+		WriteNeuroDataType(groupID, path, "IntracellularElectrode")
 	endif
 
 	H5_WriteTextDataset(groupID, "description", str=data)
@@ -502,7 +502,7 @@ threadsafe static Function CreateDynamicTable(locationID, path, dt, [groupID])
 	endif
 
 	H5_CreateGroupsRecursively(locationID, path, groupID = id)
-	WriteBasicAttributes(id, path, dt.namespace, dt.neurodata_type)
+	WriteNeuroDataType(id, path, dt.data_type)
 	H5_WriteTextAttribute(id, "description", path, str = dt.description)
 	H5_WriteTextAttribute(id, "colnames", path, list = dt.colnames)
 
@@ -511,15 +511,6 @@ threadsafe static Function CreateDynamicTable(locationID, path, dt, [groupID])
 	else
 		groupID = id
 	endif
-End
-
-/// @brief write the standard NWBv2 attributes to a group
-threadsafe static Function WriteBasicAttributes(groupID, path, namespace, neurodata_type)
-	variable groupID
-	string path, namespace, neurodata_type
-
-	H5_WriteTextAttribute(groupID, "namespace", path, str = namespace)
-	WriteNeuroDataType(groupID, path, neurodata_type)
 End
 
 /// @brief Append a sweep to the sweep table
@@ -545,7 +536,7 @@ threadsafe static Function AppendToSweepTable(locationID, reference, sweepNumber
 		dt.description = "The table which groups different PatchClampSeries together."
 		dt.colnames = "series;sweep_number"
 		dt.description = "A sweep table groups different PatchClampSeries together."
-		dt.neurodata_type = "SweepTable"
+		dt.data_type = "SweepTable"
 		CreateDynamicTable(locationID, path, dt, groupID = groupID)
 		appendMode = -1
 		compressionMode = CHUNKED_COMPRESSION
@@ -566,25 +557,25 @@ threadsafe static Function AppendToSweepTable(locationID, reference, sweepNumber
 
 	STRUCT ElementIdentifiers id
 	InitElementIdentifiers(id)
-	WriteBasicAttributes(groupID, "id", id.namespace, id.neurodata_type)
+	WriteNeuroDataType(groupID, "id", id.data_type)
 
 	STRUCT VectorData series
 	InitVectorData(series)
 	series.description = "The PatchClampSeries with the sweep number in that row."
 	series.path = path + "/series"
-	WriteBasicAttributes(groupID, "series", series.namespace, series.neurodata_type)
+	WriteNeuroDataType(groupID, "series", series.data_type)
 	H5_WriteTextAttribute(groupID, "description", "series", str = series.description)
 
 	STRUCT VectorIndex series_index
 	InitVectorIndex(series_index)
 	series_index.target = series
-	WriteBasicAttributes(groupID, "series_index", series_index.namespace, series_index.neurodata_type)
+	WriteNeuroDataType(groupID, "series_index", series_index.data_type)
 	H5_WriteTextAttribute(groupID, "target", "series_index", str = "D:" + series_index.target.path, refMode = OBJECT_REFERENCE)
 
 	STRUCT VectorData sweep_number
 	InitVectorData(sweep_number)
 	sweep_number.description = "Sweep number of the PatchClampSeries in that row."
-	WriteBasicAttributes(groupID, "sweep_number", sweep_number.namespace, sweep_number.neurodata_type)
+	WriteNeuroDataType(groupID, "sweep_number", sweep_number.data_type)
 	H5_WriteTextAttribute(groupID, "description", "sweep_number", str = sweep_number.description)
 
 	HDF5CloseGroup groupID
@@ -661,8 +652,7 @@ threadsafe static Function WriteNeuroDataType(locationID, path, neurodata_type)
 		H5_WriteTextAttribute(locationID, "neurodata_type", path, str=neurodata_type, overwrite=1)
 		// no data_link and timestamp_link attribute as we keep all data in one file
 	elseif(version0 == 2)
-		/// @todo check if namespace "core" applies for every neurodata_type like @c SweepTable
-		H5_WriteTextAttribute(locationID, "namespace", path, str = "core", overwrite = 1)
+		H5_WriteTextAttribute(locationID, "namespace", path, str = DetermineNamespace(neurodata_type), overwrite = 1)
 		H5_WriteTextAttribute(locationID, "neurodata_type", path, str = neurodata_type, overwrite = 1)
 	endif
 End

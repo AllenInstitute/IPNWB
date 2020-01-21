@@ -822,3 +822,103 @@ threadsafe Function/S AddPrefixToEachListItem(prefix, list)
 
 	return result
 End
+
+/// @brief Determine the namespace of the given neurodata type.
+///
+/// Note: - core specification "2.2.0"
+///       - hdmf-common "1.1.0"
+threadsafe Function/S DetermineNamespace(neurodata_type)
+	string neurodata_type
+
+	Make/T/FREE nwb_spec = { \
+		"AbstractFeatureSeries", \
+		"AnnotationSeries", \
+		"AxisMap", \
+		"BehavioralEpochs", \
+		"BehavioralEvents", \
+		"BehavioralTimeSeries", \
+		"Clustering", \
+		"ClusterWaveforms", \
+		"CompassDirection", \
+		"CorrectedImageStack", \
+		"CurrentClampSeries", \
+		"CurrentClampStimulusSeries", \
+		"DecompositionSeries", \
+		"Device", \
+		"DfOverF", \
+		"ElectricalSeries", \
+		"ElectrodeGroup", \
+		"EventDetection", \
+		"EventWaveform", \
+		"EyeTracking", \
+		"FeatureExtraction", \
+		"FilteredEphys", \
+		"Fluorescence", \
+		"GrayscaleImage", \
+		"Image", \
+		"ImageMaskSeries", \
+		"Images", \
+		"ImageSegmentation", \
+		"ImageSeries", \
+		"ImagingPlane", \
+		"ImagingRetinotopy", \
+		"IndexSeries", \
+		"IntervalSeries", \
+		"IntracellularElectrode", \
+		"IZeroClampSeries", \
+		"LabMetaData", \
+		"LFP", \
+		"MotionCorrection", \
+		"NWBContainer", \
+		"NWBData", \
+		"NWBDataInterface", \
+		"NWBFile", \
+		"OpticalChannel", \
+		"OpticalSeries", \
+		"OptogeneticSeries", \
+		"OptogeneticStimulusSite", \
+		"PatchClampSeries", \
+		"PlaneSegmentation", \
+		"Position", \
+		"ProcessingModule", \
+		"PupilTracking", \
+		"RetinotopyImage", \
+		"RetinotopyMap", \
+		"RGBAImage", \
+		"RGBImage", \
+		"RoiResponseSeries", \
+		"ScratchData", \
+		"SpatialSeries", \
+		"SpikeEventSeries", \
+		"Subject", \
+		"SweepTable", \
+		"TimeIntervals", \
+		"TimeSeries", \
+		"TwoPhotonSeries", \
+		"Units", \
+		"VoltageClampSeries", \
+		"VoltageClampStimulusSeries" \
+		}
+	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) nwb_spec
+	if(V_Value != -1)
+		return NWB_SPEC_NAME
+	endif
+
+	Make/T/FREE hdmf_spec = { \
+		"Container", \
+		"CSRMatrix", \
+		"Data", \
+		"DynamicTable", \
+		"DynamicTableRegion", \
+		"ElementIdentifiers", \
+		"Index", \
+		"VectorData", \
+		"VectorIndex" \
+		}
+	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) hdmf_spec
+	if(V_Value != -1)
+		return HDMF_SPEC_NAME
+	endif
+
+	return ""
+End

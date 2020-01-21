@@ -209,8 +209,7 @@ End
 Structure DynamicTable
 	string colnames
 	string description
-	string namespace
-	string neurodata_type
+	string data_type
 EndStructure
 
 threadsafe Function InitDynamicTable(dt)
@@ -218,26 +217,22 @@ threadsafe Function InitDynamicTable(dt)
 
 	dt.colnames = ""
 	dt.description = "Description of what is in this dynamic table."
-	dt.namespace = "core"
-	dt.neurodata_type = "DynamicTable"
+	dt.data_type = "DynamicTable"
 End
 
 Structure ElementIdentifiers
-	string namespace
-	string neurodata_type
+	string data_type
 EndStructure
 
 threadsafe Function InitElementIdentifiers(eli)
 	STRUCT ElementIdentifiers &eli
 
-	eli.namespace = "core"
-	eli.neurodata_type = "ElementIdentifiers"
+	eli.data_type = "ElementIdentifiers"
 End
 
 Structure VectorData
 	string description
-	string namespace
-	string neurodata_type
+	string data_type
 	string path
 EndStructure
 
@@ -245,20 +240,17 @@ threadsafe Function InitVectorData(vd)
 	STRUCT VectorData &vd
 
 	vd.description = "Description of what these vectors represent."
-	vd.namespace = "core"
-	vd.neurodata_type = "VectorData"
+	vd.data_type = "VectorData"
 	vd.path = ""
 End
 
 Structure VectorIndex
-	string namespace
-	string neurodata_type
+	string data_type
 	STRUCT VectorData target
 EndStructure
 
 threadsafe Function InitVectorIndex(vi)
 	STRUCT VectorIndex &vi
 
-	vi.namespace = "core"
-	vi.neurodata_type = "VectorIndex"
+	vi.data_type = "VectorIndex"
 End
