@@ -105,40 +105,6 @@ The complete tree is described in a hdmf compatible format:
 
 .. todo:: implement sphinx extension nwb_docutils
 
-
-.. literalinclude:: doc/nwb.base.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.behavior.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.ecephys.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.epoch.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.file.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.icephys.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.image.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.misc.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.ogen.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.ophys.yaml
-   :language: yaml
-
-.. literalinclude:: doc/nwb.retinotopy.yaml
-   :language: yaml
-
 The following deviations from `NWB schema 2.1.0
 <https://github.com/NeurodataWithoutBorders/nwb-schema/tree/2.1.0/core>`_ were
 recorded:

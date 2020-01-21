@@ -772,14 +772,18 @@ End
 /// @brief Load the NWB specification from files in the main directory
 ///
 /// Note: @c Open, @c FbinRead and @c Close are not threadsafe
+///
+/// @param specLoc  Igor Pro file path to specifications (Path Separator: ":")
+/// @param specName specifications file identifier (without trailing *.json ending)
+///
 /// @returns JSON string
-Function/S LoadSpecification(specName)
-	string specName
+Function/S LoadSpecification(specLoc, specName)
+	string specLoc, specName
 
 	variable refNum, err
 	string msg, fileName
 	string str = ""
-	sprintf filename, "%s%s.json", SpecificationsDiscLocation(), specName
+	sprintf filename, "%s%s%s.json", SpecificationsDiscLocation(), specLoc, specName
 
 	try
 		Open/R refNum as fileName; AbortOnRTE

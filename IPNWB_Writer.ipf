@@ -594,37 +594,45 @@ End
 ///
 /// Note: non threadsafe due to limitations in @c LoadSpecification
 ///
-/// @param locationID   open HDF5 file identifier
+/// @param locationID  open HDF5 file identifier
 Function WriteSpecifications(locationID)
 	variable locationID
+
+	WriteSpecification(locationID, NWB_SPEC_NAME, NWB_SPEC_VERSION, NWB_SPEC_LOCATION, NWB_SPEC_START, NWB_SPEC_INCLUDE)
+	WriteSpecification(locationID, HDMF_SPEC_NAME, HDMF_SPEC_VERSION, HDMF_SPEC_LOCATION, HDMF_SPEC_START, HDMF_SPEC_INCLUDE)
+End
+
+/// @brief write a specifications group to @ref NWB_SPECIFICATIONS and link its
+///        location in @c .specloc
+///
+/// @param locationID     open HDF5 file identifier
+/// @param spec_name      name of namespace, e.g. "core"
+/// @param spec_version   version of added namespace as string
+/// @param spec_location  Igor File Path to location of *.json files in IPNWB
+///                       repository
+/// @param spec_start     namespace.json declaration file
+/// @param spec_include   ";" separated list of include files for defining
+///                       extensions within the namespace
+Function WriteSpecification(locationID, spec_name, spec_version, spec_location, spec_start, spec_include)
+	variable locationID
+	string spec_name, spec_version, spec_location, spec_start, spec_include
 
 	variable groupID, i, numSpecs
 	string path, specName, specDefinition
 
-	sprintf path, "%s/core/%s", NWB_SPECIFICATIONS, NWB_CORE_VERSION
+	sprintf path, "%s/%s/%s", NWB_SPECIFICATIONS, spec_name, spec_version
 	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
-	H5_WriteTextDataset(groupID, "namespace", str=LoadSpecification(NWB_SPEC_NAMESPACE))
-	numSpecs = ItemsInList(NWB_SPEC_NAMES)
+	H5_WriteTextDataset(groupID, "namespace", str=LoadSpecification(spec_location, spec_start))
+	numSpecs = ItemsInList(spec_include)
 	for(i = 0; i < numSpecs; i += 1)
-		specName = StringFromList(i, NWB_SPEC_NAMES)
-		specDefinition = LoadSpecification(specName)
-		H5_WriteTextDataset(groupID, specName, str=specDefinition)
-	endfor
-	HDF5CloseGroup groupID
-
-	sprintf path, "%s/hdmf-common/%s", NWB_SPECIFICATIONS, HDMF_CORE_VERSION
-	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
-	H5_WriteTextDataset(groupID, "namespace", str=LoadSpecification(HDMF_SPEC_NAMESPACE))
-	numSpecs = ItemsInList(HDMF_SPEC_NAMES)
-	for(i = 0; i < numSpecs; i += 1)
-		specName = StringFromList(i, HDMF_SPEC_NAMES)
-		specDefinition = LoadSpecification(specName)
+		specName = StringFromList(i, spec_include)
+		specDefinition = LoadSpecification(spec_location, specName)
 		H5_WriteTextDataset(groupID, specName, str=specDefinition)
 	endfor
 	HDF5CloseGroup groupID
 
 	sprintf path, "G:%s", NWB_SPECIFICATIONS
-	H5_WriteTextAttribute(locationID, ".specloc", NWB_ROOT, str=path, refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(locationID, ".specloc", NWB_ROOT, str=path, refMode = OBJECT_REFERENCE, overwrite = 1)
 End
 
 /// @brief Write a NeuroDataType

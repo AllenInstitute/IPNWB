@@ -1,77 +1,75 @@
 
  62c73400565afc28f67ede4f2e86023c33167cf8 specifications (2.2.0)
 
-# diff NWB vs IPNWB specifications for nwb.base
-
-# diff NWB vs IPNWB specifications for nwb.behavior
-
-# diff NWB vs IPNWB specifications for nwb.device
-
-# diff NWB vs IPNWB specifications for nwb.ecephys
-
-# diff NWB vs IPNWB specifications for nwb.epoch
-
-# diff NWB vs IPNWB specifications for nwb.file
-
-# diff NWB vs IPNWB specifications for nwb.icephys
-
-# diff NWB vs IPNWB specifications for nwb.image
-
-# diff NWB vs IPNWB specifications for nwb.misc
-
-# diff NWB vs IPNWB specifications for nwb.namespace
+# diff namespace core upstream vs IPNWB specifications for nwb.base
+# diff namespace core upstream vs IPNWB specifications for nwb.behavior
+# diff namespace core upstream vs IPNWB specifications for nwb.device
+# diff namespace core upstream vs IPNWB specifications for nwb.ecephys
+# diff namespace core upstream vs IPNWB specifications for nwb.epoch
+# diff namespace core upstream vs IPNWB specifications for nwb.file
+# diff namespace core upstream vs IPNWB specifications for nwb.icephys
+# diff namespace core upstream vs IPNWB specifications for nwb.image
+# diff namespace core upstream vs IPNWB specifications for nwb.misc
+# diff namespace core upstream vs IPNWB specifications for nwb.namespace
+23c23
+<     source: nwb.base.yaml
+---
+>     source: nwb.base
+26c26
+<     source: nwb.device.yaml
+---
+>     source: nwb.device
 29c29
-<           "source": "nwb.base.yaml",
+<     source: nwb.epoch.yaml
 ---
->           "source": "nwb.base",
-34c34
-<           "source": "nwb.device.yaml",
+>     source: nwb.epoch
+32c32
+<     source: nwb.image.yaml
 ---
->           "source": "nwb.device",
-39c39
-<           "source": "nwb.epoch.yaml",
+>     source: nwb.image
+35c35
+<     source: nwb.file.yaml
 ---
->           "source": "nwb.epoch",
-44c44
-<           "source": "nwb.image.yaml",
+>     source: nwb.file
+38c38
+<     source: nwb.misc.yaml
 ---
->           "source": "nwb.image",
+>     source: nwb.misc
+41c41
+<     source: nwb.behavior.yaml
+---
+>     source: nwb.behavior
+45c45
+<     source: nwb.ecephys.yaml
+---
+>     source: nwb.ecephys
 49c49
-<           "source": "nwb.file.yaml",
+<     source: nwb.icephys.yaml
 ---
->           "source": "nwb.file",
-54c54
-<           "source": "nwb.misc.yaml",
+>     source: nwb.icephys
+52c52
+<     source: nwb.ogen.yaml
 ---
->           "source": "nwb.misc",
-59c59
-<           "source": "nwb.behavior.yaml",
+>     source: nwb.ogen
+55c55
+<     source: nwb.ophys.yaml
 ---
->           "source": "nwb.behavior",
-64c64
-<           "source": "nwb.ecephys.yaml",
+>     source: nwb.ophys
+58c58
+<     source: nwb.retinotopy.yaml
 ---
->           "source": "nwb.ecephys",
-69c69
-<           "source": "nwb.icephys.yaml",
+>     source: nwb.retinotopy
+# diff namespace core upstream vs IPNWB specifications for nwb.ogen
+# diff namespace core upstream vs IPNWB specifications for nwb.ophys
+# diff namespace core upstream vs IPNWB specifications for nwb.retinotopy
+# diff namespace hdmf-common upstream vs IPNWB specifications for namespace
+17c17
+<     source: table.yaml
 ---
->           "source": "nwb.icephys",
-74c74
-<           "source": "nwb.ogen.yaml",
+>     source: table
+20c20
+<     source: sparse.yaml
 ---
->           "source": "nwb.ogen",
-79c79
-<           "source": "nwb.ophys.yaml",
----
->           "source": "nwb.ophys",
-84c84
-<           "source": "nwb.retinotopy.yaml",
----
->           "source": "nwb.retinotopy",
-
-# diff NWB vs IPNWB specifications for nwb.ogen
-
-# diff NWB vs IPNWB specifications for nwb.ophys
-
-# diff NWB vs IPNWB specifications for nwb.retinotopy
-
+>     source: sparse
+# diff namespace hdmf-common upstream vs IPNWB specifications for sparse
+# diff namespace hdmf-common upstream vs IPNWB specifications for table

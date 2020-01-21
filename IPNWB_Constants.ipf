@@ -166,12 +166,16 @@ Constant OBJECT_REFERENCE = 0x1
 Constant REGION_REFERENCE = 0x2
 /// @}
 
-/// @name Constants for NWB:N Core Specifications
+/// @name Constants for NWB version 2 specifications and base classes
 /// @{
-StrConstant NWB_CORE_VERSION = "2.2.0"
-StrConstant NWB_SPEC_NAMESPACE = "nwb.namespace"
-StrConstant NWB_SPEC_NAMES = "nwb.base;nwb.behavior;nwb.device;nwb.ecephys;nwb.epoch;nwb.file;nwb.icephys;nwb.image;nwb.misc;nwb.ogen;nwb.ophys;nwb.retinotopy;"
-StrConstant HDMF_CORE_VERSION = "1.1.0"
-StrConstant HDMF_SPEC_NAMESPACE = "hdmf.namespace"
-StrConstant HDMF_SPEC_NAMES = "hdmf.table;hdmf.sparse;"
+StrConstant NWB_SPEC_NAME = "core"
+StrConstant NWB_SPEC_VERSION = "2.2.0"
+StrConstant NWB_SPEC_LOCATION = "namespace:core:json:"
+StrConstant NWB_SPEC_START = "nwb.namespace"
+StrConstant NWB_SPEC_INCLUDE = "nwb.base;nwb.behavior;nwb.device;nwb.ecephys;nwb.epoch;nwb.file;nwb.icephys;nwb.image;nwb.misc;nwb.ogen;nwb.ophys;nwb.retinotopy;"
+StrConstant HDMF_SPEC_NAME = "hdmf-common"
+StrConstant HDMF_SPEC_VERSION = "1.1.0"
+StrConstant HDMF_SPEC_LOCATION = "namespace:hdmf-common:json:"
+StrConstant HDMF_SPEC_START = "namespace"
+StrConstant HDMF_SPEC_INCLUDE = "table;sparse;"
 /// @}

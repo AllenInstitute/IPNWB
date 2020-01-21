@@ -1,5 +1,7 @@
 namespaces:
-- author:
+- name: core
+  doc: NWB namespace
+  author:
   - Andrew Tritt
   - Oliver Ruebel
   - Ryan Ly
@@ -13,9 +15,7 @@ namespaces:
   - bdichter@lbl.gov
   - keithg@alleninstitute.org
   - jteeters@berkeley.edu
-  doc: NWB namespace
   full_name: NWB core
-  name: core
   schema:
   - namespace: hdmf-common
   - doc: This source module contains base data types used throughout the NWB:N data
