@@ -63,7 +63,8 @@ threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, s
 	H5_WriteTextDataset(locationID, "session_description", str=ti.session_description)
 	H5_WriteTextDataset(locationID, "timestamps_reference_time", str=session_start_time_ts)
 
-	H5_CreateGroupsRecursively(locationID, NWB_GENERAL, groupID=groupID)
+	H5_CreateGroupsRecursively(locationID, NWB_GENERAL)
+	groupID = H5_OpenGroup(locationID, NWB_GENERAL)
 
 	WriteTextDatasetIfSet(groupID, "session_id"            , gi.session_id)
 	WriteTextDatasetIfSet(groupID, "experimenter"          , gi.experimenter)
@@ -82,7 +83,8 @@ threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, s
 
 	HDF5CloseGroup/Z groupID
 
-	H5_CreateGroupsRecursively(locationID, NWB_SUBJECT, groupID=groupID)
+	H5_CreateGroupsRecursively(locationID, NWB_SUBJECT)
+	groupID = H5_OpenGroup(locationID, NWB_SUBJECT)
 	if(version == NWB_VERSION_LATEST)
 		WriteNeuroDataType(locationID, NWB_SUBJECT, "Subject")
 	endif
@@ -125,7 +127,8 @@ threadsafe Function CreateIntraCellularEphys(locationID, [filtering])
 		filtering = PLACEHOLDER
 	endif
 
-	H5_CreateGroupsRecursively(locationID, NWB_INTRACELLULAR_EPHYS, groupID=groupID)
+	H5_CreateGroupsRecursively(locationID, NWB_INTRACELLULAR_EPHYS)
+	groupID = H5_OpenGroup(locationID, NWB_INTRACELLULAR_EPHYS)
 	H5_WriteTextDataset(groupID, "filtering" , str=filtering, overwrite=1)
 	HDF5CloseGroup groupID
 End
@@ -150,10 +153,12 @@ threadsafe Function AddDevice(locationID, name, version, description)
 	sprintf path, "%s/device_%s", NWB_DEVICES, name
 
 	if(version == 1)
-		H5_CreateGroupsRecursively(locationID, NWB_DEVICES, groupID=groupID)
+		H5_CreateGroupsRecursively(locationID, NWB_DEVICES)
+		groupID = H5_OpenGroup(locationID, NWB_DEVICES)
 		H5_WriteTextDataset(groupID, path, str=description, skipIfExists=1)
 	elseif(version == NWB_VERSION_LATEST)
-		H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
+		H5_CreateGroupsRecursively(locationID, path)
+		groupID = H5_OpenGroup(locationID, path)
 		WriteNeuroDataType(groupID, path, "Device")
 		H5_WriteTextAttribute(groupID, "description", path, str = description)
 	endif
@@ -177,7 +182,8 @@ threadsafe Function AddElectrode(locationID, name, version, data, device)
 		return NaN
 	endif
 
-	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
+	H5_CreateGroupsRecursively(locationID, path)
+	groupID = H5_OpenGroup(locationID, path)
 
 	if(version == NWB_VERSION_LATEST)
 		WriteNeuroDataType(groupID, path, "IntracellularElectrode")
@@ -390,7 +396,8 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 		return NaN
 	endif
 
-	H5_CreateGroupsRecursively(locationID, group, groupID=groupID)
+	H5_CreateGroupsRecursively(locationID, group)
+	groupID = H5_OpenGroup(locationID, group)
 	H5_WriteTextAttribute(groupID, "description", group, str=PLACEHOLDER, overwrite=1)
 
 	// write source attribute
@@ -483,34 +490,29 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 End
 
 /// @brief Create a Dynamic Table group at path
+///
 /// Note: A dynamic table needs at least an @c id and a @c vectorData column
-threadsafe static Function CreateDynamicTable(locationID, path, dt, [groupID])
+///
+/// @return NaN if the group already exists, 1 otherwise
+threadsafe static Function CreateDynamicTable(locationID, path, dt)
 	variable locationID
 	string path
 	STRUCT DynamicTable &dt
-	variable &groupID
 
-	variable id
+	variable groupID
 
-	if(H5_GroupExists(locationID, path, groupID = id))
-		if(ParamIsDefault(groupID))
-			HDF5CloseGroup id
-		else
-			groupID = id
-		endif
+	if(H5_GroupExists(locationID, path))
 		return NaN
 	endif
 
-	H5_CreateGroupsRecursively(locationID, path, groupID = id)
-	WriteNeuroDataType(id, path, dt.data_type)
-	H5_WriteTextAttribute(id, "description", path, str = dt.description)
-	H5_WriteTextAttribute(id, "colnames", path, list = dt.colnames)
+	H5_CreateGroupsRecursively(locationID, path)
+	groupID = H5_OpenGroup(locationID, path)
+	WriteNeuroDataType(groupID, path, dt.data_type)
+	H5_WriteTextAttribute(groupID, "description", path, str = dt.description)
+	H5_WriteTextAttribute(groupID, "colnames", path, list = dt.colnames)
+	HDF5CloseGroup/Z groupID
 
-	if(ParamIsDefault(groupID))
-		HDF5CloseGroup id
-	else
-		groupID = id
-	endif
+	return 1
 End
 
 /// @brief Append a sweep to the sweep table
@@ -525,23 +527,25 @@ threadsafe static Function AppendToSweepTable(locationID, reference, sweepNumber
 	string reference
 	variable sweepNumber
 
-	variable groupID, test, err, numIds
+	variable groupID, err, numIds
 	variable appendMode = ROWS, compressionMode = NO_COMPRESSION
 	string path
 
 	sprintf path, "%s/sweep_table", NWB_INTRACELLULAR_EPHYS
-	if(!H5_GroupExists(locationID, path, groupID = groupID))
+	if(!H5_GroupExists(locationID, path))
 		STRUCT DynamicTable dt
 		InitDynamicTable(dt)
 		dt.description = "The table which groups different PatchClampSeries together."
 		dt.colnames = "series;sweep_number"
 		dt.description = "A sweep table groups different PatchClampSeries together."
 		dt.data_type = "SweepTable"
-		CreateDynamicTable(locationID, path, dt, groupID = groupID)
+
+		CreateDynamicTable(locationID, path, dt)
 		appendMode = -1
 		compressionMode = CHUNKED_COMPRESSION
 	endif
-	test = H5_GroupExists(groupID, ".")
+	groupID = H5_OpenGroup(locationID, path)
+	ASSERT_TS(!IsNaN(groupID), "Could not open group at " + path)
 
 	WAVE/Z ids = H5_LoadDataset(groupID, "id")
 	numIds = WaveExists(ids) ? DimSize(ids, ROWS) : 0
@@ -612,7 +616,8 @@ Function WriteSpecification(locationID, spec_name, spec_version, spec_location, 
 	string path, specName, specDefinition
 
 	sprintf path, "%s/%s/%s", NWB_SPECIFICATIONS, spec_name, spec_version
-	H5_CreateGroupsRecursively(locationID, path, groupID=groupID)
+	H5_CreateGroupsRecursively(locationID, path)
+	groupID = H5_OpenGroup(locationID, path)
 	H5_WriteTextDataset(groupID, "namespace", str=LoadSpecification(spec_location, spec_start))
 	numSpecs = ItemsInList(spec_include)
 	for(i = 0; i < numSpecs; i += 1)

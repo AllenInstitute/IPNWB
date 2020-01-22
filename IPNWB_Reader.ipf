@@ -515,7 +515,8 @@ Function [WAVE/Z sweep_number, WAVE/Z/T series] LoadSweepTable(variable location
 	ASSERT_TS(version == 2, "SweepTable is only available for NWB version 2")
 	sprintf path, "%s/%s", NWB_INTRACELLULAR_EPHYS, "sweep_table"
 
-	if(IPNWB#H5_GroupExists(locationID, path, groupID = groupID))
+	groupID = H5_OpenGroup(locationID, path)
+	if(!IsNaN(groupID))
 		WAVE sweep_number = IPNWB#H5_LoadDataset(groupID, "sweep_number")
 		WAVE/T series = IPNWB#H5_LoadDataset(groupID, "series")
 		series[] = (series[p])[2,inf] // Remove leading group linker "G:"

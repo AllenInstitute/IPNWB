@@ -507,50 +507,59 @@ End
 
 /// @brief Return 1 if the given HDF5 group exists, 0 otherwise.
 ///
-/// @param[in] locationID           HDF5 identifier, can be a file or group
-/// @param[in] path                 Additional path on top of `locationID` which identifies
-///                                 the group
-/// @param[out] groupID [optional]  Allows to return the locationID of the group, zero in case
-///                                 the group does not exist. If this parameter is not provided,
-///                                 the group is closed before the function returns.
-threadsafe Function H5_GroupExists(locationID, path, [groupID])
+/// @param locationID  HDF5 identifier, can be a file or group
+/// @param path        Additional path on top of `locationID` which identifies
+///                    the group.
+threadsafe Function H5_GroupExists(locationID, path)
 	variable locationID
 	string path
-	variable &groupID
 
-	variable id, success
+	variable groupID, success, absPath
+	string group
 
-	HDF5OpenGroup/Z locationID, path, id
-	success = !V_Flag
-
-	if(ParamIsDefault(groupID))
-		if(success)
-			HDF5CloseGroup id
-		endif
-	else
-		groupID = id
+	group = GetFile(path, sep = "/")
+	absPath = !cmpstr(path[0], "/")
+	path = RemoveEnding(GetFolder(path, sep = "/"), "/")
+	if(absPath)
+		path = "/" + path
 	endif
 
-	return success
+	if(!cmpstr(group, "") || !cmpstr(group, "."))
+		if(!cmpstr(path, ""))
+			path = "."
+		endif
+		HDF5OpenGroup/Z locationID, path, groupID
+		success = !V_flag
+		if(success)
+			HDF5CloseGroup/Z groupID
+		endif
+		return success
+	endif
+
+#if IgorVersion() < 9
+	HDF5ListGroup/Z/TYPE=(0x01) locationID, path
+#else
+	HDF5ListGroup/Z/TYPE=(0x01)/CONT=1 locationID, path
+#endif
+	if(V_flag)
+		return 0
+	endif
+	return (WhichListItem(group, S_HDF5ListGroup) != -1)
 End
 
 /// @brief Create all groups along the given path
 ///
-/// @param[in] locationID          HDF5 identifier, can be a file or group
-/// @param[in] fullPath            Additional path on top of `locationID` which identifies
-///                                the group
-/// @param[out] groupID [optional] Allows to return the locationID of the group, zero in case
-///                                the group could not be created. If this parameter is not
-///                                provided, the group is closed before the function returns.
-threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath, [groupID])
+/// @param locationID  HDF5 identifier, can be a file or group
+/// @param fullPath    Additional path on top of `locationID` which identifies
+///                    the group
+threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath)
 	variable locationID
 	string fullPath
-	variable &groupID
 
 	variable id, i, numElements, start
 	string path, group
 
-	if(!H5_GroupExists(locationID, fullPath, groupID=id))
+	if(!H5_GroupExists(locationID, fullPath))
 		numElements = ItemsInList(fullPath, "/")
 
 		if(!cmpstr(fullPath[0], "/"))
@@ -573,19 +582,10 @@ threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath, [groupID])
 				HDF5DumpState
 				ASSERT_TS(0, "H5_CreateGroupsRecursively: Could not create HDF5 group")
 			endif
-
-			if(i != numElements - 1)
-				HDF5CloseGroup/Z id
-			endif
+			HDF5CloseGroup/Z id
 
 			path += "/"
 		endfor
-	endif
-
-	if(ParamIsDefault(groupID))
-		HDF5CloseGroup id
-	else
-		groupID = id
 	endif
 End
 
@@ -642,17 +642,33 @@ End
 
 /// @brief Open the group reachable via `locationID` and `path` and return its ID
 ///
-/// @param locationID  HDF5 file identifier
-/// @param path        Full path to the group inside locationID
+/// @param locationID  HDF5 identifier, can be a file or group
+/// @param path        Additional path on top of `locationID` which identifies
+///                    the group
+/// @return the groupID of the opened group. Return NaN if the group did not
+///         exist.
 threadsafe Function H5_OpenGroup(locationID, path)
 	variable locationID
 	string path
 
-	variable id
+	variable groupID
 
-	ASSERT_TS(H5_GroupExists(locationID, path, groupID = id), "H5_OpenGroup: " + path + " not in HDF5 file")
+#if (IgorVersion() < 8.05)
+	if(!H5_GroupExists(locationID, path))
+		return NaN
+	endif
+#endif
 
-	return id
+	HDF5OpenGroup/Z locationID, path, groupID
+	if(!V_Flag)
+		return groupID
+	endif
+
+#if IgorVersion() < 8.05
+	print "Notice: Opening linked groups is not supported in HDF5-XOP < 2.03."
+#endif
+
+	return NaN
 End
 
 #if (IgorVersion() >= 8.00)
@@ -705,6 +721,7 @@ End
 #endif
 
 /// @todo Needs HDF5 XOP support for reading link targets
+/// use HDF5LinkInfo
 threadsafe Function/S H5_GetLinkTarget(discLocation, path)
 	string discLocation, path
 

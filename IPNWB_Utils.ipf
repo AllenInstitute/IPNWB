@@ -502,7 +502,7 @@ End
 
 /// @brief Return the folder of the file
 ///
-/// Given `path/file.suffix` this gives `path`.
+/// Given `/path/file.suffix` this gives `path/`.
 ///
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
