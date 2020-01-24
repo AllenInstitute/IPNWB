@@ -75,42 +75,14 @@ NWB file format description
 NWB File Organization
 ~~~~~~~~~~~~~~~~~~~~~
 
-- `NWB version 1`_
-- `NWB version 2`_
+The current major version of the file format is 2. Version 1 is considered
+supported but deprecated.
 
-NWB version 1
-"""""""""""""
+.. toctree::
 
-The `File Organization (version 1.0.5) <NWB105FO>`_ is loosely described in the
-archived repository for the `NWBv1 schema specification <NWB1Github>`_
+   doc/nwb1.rst
+   doc/nwb2.rst
 
-.. _NWB105FO: https://htmlpreview.github.io/?https://htmlpreview.github.io/?https://raw.githubusercontent.com/NeurodataWithoutBorders/specification_nwbn_1_0_x/master/version_1.0.5_beta/nwb_file_format_specification_1.0.5_beta.html#File_organization
-.. _NWB1Github: https://github.com/NeurodataWithoutBorders/specification_nwbn_1_0_x
-
-The following tree describes the NWB layout version 1
-
-.. literalinclude:: specifications_core_1_nwb.yaml
-   :language: yaml
-
-NWB version 2
-"""""""""""""
-
-Recent NWB (version 2) schema specifications are `tracked in a separate
-repository <https://github.com/NeurodataWithoutBorders/nwb-schema>`_.  The
-schema is implemented in version 2.1.0
-(da3bcd72d63c83c512dd56e9959f409230c5756e) with some changes due to the Igor
-Pro HDF5 limitations.
-
-The complete tree is described in a hdmf compatible format:
-
-.. todo:: implement sphinx extension nwb_docutils
-
-The following deviations from `NWB schema 2.1.0
-<https://github.com/NeurodataWithoutBorders/nwb-schema/tree/2.1.0/core>`_ were
-recorded:
-
-.. literalinclude:: doc/schema.diff
-   :language: diff
 
 Online Resources
 ~~~~~~~~~~~~~~~~
