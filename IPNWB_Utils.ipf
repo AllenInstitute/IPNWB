@@ -603,10 +603,11 @@ threadsafe Function/S GetTimeSeriesMissingFields(channelType, clampMode)
 		case "VoltageClampSeries":
 			return "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
 		case "CurrentClampSeries":
+		case "IZeroClampSeries":
 			return "gain;bias_current;bridge_balance;capacitance_compensation"
+		case "PatchClampSeries":
 		case "VoltageClampStimulusSeries":
 		case "CurrentClampStimulusSeries":
-		case "IZeroClampSeries":
 			return "gain"
 		case "TimeSeries": // unassociated channel data
 		default:
