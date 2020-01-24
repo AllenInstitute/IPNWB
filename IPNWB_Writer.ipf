@@ -271,7 +271,7 @@ threadsafe Function AddProperty(tsp, nwbProp, value, [unit])
 	variable value
 	string unit
 
-	ASSERT_TS(FindListItem(nwbProp, tsp.missing_fields) != -1, "AddProperty: incorrect missing_fields")
+	ASSERT_TS(FindListItem(nwbProp, tsp.missing_fields) != -1, "AddProperty: incorrect missing_fields for property " + nwbProp + " in type " + tsp.neurodata_type)
 	tsp.missing_fields = RemoveFromList(nwbProp, tsp.missing_fields)
 
 	WAVE/T propNames = tsp.names

@@ -178,6 +178,7 @@ Structure TimeSeriesProperties
 	WAVE/T unit
 	WAVE   isCustom ///< NWBv1: 1 if the entry should be marked as NWB custom
 	string missing_fields ///< keep track of missing fields while reading
+	string neurodata_type // TimeSeries type
 EndStructure
 
 /// @brief Initialization of TimeSeriesProperties
@@ -204,6 +205,8 @@ threadsafe Function InitTimeSeriesProperties(tsp, channelType, clampMode)
 
 	// AddProperty() will remove the entries on addition of values
 	tsp.missing_fields = GetTimeSeriesMissingFields(channelType, clampMode)
+
+	tsp.neurodata_type = DetermineDataTypeFromProperties(channelType, clampMode)
 End
 
 Structure DynamicTable
