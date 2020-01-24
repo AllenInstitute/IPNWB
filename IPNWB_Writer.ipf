@@ -160,7 +160,7 @@ threadsafe Function AddDevice(locationID, name, version, description)
 		H5_CreateGroupsRecursively(locationID, path)
 		groupID = H5_OpenGroup(locationID, path)
 		WriteNeuroDataType(groupID, path, "Device")
-		H5_WriteTextAttribute(groupID, "description", path, str = description)
+		H5_WriteTextAttribute(groupID, "description", path, str=description, overwrite=1)
 	endif
 
 	HDF5CloseGroup/Z groupID
