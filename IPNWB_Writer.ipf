@@ -99,8 +99,12 @@ threadsafe Function CreateCommonGroups(locationID, toplevelInfo, [generalInfo, s
 	H5_CreateGroupsRecursively(locationID, NWB_STIMULUS_TEMPLATES)
 	H5_CreateGroupsRecursively(locationID, NWB_STIMULUS_PRESENTATION)
 	H5_CreateGroupsRecursively(locationID, GetNWBgroupPatchClampSeries(version))
-	H5_CreateGroupsRecursively(locationID, NWB_EPOCHS)
-	H5_WriteTextAttribute(locationID, "tags", NWB_EPOCHS, list="")
+
+	if(version == 1)
+		H5_CreateGroupsRecursively(locationID, NWB_EPOCHS)
+		H5_WriteTextAttribute(locationID, "tags", NWB_EPOCHS, list="")
+	endif
+
 	H5_CreateGroupsRecursively(locationID, NWB_PROCESSING)
 	H5_CreateGroupsRecursively(locationID, NWB_ANALYSIS)
 
