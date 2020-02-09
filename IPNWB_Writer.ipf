@@ -14,7 +14,7 @@
 /// @param toplevelInfo [optional, see ToplevelInfo() for defaults] datasets directly below `/`
 /// @param generalInfo [optional, see GeneralInfo() for defaults]   datasets directly below `/general`
 /// @param subjectInfo [optional, see SubjectInfo() for defaults]   datasets below `/general/subject`
-threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, subjectInfo])
+threadsafe Function CreateCommonGroups(locationID, toplevelInfo, [generalInfo, subjectInfo])
 	variable locationID
 	STRUCT ToplevelInfo &toplevelInfo
 	STRUCT GeneralInfo &generalInfo
@@ -27,6 +27,8 @@ threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, s
 	STRUCT SubjectInfo si
 	STRUCT TopLevelInfo ti
 
+	ti = toplevelInfo
+
 	if(ParamIsDefault(generalInfo))
 		InitGeneralInfo(gi)
 	else
@@ -37,12 +39,6 @@ threadsafe Function CreateCommonGroups(locationID, [toplevelInfo, generalInfo, s
 		InitSubjectInfo(si)
 	else
 		si = subjectInfo
-	endif
-
-	if(ParamIsDefault(toplevelInfo))
-		InitToplevelInfo(ti, GetNWBVersion())
-	else
-		ti = toplevelInfo
 	endif
 
 	version = GetNWBmajorVersion(ti.nwb_version)
