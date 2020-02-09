@@ -350,7 +350,7 @@ End
 /// @param tsp             Filled #IPNWB::TimeSeriesProperties structure
 /// @param compressionMode [optional, defaults to NO_COMPRESSION] Type of
 ///                        compression to use, one of @ref CompressionMode
-threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode])
+Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode])
 	variable locationID
 	string path
 	variable version
@@ -451,7 +451,8 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 			MarkAsCustomEntry(groupID, tsp.names[i])
 		endif
 
-		if(version == 2 && cmpstr(tsp.unit[i], ""))
+		if(version == 2 && cmpstr(tsp.unit[i], "") && WhichListItem(tsp.unit[i], "bridge_balance;bias_current;capacitance_compensation") == -1)
+			// Some CurrentClampSeries properties miss the unit attribute
 			H5_WriteTextAttribute(groupID, "unit", group + "/" + tsp.names[i], str=tsp.unit[i], overwrite=1)
 		endif
 	endfor
