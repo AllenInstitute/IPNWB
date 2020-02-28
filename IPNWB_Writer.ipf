@@ -644,20 +644,20 @@ threadsafe static Function WriteNeuroDataType(locationID, path, neurodata_type)
 	variable locationID
 	string path, neurodata_type
 
-	variable version0, version1, version2
-	string version, ancestry
+	variable version
+	string ancestry
 
-	version0 = GetNWBmajorVersion(ReadNWBVersion(locationID))
-	EnsureValidNWBVersion(version0)
+	version = GetNWBmajorVersion(ReadNWBVersion(locationID))
+	EnsureValidNWBVersion(version)
 
-	if(version0 == 1)
+	if(version == 1)
 		ancestry = DetermineDataTypeRefTree(neurodata_type)
 		// neurodata_type defaults to super class in NWBv1
 		neurodata_type = StringFromList(0, ancestry)
 		H5_WriteTextAttribute(locationID, "ancestry", path, list=ancestry, overwrite=1)
 		H5_WriteTextAttribute(locationID, "neurodata_type", path, str=neurodata_type, overwrite=1)
 		// no data_link and timestamp_link attribute as we keep all data in one file
-	elseif(version0 == 2)
+	elseif(version == 2)
 		H5_WriteTextAttribute(locationID, "namespace", path, str = DetermineNamespace(neurodata_type), overwrite = 1)
 		H5_WriteTextAttribute(locationID, "neurodata_type", path, str = neurodata_type, overwrite = 1)
 	endif
