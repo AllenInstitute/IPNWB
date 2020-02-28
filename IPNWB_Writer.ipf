@@ -660,6 +660,7 @@ threadsafe static Function WriteNeuroDataType(locationID, path, neurodata_type)
 	elseif(version == 2)
 		H5_WriteTextAttribute(locationID, "namespace", path, str = DetermineNamespace(neurodata_type), overwrite = 1)
 		H5_WriteTextAttribute(locationID, "neurodata_type", path, str = neurodata_type, overwrite = 1)
+		H5_WriteTextAttribute(locationID, "object_id", path, str = GenerateRFC4122UUID(), overwrite = 1)
 	endif
 End
 
