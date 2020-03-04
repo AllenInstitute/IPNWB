@@ -1072,8 +1072,7 @@ threadsafe Function/S GenerateRFC4122UUID()
 	string str, randomness
 	STRUCT Uuid uu
 
-	NewRandomSeed()
-	randomness = Hash(num2str(GetReproducibleRandom()), 1)
+	randomness = Hash(num2strHighPrec(GetReproducibleRandom(), precision=15), 1)
 
 	WAVE binary = HexToBinary(randomness)
 
@@ -1136,4 +1135,26 @@ threadsafe Function/WAVE HexToBinary(str)
 	Make/N=(length / 2)/FREE/B/U bin = HexToNumber(str[p * 2]) | (HexToNumber(str[p * 2 + 1]) << 4)
 
 	return bin
+End
+
+/// @brief Converts a number to a string with specified precision (digits after decimal dot).
+/// This function is an extension for the regular num2str that is limited to 5 digits.
+/// Input numbers are rounded using the "round-half-to-even" rule to the given precision.
+/// The default precision is 5.
+/// If val is complex only the real part is converted to a string.
+/// @param[in] val       number that should be converted to a string
+/// @param[in] precision [optional, default 5] number of precision digits after the decimal dot using "round-half-to-even" rounding rule.
+///                      Precision must be in the range 0 to 15.
+/// @return string with textual number representation
+threadsafe Function/S num2strHighPrec(val, [precision])
+	variable val, precision
+
+	string str
+
+	precision = ParamIsDefault(precision) ? 5 : precision
+	ASSERT_TS(precision >= 0 && precision <= 15, "Invalid precision, must be >= 0 and <= 15.")
+
+	sprintf str, "%.*f", precision, val
+
+	return str
 End
