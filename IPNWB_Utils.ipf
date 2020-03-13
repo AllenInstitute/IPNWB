@@ -819,6 +819,56 @@ Function/S SpecificationsDiscLocation()
 	return GetFolder(FunctionPath(""))
 End
 
+/// @brief Recursively resolve shortcuts to files/directories
+///
+/// @return full path or an empty string if the file does not exist or the
+/// 		shortcut points to a non existing file/folder
+Function/S ResolveAlias(path, [pathName])
+	string pathName, path
+
+	if(ParamIsDefault(pathName))
+		GetFileFolderInfo/Q/Z path
+	else
+		GetFileFolderInfo/P=$pathName/Q/Z path
+	endif
+
+	if(V_flag)
+		return ""
+	endif
+
+	if(!V_IsAliasShortcut)
+		return path
+	endif
+
+	if(ParamIsDefault(pathName))
+		return ResolveAlias(S_aliasPath)
+	else
+		return ResolveAlias(S_aliasPath, pathName = pathName)
+	endif
+End
+
+/// @brief Check wether the given path points to an existing file
+///
+/// Resolves shortcuts and symlinks recursively.
+Function FileExists(filepath)
+	string filepath
+
+	filepath = ResolveAlias(filepath)
+	GetFileFolderInfo/Q/Z filepath
+
+	return !V_Flag && V_IsFile
+End
+
+/// @brief Check wether the given path points to an existing folder
+Function FolderExists(folderpath)
+	string folderpath
+
+	folderpath = ResolveAlias(folderpath)
+	GetFileFolderInfo/Q/Z folderpath
+
+	return !V_Flag && V_isFolder
+End
+
 /// @brief Add a string prefix to each list item and
 /// return the new list
 threadsafe Function/S AddPrefixToEachListItem(prefix, list)
