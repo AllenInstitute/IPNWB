@@ -798,6 +798,7 @@ Function/S LoadSpecification(specLoc, specName)
 	sprintf filename, "%s%s%s.json", SpecificationsDiscLocation(), specLoc, specName
 
 	try
+		ClearRTError()
 		Open/R refNum as fileName; AbortOnRTE
 		FReadLine/T="" refNum, str; AbortOnRTE
 		Close refNum; AbortOnRTE
@@ -1207,4 +1208,26 @@ threadsafe Function/S num2strHighPrec(val, [precision])
 	sprintf str, "%.*f", precision, val
 
 	return str
+End
+
+/// @brief Helper function for try/catch with AbortOnRTE
+///
+/// Not clearing the RTE before calling `AbortOnRTE` will always trigger the RTE no
+/// matter what you do in that line.
+///
+/// Usage:
+/// \rst
+/// .. code-block:: igorpro
+///
+///    try
+///       ClearRTError()
+///       myFunc(); AbortOnRTE
+///    catch
+///      err = GetRTError(1)
+///    endtry
+///
+/// \endrst
+threadsafe Function ClearRTError()
+
+	variable err = GetRTError(1)
 End
