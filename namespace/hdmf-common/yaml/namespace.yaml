@@ -1,7 +1,5 @@
 namespaces:
-- name: hdmf-common
-  doc: Common data structures provided by HDMF
-  author:
+- author:
   - Andrew Tritt
   - Oliver Ruebel
   - Ryan Ly
@@ -11,11 +9,13 @@ namespaces:
   - oruebel@lbl.gov
   - rly@lbl.gov
   - bdichter@lbl.gov
+  doc: Common data structures provided by HDMF
   full_name: HDMF Common
+  name: hdmf-common
   schema:
   - doc: data types for a column-based table
     source: table
     title: Table data types
   - doc: data types for different types of sparse matrices
     source: sparse
-  version: 1.1.0
+  version: 1.1.3

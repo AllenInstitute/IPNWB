@@ -1,5 +1,5 @@
 
- 62c73400565afc28f67ede4f2e86023c33167cf8 specifications (2.2.0)
+ 24fba6174ddbad171ee5bb824edfa31f86b1b16d specifications (2.2.4)
 
 # diff namespace core upstream vs IPNWB specifications for nwb.base
 # diff namespace core upstream vs IPNWB specifications for nwb.behavior
@@ -11,6 +11,16 @@
 # diff namespace core upstream vs IPNWB specifications for nwb.image
 # diff namespace core upstream vs IPNWB specifications for nwb.misc
 # diff namespace core upstream vs IPNWB specifications for nwb.namespace
+2,4c2
+< - name: core
+<   doc: NWB namespace
+<   author:
+---
+> - author:
+17a16
+>   doc: NWB namespace
+18a18
+>   name: core
 23c23
 <     source: nwb.base.yaml
 ---
@@ -63,6 +73,16 @@
 # diff namespace core upstream vs IPNWB specifications for nwb.ophys
 # diff namespace core upstream vs IPNWB specifications for nwb.retinotopy
 # diff namespace hdmf-common upstream vs IPNWB specifications for namespace
+2,4c2
+< - name: hdmf-common
+<   doc: Common data structures provided by HDMF
+<   author:
+---
+> - author:
+13a12
+>   doc: Common data structures provided by HDMF
+14a14
+>   name: hdmf-common
 17c17
 <     source: table.yaml
 ---

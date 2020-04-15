@@ -12,7 +12,7 @@
 StrConstant PLACEHOLDER = "PLACEHOLDER"
 
 static StrConstant NWB_VERSION_V1 = "NWB-1.0.5"
-static StrConstant NWB_VERSION_V2 = "NWB-2.2.0"
+static StrConstant NWB_VERSION_V2 = "2.2.4"
 Constant NWB_VERSION_LATEST = 2
 
 /// @name HDF5 file paths
@@ -129,7 +129,7 @@ End
 /// @brief get NWB version for current Igor Pro implementation
 ///
 /// @param version  maior NWB version e.g. 2
-/// @returns        full version string in the format `NWB-[1,2]\.[0-9](?:\.[0-9])?[b]?
+/// @returns        full version string in the format `(?:NWB-)?[1,2]\.[0-9](?:\.[0-9])?[b]?`
 threadsafe Function/S GetNWBVersionString(version)
 	variable version
 
@@ -169,12 +169,12 @@ Constant REGION_REFERENCE = 0x2
 /// @name Constants for NWB version 2 specifications and base classes
 /// @{
 StrConstant NWB_SPEC_NAME = "core"
-StrConstant NWB_SPEC_VERSION = "2.2.0"
+StrConstant NWB_SPEC_VERSION = "2.2.4"
 StrConstant NWB_SPEC_LOCATION = "namespace:core:json:"
 StrConstant NWB_SPEC_START = "nwb.namespace"
 StrConstant NWB_SPEC_INCLUDE = "nwb.base;nwb.behavior;nwb.device;nwb.ecephys;nwb.epoch;nwb.file;nwb.icephys;nwb.image;nwb.misc;nwb.ogen;nwb.ophys;nwb.retinotopy;"
 StrConstant HDMF_SPEC_NAME = "hdmf-common"
-StrConstant HDMF_SPEC_VERSION = "1.1.0"
+StrConstant HDMF_SPEC_VERSION = "1.1.3"
 StrConstant HDMF_SPEC_LOCATION = "namespace:hdmf-common:json:"
 StrConstant HDMF_SPEC_START = "namespace"
 StrConstant HDMF_SPEC_INCLUDE = "table;sparse;"

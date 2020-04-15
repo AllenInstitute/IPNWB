@@ -1,7 +1,5 @@
 namespaces:
-- name: core
-  doc: NWB namespace
-  author:
+- author:
   - Andrew Tritt
   - Oliver Ruebel
   - Ryan Ly
@@ -15,7 +13,9 @@ namespaces:
   - bdichter@lbl.gov
   - keithg@alleninstitute.org
   - jteeters@berkeley.edu
+  doc: NWB namespace
   full_name: NWB core
+  name: core
   schema:
   - namespace: hdmf-common
   - doc: This source module contains base data types used throughout the NWB:N data
@@ -57,4 +57,4 @@ namespaces:
   - doc: This source module contains neurodata_type for retinotopy data.
     source: nwb.retinotopy
     title: Retinotopy
-  version: 2.2.0
+  version: 2.2.4
