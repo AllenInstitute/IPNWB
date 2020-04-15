@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Convert IPNWB schema specifications for from yaml to json and store the diff
 # to the official specifications in the git submodule.
 #
@@ -36,22 +38,21 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 mkdir -p ${DIR}/doc
 mkdir -p ${DIR}/namespace/{core,hdmf-common}/{json,yaml}
 logfile=${DIR}/doc/schema.diff
-jqfilter=.
 jqargs='--sort-keys --compact-output'
+
+# copy the YAML files into our repo
+cp ${DIR}/specifications/core/*.yaml ${DIR}/namespace/core/yaml
+cp ${DIR}/specifications/hdmf-common-schema/common/*.yaml ${DIR}/namespace/hdmf-common/yaml
 
 # (optional) jqfilters:
 #
 # jqfilter to remove ".yaml" from namespace specifications:
-#
-# ▶ find namespace -iname '*namespace.yaml'
-# ▶ find specifications -iname '*namespace.yaml'
-# ▶ jqfilter='walk(if type == "object" and has("source") then .[] |= rtrimstr(".yaml") else . end)'
-# ▶ yq $jqfilter specifications/core/nwb.namespace.yaml | json2yaml > namespace/core/yaml/nwb.namespace.yaml
-# ▶ yq $jqfilter specifications/hdmf-common-schema/common/namespace.yaml | json2yaml > namespace/hdmf-common/yaml/namespace.yaml
+jqfilter="walk(if type == \"object\" and has(\"source\") then .[] |= rtrimstr(\".yaml\") else . end)"
+yq --tojson r specifications/core/nwb.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/core/yaml/nwb.namespace.yaml
+yq --tojson r specifications/hdmf-common-schema/common/namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/hdmf-common/yaml/namespace.yaml
 #
 # jqfilter to get only required objects:
 # ▶ jqfilter='walk(if type == "object" and has("required") then select(.required != false) else . end)'
-#
 
 echo > $logfile
 git submodule status | tee --append $logfile
@@ -73,5 +74,5 @@ do
 	echo "# diff namespace $namespace upstream vs IPNWB specifications for $specification" | tee --append $logfile
 	diff "${DIR}/specifications/${upstream_path}/${specification}.yaml" "$file" | tee --append $logfile
 
-	yq "$jqfilter" "$file" | jq $jqargs . > ${DIR}/namespace/${namespace}/json/${specification}.json
+	yq --tojson r "$file" | jq $jqargs . > ${DIR}/namespace/${namespace}/json/${specification}.json
 done
