@@ -76,3 +76,5 @@ do
 
 	yq --tojson r "$file" | jq $jqargs . > ${DIR}/namespace/${namespace}/json/${specification}.json
 done
+
+d2u ${DIR}/namespace/core/json/*.json ${DIR}/namespace/hdmf-common/json/*.json
