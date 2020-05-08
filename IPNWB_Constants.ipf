@@ -178,4 +178,6 @@ StrConstant HDMF_SPEC_VERSION = "1.1.3"
 StrConstant HDMF_SPEC_LOCATION = "namespace:hdmf-common:json:"
 StrConstant HDMF_SPEC_START = "namespace"
 StrConstant HDMF_SPEC_INCLUDE = "table;sparse;"
+StrConstant NDX_MIES_SPEC_NAME = "ndx-mies"
+StrConstant NDX_MIES_SPEC_VERSION = "0.1.0"
 /// @}

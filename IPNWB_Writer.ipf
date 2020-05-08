@@ -654,7 +654,7 @@ End
 /// @param path           Path to element who's DataType is queried
 /// @param neurodata_type String version of the data type that should get
 ///                       written
-threadsafe static Function WriteNeuroDataType(locationID, path, neurodata_type)
+threadsafe Function WriteNeuroDataType(locationID, path, neurodata_type)
 	variable locationID
 	string path, neurodata_type
 

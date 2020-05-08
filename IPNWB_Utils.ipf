@@ -983,6 +983,35 @@ threadsafe Function/S DetermineNamespace(neurodata_type)
 		return HDMF_SPEC_NAME
 	endif
 
+	Make/T/FREE ndx_mies_spec = {              \
+        "MIESMetaData",                        \
+        "GeneratedBy",                         \
+        "UserComment",                         \
+        "UserCommentString",                   \
+        "UserCommentDevice",                   \
+        "Testpulse",                           \
+        "TestpulseDevice",                     \
+        "TestpulseMetadata",                   \
+        "TestpulseRawData",                    \
+        "LabNotebook",                         \
+        "LabNotebookDevice",                   \
+        "LabNotebookNumericalValues",          \
+        "LabNotebookNumericalKeys",            \
+        "LabNotebookTextualValues",            \
+        "LabNotebookTextualKeys",              \
+        "StimulusSets",                        \
+        "StimulusSetWavebuilderParameter",     \
+        "StimulusSetWavebuilderParameterText", \
+        "StimulusSetWavebuilderSegmentTypes",  \
+        "StimulusSetReferencedWaveform",       \
+        "StimulusSetReferencedFolder",         \
+        "StimulusSetReferenced"                \
+		}
+	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) ndx_mies_spec
+	if(V_Value != -1)
+		return NDX_MIES_SPEC_NAME
+	endif
+
 	return ""
 End
 
