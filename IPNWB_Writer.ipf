@@ -244,7 +244,9 @@ threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPre
 	variable resolution, overwrite
 
 	string prefix, unit
-	variable numPrefix
+	variable numPrefix, version
+
+	version = GetNWBmajorVersion(ReadNWBVersion(locationID))
 
 	if(ParamIsDefault(resolution))
 		resolution = NaN
@@ -259,9 +261,21 @@ threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPre
 		ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 	endif
 
-	H5_WriteTextAttribute(locationID, "unit"      , fullAbsPath, str=unit)
-	H5_WriteAttribute(locationID    , "conversion", fullAbsPath, numPrefix, IGOR_TYPE_32BIT_FLOAT)
-	H5_WriteAttribute(locationID    , "resolution", fullAbsPath, resolution, IGOR_TYPE_32BIT_FLOAT)
+	if(version == 1)
+		H5_WriteTextAttribute(locationID, "unit", fullAbsPath, str=unit)
+	elseif(version == NWB_VERSION_LATEST)
+		// standardize to default units for common ones
+		if(!cmpstr(unit, "A"))
+			unit = "amperes"
+		elseif(!cmpstr(unit, "V"))
+			unit = "volts"
+		endif
+
+		H5_WriteTextAttribute(locationID, "unit", fullAbsPath, str=unit)
+	endif
+
+	H5_WriteAttribute(locationID, "conversion", fullAbsPath, numPrefix, IGOR_TYPE_32BIT_FLOAT)
+	H5_WriteAttribute(locationID, "resolution", fullAbsPath, resolution, IGOR_TYPE_32BIT_FLOAT)
 End
 
 /// @brief Add a TimeSeries property to the @p tsp structure
