@@ -1,3 +1,6 @@
 [submodule "specifications"]
 	path = specifications
 	url = https://github.com/NeurodataWithoutBorders/nwb-schema.git
+[submodule "ndx-MIES"]
+	path = ndx-MIES
+	url = https://github.com/t-b/ndx-MIES
