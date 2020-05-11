@@ -611,6 +611,7 @@ Function WriteSpecifications(locationID)
 
 	WriteSpecification(locationID, NWB_SPEC_NAME, NWB_SPEC_VERSION, NWB_SPEC_LOCATION, NWB_SPEC_START, NWB_SPEC_INCLUDE)
 	WriteSpecification(locationID, HDMF_SPEC_NAME, HDMF_SPEC_VERSION, HDMF_SPEC_LOCATION, HDMF_SPEC_START, HDMF_SPEC_INCLUDE)
+	WriteSpecification(locationID, NDX_MIES_SPEC_NAME, NDX_MIES_SPEC_VERSION, NDX_MIES_SPEC_LOCATION, NDX_MIES_SPEC_START, NDX_MIES_SPEC_INCLUDE)
 End
 
 /// @brief write a specifications group to @ref NWB_SPECIFICATIONS and link its

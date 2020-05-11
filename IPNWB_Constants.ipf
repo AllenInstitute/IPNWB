@@ -180,4 +180,7 @@ StrConstant HDMF_SPEC_START = "namespace"
 StrConstant HDMF_SPEC_INCLUDE = "table;sparse;"
 StrConstant NDX_MIES_SPEC_NAME = "ndx-mies"
 StrConstant NDX_MIES_SPEC_VERSION = "0.1.0"
+StrConstant NDX_MIES_SPEC_LOCATION = "namespace:ndx-mies:json:"
+StrConstant NDX_MIES_SPEC_START = "namespace"
+StrConstant NDX_MIES_SPEC_INCLUDE = "ndx-mies.extensions"
 /// @}

@@ -36,13 +36,14 @@ set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 mkdir -p ${DIR}/doc
-mkdir -p ${DIR}/namespace/{core,hdmf-common}/{json,yaml}
+mkdir -p ${DIR}/namespace/{core,hdmf-common,ndx-mies}/{json,yaml}
 logfile=${DIR}/doc/schema.diff
 jqargs='--sort-keys --compact-output'
 
 # copy the YAML files into our repo
 cp ${DIR}/specifications/core/*.yaml ${DIR}/namespace/core/yaml
 cp ${DIR}/specifications/hdmf-common-schema/common/*.yaml ${DIR}/namespace/hdmf-common/yaml
+cp ${DIR}/ndx-mies/spec/*.extensions.yaml ${DIR}/namespace/ndx-mies/yaml
 
 # (optional) jqfilters:
 #
@@ -50,7 +51,8 @@ cp ${DIR}/specifications/hdmf-common-schema/common/*.yaml ${DIR}/namespace/hdmf-
 jqfilter="walk(if type == \"object\" and has(\"source\") then .[] |= rtrimstr(\".yaml\") else . end)"
 yq --tojson r specifications/core/nwb.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/core/yaml/nwb.namespace.yaml
 yq --tojson r specifications/hdmf-common-schema/common/namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/hdmf-common/yaml/namespace.yaml
-#
+yq --tojson r ndx-mies/spec/ndx-mies.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/ndx-mies/yaml/namespace.yaml
+
 # jqfilter to get only required objects:
 # ▶ jqfilter='walk(if type == "object" and has("required") then select(.required != false) else . end)'
 
@@ -58,7 +60,7 @@ echo > $logfile
 git submodule status | tee --append $logfile
 echo >> $logfile
 
-for file in ${DIR}/namespace/{core,hdmf-common}/yaml/*.yaml
+for file in ${DIR}/namespace/{core,hdmf-common,ndx-mies}/yaml/*.yaml
 do
 	specification=${file##*/}
 	specification=${specification%.*}
@@ -66,13 +68,15 @@ do
 	namespace=${namespace%/yaml*}
 
 	if [[ "$namespace" == "hdmf-common" ]]; then
-		upstream_path="hdmf-common-schema/common"
+		upstream_path="specifications/hdmf-common-schema/common"
+	elif [[ "$namespace" == "core" ]]; then
+		upstream_path="specifications/core"
 	else
-		upstream_path=$namespace
+		upstream_path="namespace/ndx-MIES/yaml"
 	fi
 
 	echo "# diff namespace $namespace upstream vs IPNWB specifications for $specification" | tee --append $logfile
-	diff "${DIR}/specifications/${upstream_path}/${specification}.yaml" "$file" | tee --append $logfile
+	diff "${DIR}/${upstream_path}/${specification}.yaml" "$file" | tee --append $logfile
 
 	yq --tojson r "$file" | jq $jqargs . > ${DIR}/namespace/${namespace}/json/${specification}.json
 done
