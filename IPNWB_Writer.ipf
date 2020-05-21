@@ -439,7 +439,7 @@ Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode]
 		if(version == 1)
 			H5_WriteTextAttribute(groupID, "comment", group, str=comment, overwrite=1)
 		elseif(version == NWB_VERSION_LATEST)
-			H5_WriteTextAttribute(groupID, "comments", group, str=comment, overwrite=1)
+			H5_WriteTextAttribute(groupID, "comments", group, str=NormalizeToEOL(comment, "\n"), overwrite=1)
 		endif
 	endif
 

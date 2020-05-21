@@ -1260,3 +1260,21 @@ threadsafe Function ClearRTError()
 
 	variable err = GetRTError(1)
 End
+
+/// @brief Normalize the line endings in the given string to either classic Mac OS/Igor Pro EOLs (`\r`)
+///        or Unix EOLs (`\n`)
+threadsafe Function/S NormalizeToEOL(str, eol)
+	string str, eol
+
+	str = ReplaceString("\r\n", str, eol)
+
+	if(!cmpstr(eol, "\r"))
+		str = ReplaceString("\n", str, eol)
+	elseif(!cmpstr(eol, "\n"))
+		str = ReplaceString("\r", str, eol)
+	else
+		ASSERT_TS(0, "unsupported EOL character")
+	endif
+
+	return str
+End
