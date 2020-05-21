@@ -377,7 +377,7 @@ Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode]
 	variable compressionMode
 
 	variable groupID, numPlaces, numEntries, i
-	string neurodata_type, source, helpText, channelTypeStr, electrodeName, group
+	string neurodata_type, source, helpText, channelTypeStr, electrodeName, group, comment
 
 	if(ParamIsDefault(compressionMode))
 		compressionMode = NO_COMPRESSION
@@ -435,10 +435,11 @@ Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode]
 
 	// write human readable version of description
 	if(p.channelType != CHANNEL_TYPE_OTHER)
+		comment = note(p.data)
 		if(version == 1)
-			H5_WriteTextAttribute(groupID, "comment", group, str=note(p.data), overwrite=1)
+			H5_WriteTextAttribute(groupID, "comment", group, str=comment, overwrite=1)
 		elseif(version == NWB_VERSION_LATEST)
-			H5_WriteTextAttribute(groupID, "comments", group, str=note(p.data), overwrite=1)
+			H5_WriteTextAttribute(groupID, "comments", group, str=comment, overwrite=1)
 		endif
 	endif
 
