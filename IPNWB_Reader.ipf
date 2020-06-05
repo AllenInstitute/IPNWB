@@ -5,19 +5,76 @@
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
-static StrConstant PATH_STIMSETS = "/general/stimsets"
-
 /// @file IPNWB_Reader.ipf
 /// @brief Generic functions related to import from the NeuroDataWithoutBorders format
 
 /// @brief List devices in given hdf5 file
 ///
-/// @param  fileID identifier of open HDF5 file
+/// @param fileID  identifier of open HDF5 file
+/// @param version major NWB version
 /// @return        comma separated list of devices
-threadsafe Function/S ReadDevices(fileID)
-	variable fileID
+threadsafe Function/S ReadDevices(fileID, version)
+	variable fileID, version
 
-	return RemovePrefixFromListItem("device_", H5_ListGroupMembers(fileID, "/general/devices"))
+	string devices, path
+	variable i, numDevices
+
+	EnsureValidNWBVersion(version)
+
+	if(version == 1)
+		devices = H5_ListGroupMembers(fileID, NWB_DEVICES)
+	elseif(version == NWB_VERSION_LATEST)
+		devices = H5_ListGroups(fileID, NWB_DEVICES)
+		numDevices = ItemsInList(devices)
+		for(i = numDevices - 1; i >= 0; i -= 1)
+			sprintf path, "%s/%s", NWB_DEVICES, StringFromList(i, devices)
+			if(!!cmpstr(ReadTextAttributeAsString(fileID, path, "neurodata_type"), "Device"))
+				devices = RemoveListItem(i, devices)
+			endif
+		endfor
+	endif
+
+	return RemovePrefixFromListItem("device_", devices)
+End
+
+/// @brief return name of electrode
+///
+/// @see AddElectrode
+///
+/// @param discLocation full path to file in Igor disc path notation
+/// @param seriesPath   Full Path inside HDF5 structure to TimeSeries group
+/// @param version      major NWB version
+/// @return the name of the electrode or "" for unassociated channels
+threadsafe Function/S ReadElectrodeName(discLocation, seriesPath, version)
+	string discLocation, seriesPath
+	variable version
+
+	string h5path, link, regExp, electrode, electrodeName
+	variable locationID
+	STRUCT ReadChannelParams p
+
+	EnsureValidNWBVersion(version)
+
+	AnalyseChannelName(seriesPath, p)
+	sprintf h5path, "%s/electrode", seriesPath
+
+	if(version == 1)
+		h5path += "_name"
+		locationID = H5_OpenFile(discLocation)
+		electrode = ReadTextDataSetAsString(locationID, h5path)
+		H5_CloseFile(locationID)
+	elseif(version == NWB_VERSION_LATEST)
+		link = H5_GetLinkTarget(discLocation, h5path)
+		sprintf regExp, "%s/(.+)", NWB_INTRACELLULAR_EPHYS
+		SplitString/E=regExp link, electrode
+		ASSERT_TS(V_flag == 1, "ReadElectrodeName: invalid link target")
+	endif
+
+	sprintf regExp, "%s(.+)", NWB_ELECTRODE_PREFIX
+	SplitString/E=regExp electrode, electrodeName
+	ASSERT_TS(V_flag == 1, "ReadElectrodeName: invalid electrode name")
+
+	return electrodeName
 End
 
 /// @brief List groups inside /general/labnotebook
@@ -28,10 +85,9 @@ threadsafe Function/S ReadLabNoteBooks(fileID)
 	variable fileID
 
 	string result = ""
-	string path = "/general/labnotebook"
 
-	if(H5_GroupExists(fileID, path))
-		result = H5_ListGroups(fileID, path)
+	if(H5_GroupExists(fileID, NWB_LABNOTEBOOK))
+		result = H5_ListGroups(fileID, NWB_LABNOTEBOOK)
 	endif
 
 	return result
@@ -39,12 +95,19 @@ End
 
 /// @brief List all acquisition channels.
 ///
-/// @param  fileID identifier of open HDF5 file
-/// @return        comma separated list of channels
-threadsafe Function/S ReadAcquisition(fileID)
-	variable fileID
+/// @param  fileID  identifier of open HDF5 file
+/// @param  version NWB major version
+/// @return         comma separated list of channels
+threadsafe Function/S ReadAcquisition(fileID, version)
+	variable fileID, version
 
-	return H5_ListGroups(fileID, "/acquisition/timeseries")
+	string group
+
+	EnsureValidNWBVersion(version)
+
+	group = GetNWBgroupPatchClampSeries(version)
+
+	return AddPrefixToEachListItem(group + "/", H5_ListGroups(fileID, group))
 End
 
 /// @brief List all stimulus channels.
@@ -54,7 +117,7 @@ End
 threadsafe Function/S ReadStimulus(fileID)
 	variable fileID
 
-	return H5_ListGroups(fileID, "/stimulus/presentation")
+	return AddPrefixToEachListItem(NWB_STIMULUS_PRESENTATION + "/", H5_ListGroups(fileID, NWB_STIMULUS_PRESENTATION))
 End
 
 /// @brief List all stimsets
@@ -70,111 +133,7 @@ threadsafe Function/S ReadStimsets(fileID)
 		return ""
 	endif
 
-	return H5_ListGroupMembers(fileID, PATH_STIMSETS)
-End
-
-/// @brief Check if the file can be handled by the IPNWB Read Procedures
-///
-/// @param   fileID  Open HDF5-File Identifier
-/// @return  True:   All checks successful
-///          False:  Error(s) occured.
-///                  The result of the analysis is printed to history.
-threadsafe Function CheckIntegrity(fileID)
-	variable fileID
-
-	string deviceList, channelList
-	variable groupID
-	variable integrity = 1
-
-	WAVE/T/Z nwbVersion = H5_LoadAttribute(fileID, "/", "nwb_version")
-	if(WaveExists(nwbVersion) && GrepString(nwbVersion[0], "^2"))
-		print "NWB v2 is not yet supported."
-		// it does not make sense to continue as nothing will work
-		return 0
-	endif
-
-	deviceList = ReadDevices(fileID)
-	if (cmpstr(deviceList, ReadLabNoteBooks(fileID)))
-		print "labnotebook corrupt"
-		integrity = 0
-	endif
-
-	channelList = ReadAcquisition(fileID)
-	groupID = OpenAcquisition(fileID)
-	if(!CheckChannels(groupID, channelList))
-		print "acquisition channel corrupt"
-		integrity = 0
-	endif
-	HDF5CloseGroup/Z groupID
-
-	channelList = ReadStimulus(fileID)
-	groupID = OpenStimulus(fileID)
-	if(!CheckChannels(groupID, channelList))
-		print "stimulus channel corrupt"
-		integrity = 0
-	endif
-	HDF5CloseGroup/Z groupID
-
-	return integrity
-End
-
-/// @brief  Try loading a channel and perform some checks
-///         this can be used to verify the source data
-///
-/// @param   groupID  HDF5 group specified channel is a member of
-/// @param   channel  channel to load
-/// @return  True:    All checks successful
-///          False:   Error(s) occured.
-///                   The result of the analysis is printed to history.
-threadsafe Function CheckChannel(groupID, channel)
-	variable groupID
-	string channel
-
-	Struct ReadChannelParams p
-	Struct ReadChannelParams q
-
-	variable integrity = 1
-
-	LoadSourceAttribute(groupID, channel, p)
-	AnalyseChannelName(channel, q)
-	if(p.channelType != q.channelType)
-		printf "name of channel %s differs from channelType %d\r" channel, p.channelType
-		integrity = 0
-	endif
-	if(p.channelNumber != q.channelNumber)
-		printf "name of channel %s differs from channelNumber %d\r" channel, p.channelNumber
-		integrity = 0
-	endif
-
-	return integrity
-End
-
-/// @brief Check every channel from channelList inside a specified group
-///
-/// @param   groupID     HDF5 group containing the channels to check
-/// @param   channelList List of all channels that have to be checked
-/// @return  True:       All checks successful
-///          False:      Error(s) occured.
-///                      The result of the analysis is printed to history.
-threadsafe Function CheckChannels(groupID, channelList)
-	variable groupID
-	string channelList
-
-	string channel
-	variable numChannels, i
-
-	numChannels = ItemsInList(channelList)
-	for(i = 0; i < numChannels; i += 1)
-		channel = StringFromList(i, channelList)
-		if(!CheckChannel(groupID, channel))
-			return 0
-		elseif(!H5_DatasetExists(groupID, "./" + channel + "/data"))
-			printf "could not load DataSet for channel %s\r" channel
-			return 0
-		endif
-	endfor
-
-	return 1
+	return H5_ListGroupMembers(fileID, NWB_STIMULUS)
 End
 
 /// @brief Try to extract information from channel name string
@@ -185,7 +144,9 @@ threadsafe Function AnalyseChannelName(channel, p)
 	string channel
 	STRUCT ReadChannelParams &p
 
-	string groupIndex, channelTypeStr, channelNumber, channelSuffix, channelID
+	string groupIndex, channelTypeStr, channelNumber, channelID
+
+	channel = GetBaseName(channel, sep = "/")
 
 	SplitString/E="^(?i)data_([A-Z0-9]+)_([A-Z]+)([0-9]+)(?:_([A-Z0-9]+)){0,1}" channel, groupIndex, channelID, channelNumber, p.channelSuffix
 	p.groupIndex = str2num(groupIndex)
@@ -207,6 +168,8 @@ threadsafe Function AnalyseChannelName(channel, p)
 End
 
 /// @brief Read parameters from source attribute
+///
+/// Function is NWBv1 specific @see LoadSweepNumber
 ///
 /// @param[in]  locationID   HDF5 group specified channel is a member of
 /// @param[in]  channel      channel to load
@@ -266,6 +229,29 @@ threadsafe Function LoadSourceAttribute(locationID, channel, p)
 	endfor
 End
 
+/// @brief Load sweep number from specified channel name
+///
+/// @param locationID   id of an open hdf5 group containing channel
+/// @param channel      name of channel for which sweep number is loaded
+/// @param version      NWB maior version
+/// @return             sweep number
+threadsafe Function LoadSweepNumber(locationID, channel, version)
+	variable locationID
+	string channel
+	variable version
+
+	STRUCT ReadChannelParams params
+
+	EnsureValidNWBVersion(version)
+
+	if(version == 1)
+		LoadSourceAttribute(locationID, channel, params)
+		return params.sweep
+	elseif(version == NWB_VERSION_LATEST)
+		return ReadAttributeAsNumber(locationID, channel, "sweep_number")
+	endif
+End
+
 /// @brief Load data wave from specified path
 ///
 /// @param locationID   id of an open hdf5 group containing channel
@@ -278,53 +264,61 @@ threadsafe Function/Wave LoadDataWave(locationID, channel, [path])
 	string channel, path
 
 	if(ParamIsDefault(path))
-		path = "./"
+		path = "."
 	endif
 
+	path += "/" + channel
 	Assert_TS(H5_GroupExists(locationID, path), "LoadDataWave: Path is not in nwb file")
 
-	path += channel + "/data"
-
+	path += "/data"
 	return H5_LoadDataset(locationID, path)
 End
 
-/// @brief Load single channel data as a wave from /acquisition/timeseries
+/// @brief Load single TimeSeries data as a wave from @c NWB_PATCHCLAMPSERIES_V[12]
 ///
 /// @param locationID   id of an open hdf5 group or file
-/// @param channel      name of channel for which data attribute is loaded
+/// @param path         name or path of TimeSeries for which data is loaded
+/// @param version      NWB major version
 /// @return             reference to wave containing loaded data
-threadsafe Function/Wave LoadTimeseries(locationID, channel)
+threadsafe Function/Wave LoadTimeseries(locationID, path, version)
 	variable locationID
-	string channel
+	string path
+	variable version
 
-	WAVE data = LoadDataWave(locationID, channel, path = "/acquisition/timeseries/")
+	EnsureValidNWBVersion(version)
+
+	WAVE data = LoadDataWave(locationID, GetBaseName(path, sep = "/"), path = GetNWBgroupPatchClampSeries(version))
 
 	return data
 End
 
-/// @brief Load single channel data as a wave from /stimulus/presentation/
+/// @brief Load single TimeSeries data as a wave from @c NWB_STIMULUS_PRESENTATION
 ///
-/// @param locationID    id of an open hdf5 group or file
-/// @param channel       name of channel for which data attribute is loaded
+/// @param locationID   id of an open hdf5 group or file
+/// @param path         name or path of TimeSeries for which data is loaded
 /// @return             reference to wave containing loaded data
-threadsafe Function/Wave LoadStimulus(locationID, channel)
+threadsafe Function/Wave LoadStimulus(locationID, path)
 	variable locationID
-	string channel
+	string path
 
-	WAVE data = LoadDataWave(locationID, channel, path = "/stimulus/presentation/")
+	WAVE data = LoadDataWave(locationID, GetBaseName(path, sep = "/"), path = NWB_STIMULUS_PRESENTATION)
 
 	return data
 End
 
 /// @brief Open hdf5 group containing acquisition channels
 ///
-/// @param fileID id of an open hdf5 group or file
+/// @param fileID  id of an open hdf5 group or file
+/// @param version NWB major version
 ///
 /// @return id of hdf5 group
-threadsafe Function OpenAcquisition(fileID)
+threadsafe Function OpenAcquisition(fileID, version)
 	variable fileID
+	variable version
 
-	return H5_OpenGroup(fileID, "/acquisition/timeseries")
+	EnsureValidNWBVersion(version)
+
+	return H5_OpenGroup(fileID, GetNWBgroupPatchClampSeries(version))
 End
 
 /// @brief Open hdf5 group containing stimulus channels
@@ -335,7 +329,7 @@ End
 threadsafe Function OpenStimulus(fileID)
 	variable fileID
 
-	return H5_OpenGroup(fileID, "/stimulus/presentation")
+	return H5_OpenGroup(fileID, NWB_STIMULUS_PRESENTATION)
 End
 
 /// @brief Open hdf5 group containing stimsets
@@ -348,14 +342,14 @@ threadsafe Function OpenStimset(fileID)
 
 	ASSERT_TS(StimsetPathExists(fileID), "OpenStimset: Path is not in nwb file")
 
-	return H5_OpenGroup(fileID, PATH_STIMSETS)
+	return H5_OpenGroup(fileID, NWB_STIMULUS)
 End
 
 /// @brief Check if the path to the stimsets exist in the NWB file.
 threadsafe Function StimsetPathExists(fileID)
 	variable fileID
 
-	return H5_GroupExists(fileID, PATH_STIMSETS)
+	return H5_GroupExists(fileID, NWB_STIMULUS)
 End
 
 /// @brief Read in all NWB datasets from the root group ('/')
@@ -434,11 +428,11 @@ threadsafe Function ReadTimeSeriesProperties(locationID, channel, tsp)
 	STRUCT TimeSeriesProperties &tsp
 
 	variable clampMode, i, numEntries, value, channelType, groupID, idx
-	string ancestry, entry, list
+	string neurodata_type, entry, list
 
-	ancestry = ReadTextAttributeAsList(locationID, channel, "ancestry")
-	clampMode = GetClampModeFromAncestry(ancestry)
-	channelType = GetChannelTypeFromAncestry(ancestry)
+	neurodata_type = ReadNeuroDataType(locationID, channel)
+	clampMode = GetClampModeFromNeurodataType(neurodata_type)
+	channelType = GetChannelTypeFromNeurodataType(neurodata_type)
 
 	InitTimeSeriesProperties(tsp, channelType, clampMode)
 
@@ -473,4 +467,62 @@ threadsafe Function ReadTimeSeriesProperties(locationID, channel, tsp)
 		// unify list formatting to end with ;
 		tsp.missing_fields = RemoveEnding(tsp.missing_fields, ";") + ";"
 	endif
+End
+
+/// @brief Read nwb data type
+///
+/// @see WriteNeuroDataType
+///
+/// @param fileID  HDF5 identifier of file (not group)
+/// @param name    Path to element who's DataType is queried
+///
+/// @return string with data type (e.g. uint, DynamicTable, SweepTable)
+threadsafe Function/S ReadNeuroDataType(fileID, name)
+	variable fileID
+	string name
+
+	variable version0
+	string ancestry
+	string neurodata_type = ""
+
+	version0 = GetNWBmajorVersion(ReadNWBVersion(fileID))
+	EnsureValidNWBVersion(version0)
+
+	if(version0 == 1)
+		ancestry = ReadTextAttributeAsList(fileID, name, "ancestry")
+		neurodata_type = StringFromList(ItemsInList(ancestry) - 1, ancestry)
+	elseif(version0 == 2)
+		neurodata_type = ReadTextAttributeAsString(fileID, name, "neurodata_type")
+	endif
+
+	return neurodata_type
+End
+
+/// @brief Return the two SweepTable data columns `sweep_number` and `series`
+///
+/// @todo Allow Executions for files with missing SweepTable entry using @ref
+/// LoadSweepNumber
+///
+/// @param locationID  HDF5 identifier
+/// @param version      major NWB version
+///
+/// @return sweep_number and path to TimeSeries as waves
+Function [WAVE/Z sweep_number, WAVE/Z/T series] LoadSweepTable(variable locationID, variable version)
+
+	string path
+	variable groupID
+
+	ASSERT_TS(version == 2, "SweepTable is only available for NWB version 2")
+	sprintf path, "%s/%s", NWB_INTRACELLULAR_EPHYS, "sweep_table"
+
+	groupID = H5_OpenGroup(locationID, path)
+	if(!IsNaN(groupID))
+		WAVE sweep_number = IPNWB#H5_LoadDataset(groupID, "sweep_number")
+		WAVE/T series = IPNWB#H5_LoadDataset(groupID, "series")
+		series[] = (series[p])[2,inf] // Remove leading group linker "G:"
+		HDF5CloseGroup/Z groupID
+		return [sweep_number, series]
+	endif
+
+	return [$"", $""]
 End

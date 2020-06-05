@@ -1,0 +1,98 @@
+
+ 991ab801aae626710a8ec710869bb1b4508e91b7 ndx-MIES (heads/first-steps)
+ 24fba6174ddbad171ee5bb824edfa31f86b1b16d specifications (2.2.4)
+
+# diff namespace core upstream vs IPNWB specifications for nwb.base
+# diff namespace core upstream vs IPNWB specifications for nwb.behavior
+# diff namespace core upstream vs IPNWB specifications for nwb.device
+# diff namespace core upstream vs IPNWB specifications for nwb.ecephys
+# diff namespace core upstream vs IPNWB specifications for nwb.epoch
+# diff namespace core upstream vs IPNWB specifications for nwb.file
+# diff namespace core upstream vs IPNWB specifications for nwb.icephys
+# diff namespace core upstream vs IPNWB specifications for nwb.image
+# diff namespace core upstream vs IPNWB specifications for nwb.misc
+# diff namespace core upstream vs IPNWB specifications for nwb.namespace
+2,4c2
+< - name: core
+<   doc: NWB namespace
+<   author:
+---
+> - author:
+17a16
+>   doc: NWB namespace
+18a18
+>   name: core
+23c23
+<     source: nwb.base.yaml
+---
+>     source: nwb.base
+26c26
+<     source: nwb.device.yaml
+---
+>     source: nwb.device
+29c29
+<     source: nwb.epoch.yaml
+---
+>     source: nwb.epoch
+32c32
+<     source: nwb.image.yaml
+---
+>     source: nwb.image
+35c35
+<     source: nwb.file.yaml
+---
+>     source: nwb.file
+38c38
+<     source: nwb.misc.yaml
+---
+>     source: nwb.misc
+41c41
+<     source: nwb.behavior.yaml
+---
+>     source: nwb.behavior
+45c45
+<     source: nwb.ecephys.yaml
+---
+>     source: nwb.ecephys
+49c49
+<     source: nwb.icephys.yaml
+---
+>     source: nwb.icephys
+52c52
+<     source: nwb.ogen.yaml
+---
+>     source: nwb.ogen
+55c55
+<     source: nwb.ophys.yaml
+---
+>     source: nwb.ophys
+58c58
+<     source: nwb.retinotopy.yaml
+---
+>     source: nwb.retinotopy
+# diff namespace core upstream vs IPNWB specifications for nwb.ogen
+# diff namespace core upstream vs IPNWB specifications for nwb.ophys
+# diff namespace core upstream vs IPNWB specifications for nwb.retinotopy
+# diff namespace hdmf-common upstream vs IPNWB specifications for namespace
+2,4c2
+< - name: hdmf-common
+<   doc: Common data structures provided by HDMF
+<   author:
+---
+> - author:
+13a12
+>   doc: Common data structures provided by HDMF
+14a14
+>   name: hdmf-common
+17c17
+<     source: table.yaml
+---
+>     source: table
+20c20
+<     source: sparse.yaml
+---
+>     source: sparse
+# diff namespace hdmf-common upstream vs IPNWB specifications for sparse
+# diff namespace hdmf-common upstream vs IPNWB specifications for table
+# diff namespace ndx-mies upstream vs IPNWB specifications for namespace
+# diff namespace ndx-mies upstream vs IPNWB specifications for ndx-mies.extensions

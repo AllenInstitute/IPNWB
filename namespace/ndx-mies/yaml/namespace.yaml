@@ -1,0 +1,12 @@
+namespaces:
+- author:
+  - Thomas Braun
+  contact:
+  - thomas.braun@byte-physics.de
+  doc: An NWB:N extension for data and metadata from the Multichannel Igor Electrophysiology
+    Suite (MIES)
+  name: ndx-mies
+  schema:
+  - namespace: core
+  - source: ndx-mies.extensions
+  version: 0.1.0

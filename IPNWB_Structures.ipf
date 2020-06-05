@@ -99,12 +99,13 @@ End
 
 /// @brief Structure to hold all properties of the NWB file directly below `/general/subject`
 Structure SubjectInfo
-	string subject_id
+	string age
+	string date_of_birth // isodatetime
 	string description
-	string species
 	string genotype
 	string sex
-	string age
+	string species
+	string subject_id
 	string weight
 EndStructure
 
@@ -112,12 +113,13 @@ EndStructure
 threadsafe Function InitSubjectInfo(si)
 	STRUCT SubjectInfo &si
 
-	si.subject_id  = PLACEHOLDER
-	si.description = PLACEHOLDER
-	si.species     = PLACEHOLDER
+	si.age         = PLACEHOLDER
+	si.date_of_birth = GetISO8601TimeStamp()
+	si.description = "Description of subject and where subject came from (e.g., breeder, if animal)."
 	si.genotype    = PLACEHOLDER
 	si.sex         = PLACEHOLDER
-	si.age         = PLACEHOLDER
+	si.species     = PLACEHOLDER
+	si.subject_id  = PLACEHOLDER
 	si.weight      = PLACEHOLDER
 End
 
@@ -132,15 +134,23 @@ Structure ToplevelInfo
 EndStructure
 
 /// @brief Initialization routine for ToplevelInfo
-threadsafe Function InitToplevelInfo(ti)
+///
+/// @param ti       TopLevelInfo Structure
+/// @param version  [optional] defaults to latest version specified in NWB_VERSION_LATEST
+threadsafe Function InitToplevelInfo(ti, version)
 	STRUCT ToplevelInfo &ti
+	variable version
 
 	ti.session_description = PLACEHOLDER
 	ti.session_start_time  = DateTimeInUTC()
-	ti.nwb_version         = NWB_VERSION
+	ti.nwb_version         = GetNWBVersionString(version)
 	ti.identifier          = Hash(GetISO8601TimeStamp() + num2str(enoise(1, NOISE_GEN_MERSENNE_TWISTER)), 1)
 
-	Make/N=1/T/FREE file_create_date = GetISO8601TimeStamp()
+	if(version == 1)
+		Make/N=1/T/FREE file_create_date = GetISO8601TimeStamp()
+	elseif(version == NWB_VERSION_LATEST)
+		Make/N=1/T/FREE file_create_date = GetISO8601TimeStamp(numFracSecondsDigits = 3, localTimeZone = 1)
+	endif
 	WAVE/T ti.file_create_date = file_create_date
 End
 
@@ -165,8 +175,10 @@ End
 Structure TimeSeriesProperties
 	WAVE/T names
 	WAVE   data
-	WAVE   isCustom ///< 1 if the entry should be marked as NWB custom
-	string missing_fields
+	WAVE/T unit
+	WAVE   isCustom ///< NWBv1: 1 if the entry should be marked as NWB custom
+	string missing_fields ///< keep track of missing fields while reading
+	string neurodata_type // TimeSeries type
 EndStructure
 
 /// @brief Initialization of TimeSeriesProperties
@@ -185,9 +197,63 @@ threadsafe Function InitTimeSeriesProperties(tsp, channelType, clampMode)
 	Make/FREE data = NaN
 	WAVE tsp.data = data
 
-	Make/FREE isCustom = 0
+	Make/FREE/T unit = ""
+	WAVE/T tsp.unit = unit
+
+	Make/FREE isCustom = 0 // NWBv1 specific
 	WAVE tsp.isCustom = isCustom
 
 	// AddProperty() will remove the entries on addition of values
 	tsp.missing_fields = GetTimeSeriesMissingFields(channelType, clampMode)
+
+	tsp.neurodata_type = DetermineDataTypeFromProperties(channelType, clampMode)
+End
+
+Structure DynamicTable
+	string colnames
+	string description
+	string data_type
+EndStructure
+
+threadsafe Function InitDynamicTable(dt)
+	STRUCT DynamicTable &dt
+
+	dt.colnames = ""
+	dt.description = "Description of what is in this dynamic table."
+	dt.data_type = "DynamicTable"
+End
+
+Structure ElementIdentifiers
+	string data_type
+EndStructure
+
+threadsafe Function InitElementIdentifiers(eli)
+	STRUCT ElementIdentifiers &eli
+
+	eli.data_type = "ElementIdentifiers"
+End
+
+Structure VectorData
+	string description
+	string data_type
+	string path
+EndStructure
+
+threadsafe Function InitVectorData(vd)
+	STRUCT VectorData &vd
+
+	vd.description = "Description of what these vectors represent."
+	vd.data_type = "VectorData"
+	vd.path = ""
+End
+
+Structure VectorIndex
+	string data_type
+	STRUCT VectorData target
+EndStructure
+
+threadsafe Function InitVectorIndex(vi)
+	STRUCT VectorIndex &vi
+
+	vi.data_type = "VectorIndex"
 End

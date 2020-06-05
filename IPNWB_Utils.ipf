@@ -66,25 +66,42 @@ threadsafe Function IsInteger(var)
 End
 
 /// @brief Return a string in ISO 8601 format with timezone UTC
-///
-/// @param secondsSinceIgorEpoch [optional, defaults to number of seconds until now] Seconds since the Igor Pro epoch (1/1/1904) in UTC
+/// @param secondsSinceIgorEpoch [optional, defaults to number of seconds until now] Seconds since the Igor Pro epoch (1/1/1904)
+///                              in UTC (or local time zone depending on `localTimeZone`)
 /// @param numFracSecondsDigits  [optional, defaults to zero] Number of sub-second digits
-threadsafe Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits])
-	variable secondsSinceIgorEpoch, numFracSecondsDigits
+/// @param localTimeZone         [optional, defaults to false] Use the local time zone instead of UTC
+threadsafe Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits, localTimeZone])
+	variable secondsSinceIgorEpoch, numFracSecondsDigits, localTimeZone
 
 	string str
+	variable timezone
+
+	if(ParamIsDefault(localTimeZone))
+		localTimeZone = 0
+	else
+		localTimeZone = !!localTimeZone
+	endif
 
 	if(ParamIsDefault(numFracSecondsDigits))
 		numFracSecondsDigits = 0
 	else
-		ASSERT_TS(IsInteger(numFracSecondsDigits) && numFracSecondsDigits >= 0, "GetISO8601TimeStamp: Invalid value for numFracSecondsDigits")
+		ASSERT_TS(IsInteger(numFracSecondsDigits) && numFracSecondsDigits >= 0, "Invalid value for numFracSecondsDigits")
 	endif
 
 	if(ParamIsDefault(secondsSinceIgorEpoch))
-		secondsSinceIgorEpoch = DateTimeInUTC()
+		if(localTimeZone)
+			secondsSinceIgorEpoch = DateTime
+		else
+			secondsSinceIgorEpoch = DateTimeInUTC()
+		endif
 	endif
 
-	sprintf str, "%sT%sZ", Secs2Date(secondsSinceIgorEpoch, -2), Secs2Time(secondsSinceIgorEpoch, 3, numFracSecondsDigits)
+	if(localTimeZone)
+		timezone = Date2Secs(-1,-1,-1)
+		sprintf str, "%sT%s%+03d:%02d", Secs2Date(secondsSinceIgorEpoch, -2), Secs2Time(secondsSinceIgorEpoch, 3, numFracSecondsDigits), trunc(timezone / 3600), abs(mod(timezone / 60, 60))
+	else
+		sprintf str, "%sT%sZ", Secs2Date(secondsSinceIgorEpoch, -2), Secs2Time(secondsSinceIgorEpoch, 3, numFracSecondsDigits)
+	endif
 
 	return str
 End
@@ -485,7 +502,7 @@ End
 
 /// @brief Return the folder of the file
 ///
-/// Given `path/file.suffix` this gives `path`.
+/// Given `/path/file.suffix` this gives `path/`.
 ///
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
@@ -528,19 +545,36 @@ End
 threadsafe Function ParseISO8601TimeStamp(timestamp)
 	string timestamp
 
-	string year, month, day, hour, minute, second, regexp, fracSeconds
-	variable secondsSinceEpoch
+	string year, month, day, hour, minute, second, regexp, fracSeconds, tzOffsetSign, tzOffsetHour, tzOffsetMinute
+	variable secondsSinceEpoch, timeOffset
 
-	regexp = "^([[:digit:]]+)-([[:digit:]]+)-([[:digit:]]+)[T ]{1}([[:digit:]]+):([[:digit:]]+):([[:digit:]]+)([.,][[:digit:]]+)?Z?$"
-	SplitString/E=regexp timestamp, year, month, day, hour, minute, second, fracSeconds
+	regexp = "^([[:digit:]]+)-([[:digit:]]+)-([[:digit:]]+)[T ]{1}([[:digit:]]+):([[:digit:]]+)(?::([[:digit:]]+)([.,][[:digit:]]+)?)?(?:Z|([\+-])([[:digit:]]+)(?::([[:digit:]]+))?)?$"
+	SplitString/E=regexp timestamp, year, month, day, hour, minute, second, fracSeconds, tzOffsetSign, tzOffsetHour, tzOffsetMinute
 
-	if(V_flag < 6)
+	if(V_flag < 5)
 		return NaN
 	endif
 
-	secondsSinceEpoch  = date2secs(str2num(year), str2num(month), str2num(day))          // date
-	secondsSinceEpoch += 60 * 60* str2num(hour) + 60 * str2num(minute) + str2num(second) // time
-	// timetstamp is in UTC so we don't need to add/subtract anything
+	secondsSinceEpoch  = date2secs(str2num(year), str2num(month), str2num(day))
+	secondsSinceEpoch += 60 * 60 * str2num(hour) + 60 * str2num(minute)
+	if(!IsEmpty(second))
+		secondsSinceEpoch += str2num(second)
+	endif
+
+	if(!IsEmpty(tzOffsetSign) && !IsEmpty(tzOffsetHour))
+		timeOffset = str2num(tzOffsetHour) * 3600
+		if(!IsEmpty(tzOffsetMinute))
+			timeOffset -= str2num(tzOffsetMinute) * 60
+		endif
+
+		if(!cmpstr(tzOffsetSign, "+"))
+			secondsSinceEpoch -= timeOffset
+		elseif(!cmpstr(tzOffsetSign, "-"))
+			secondsSinceEpoch += timeOffset
+		else
+			ASSERT_TS(0, "Invalid case")
+		endif
+	endif
 
 	if(!IsEmpty(fracSeconds))
 		secondsSinceEpoch += str2num(ReplaceString(",", fracSeconds, "."))
@@ -569,73 +603,678 @@ threadsafe Function/S TextWaveToList(txtWave, sep)
 End
 
 /// @brief Return the initial values for the missing_fields attribute depending
-///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp mode.
+///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp
+///        mode, one in @ref IPNWB_ClampModes.
 threadsafe Function/S GetTimeSeriesMissingFields(channelType, clampMode)
 	variable channelType, clampMode
 
-	if(channelType == CHANNEL_TYPE_ADC)
-		if(clampMode == V_CLAMP_MODE)
-			// VoltageClampSeries
-			 return "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
-		elseif(clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
-			// CurrentClampSeries
-			 return "gain;bias_current;bridge_balance;capacitance_compensation"
-		endif
-	elseif(channelType == CHANNEL_TYPE_DAC)
-		if(clampMode == V_CLAMP_MODE || clampMode == I_CLAMP_MODE || clampMode == I_EQUAL_ZERO_MODE)
+	string neurodata_type = DetermineDataTypeFromProperties(channelType, clampMode)
+
+	strswitch(neurodata_type)
+		case "VoltageClampSeries":
+			return "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
+		case "CurrentClampSeries":
+		case "IZeroClampSeries":
+			return "gain;bias_current;bridge_balance;capacitance_compensation"
+		case "PatchClampSeries":
+		case "VoltageClampStimulusSeries":
+		case "CurrentClampStimulusSeries":
 			return "gain"
-		endif
+		case "TimeSeries": // unassociated channel data
+		default:
+			return ""
+	endswitch
+End
+
+/// @brief Derive the channel type, one of @ref IPNWB_ChannelTypes, from the
+///        `neurodata_type` attribute and return it
+///
+/// @param neurodata_type string with neurodata type specification defined in
+///                       `nwb.icephys.json`_
+threadsafe Function GetChannelTypeFromNeurodataType(neurodata_type)
+	string neurodata_type
+
+	strswitch(neurodata_type)
+		case "VoltageClampSeries":
+		case "CurrentClampSeries":
+		case "IZeroClampSeries":
+			return CHANNEL_TYPE_ADC
+		case "VoltageClampStimulusSeries":
+		case "CurrentClampStimulusSeries":
+			return CHANNEL_TYPE_DAC
+		case "TimeSeries": // unassociated channel data
+			return CHANNEL_TYPE_OTHER
+		default:
+			ASSERT_TS(0, "Unknown neurodata_type: " + neurodata_type)
+			break
+	endswitch
+
+End
+
+/// @brief Derive the clamp mode from the `neurodata_type` attribute and return
+///        it
+///
+/// @param neurodata_type string with neurodata type specification defined in
+///                       `nwb.icephys.json`_
+threadsafe Function GetClampModeFromNeurodataType(neurodata_type)
+	string neurodata_type
+
+	strswitch(neurodata_type)
+		case "VoltageClampSeries":
+		case "VoltageClampStimulusSeries":
+			return V_CLAMP_MODE
+		case "CurrentClampSeries":
+		case "CurrentClampStimulusSeries":
+			return I_CLAMP_MODE
+		case "IZeroClampSeries":
+			return I_EQUAL_ZERO_MODE
+		case "TimeSeries": // unassociated channel data
+			return NaN
+		default:
+			ASSERT_TS(0, "Unknown data type: " + neurodata_type)
+			break
+	endswitch
+End
+
+/// @brief Determine the neurodata type based on channel type and clamp mode
+///
+/// @see GetClampModeFromNeurodataType
+///
+/// @param channelType  one in @see IPNWB_ChannelTypes
+/// @param clampMode    one in @see IPNWB_ClampModes
+///
+/// @return neurodata_type string with neurodata type specification defined in
+///         `nwb.icephys.json`_
+threadsafe Function/S DetermineDataTypeFromProperties(channelType, clampMode)
+	variable channelType, clampMode
+
+	switch(channelType)
+		case CHANNEL_TYPE_ADC:
+			switch(clampMode)
+				case V_CLAMP_MODE:
+					return "VoltageClampSeries"
+				case I_CLAMP_MODE:
+					return "CurrentClampSeries"
+				case I_EQUAL_ZERO_MODE:
+					return "IZeroClampSeries"
+			endswitch
+		case CHANNEL_TYPE_DAC:
+			switch(clampMode)
+				case V_CLAMP_MODE:
+					return "VoltageClampStimulusSeries"
+				case I_CLAMP_MODE:
+					return "CurrentClampStimulusSeries"
+			endswitch
+	endswitch
+
+	return "TimeSeries"
+End
+
+/// @brief get the (major) version of the nwb file
+///
+/// @param fileID id of open hdf5 file
+/// @returns major version e.g. 1 or 2
+threadsafe Function/S ReadNWBVersion(fileID)
+	variable fileID
+
+	string version
+
+	if(!H5_AttributeExists(fileID, "/", "nwb_version"))
+		WAVE/T/Z nwbVersion = H5_LoadDataSet(fileID, "/nwb_version")
+	else
+		WAVE/T/Z nwbVersion = H5_LoadAttribute(fileID, "/", "nwb_version")
+	endif
+
+	if(!WaveExists(nwbVersion))
+		return ""
+	endif
+
+	return nwbVersion[0]
+End
+
+/// @brief convert version string to major version
+///
+/// @see GetNWBVersionString
+threadsafe Function GetNWBMajorVersion(version)
+	string version
+
+	variable majorVersion, version1, version2
+
+	AnalyzeNWBVersion(version, majorVersion, version1, version2)
+	EnsureValidNWBVersion(majorVersion)
+
+	return majorVersion
+End
+
+/// @brief convert version string to major and all minor numeric versions
+///
+/// @param[in]  version
+/// @param[out] version0 numeric first part of the version string (major
+///                      Version)
+/// @param[out] version1 numeric second part of the version string (minor
+///                      Version)
+/// @param[out] version2 numeric third part of the version string (sub Version)
+/// @returns analyzed numeric versions
+threadsafe Function AnalyzeNWBVersion(version, version0, version1, version2)
+	string version
+	variable &version0, &version1, &version2
+
+	string strVersion0, strVersion1, strVersion2, msg
+	string regexp = "^(?:NWB-)?([0-9]+)\.([0-9]+)\.*([b]|[0-9]+)"
+
+	SplitString/E=(regexp) version, strVersion0, strVersion1, strVersion2
+	sprintf msg, "Unexpected number of matches (%d) in nwb version string %s.", V_flag, version
+	ASSERT_TS(V_flag >= 2, msg)
+
+	version2 = str2num(strVersion2)
+	version1 = str2num(strVersion1)
+	version0 = str2num(strVersion0)
+
+	EnsureValidNWBVersion(version0)
+
+	return version0
+End
+
+threadsafe Function EnsureValidNWBVersion(version)
+	variable version
+
+	ASSERT_TS(version == 1 || version == 2, "Invalid version: " + num2str(version))
+End
+
+/// @brief Load the NWB specification from files in the main directory
+///
+/// Note: @c Open, @c FbinRead and @c Close are not threadsafe
+///
+/// @param specLoc  Igor Pro file path to specifications (Path Separator: ":")
+/// @param specName specifications file identifier (without trailing *.json ending)
+///
+/// @returns JSON string
+Function/S LoadSpecification(specLoc, specName)
+	string specLoc, specName
+
+	variable refNum, err
+	string msg, fileName
+	string str = ""
+	sprintf filename, "%s%s%s.json", SpecificationsDiscLocation(), specLoc, specName
+
+	try
+		ClearRTError()
+		Open/R refNum as fileName; AbortOnRTE
+		FReadLine/T="" refNum, str; AbortOnRTE
+		Close refNum; AbortOnRTE
+	catch
+		Close/A
+		err = GetRTError(1)
+		sprintf msg, "Could not read file at %s. Error %d\r", fileName, err
+		ASSERT_TS(0, msg)
+	endtry
+
+	return str
+End
+
+/// @brief Return Folder of NWB:N specifications.
+///
+/// Note: This is typically located at the location of the IPNWB program ipf files.
+///       @c FunctionPath is not threadsafe
+Function/S SpecificationsDiscLocation()
+	return GetFolder(FunctionPath(""))
+End
+
+/// @brief Recursively resolve shortcuts to files/directories
+///
+/// @return full path or an empty string if the file does not exist or the
+/// 		shortcut points to a non existing file/folder
+Function/S ResolveAlias(path, [pathName])
+	string pathName, path
+
+	if(ParamIsDefault(pathName))
+		GetFileFolderInfo/Q/Z path
+	else
+		GetFileFolderInfo/P=$pathName/Q/Z path
+	endif
+
+	if(V_flag)
+		return ""
+	endif
+
+	if(!V_IsAliasShortcut)
+		return path
+	endif
+
+	if(ParamIsDefault(pathName))
+		return ResolveAlias(S_aliasPath)
+	else
+		return ResolveAlias(S_aliasPath, pathName = pathName)
+	endif
+End
+
+/// @brief Check wether the given path points to an existing file
+///
+/// Resolves shortcuts and symlinks recursively.
+Function FileExists(filepath)
+	string filepath
+
+	filepath = ResolveAlias(filepath)
+	GetFileFolderInfo/Q/Z filepath
+
+	return !V_Flag && V_IsFile
+End
+
+/// @brief Check wether the given path points to an existing folder
+Function FolderExists(folderpath)
+	string folderpath
+
+	folderpath = ResolveAlias(folderpath)
+	GetFileFolderInfo/Q/Z folderpath
+
+	return !V_Flag && V_isFolder
+End
+
+/// @brief Add a string prefix to each list item and
+/// return the new list
+threadsafe Function/S AddPrefixToEachListItem(prefix, list)
+	string prefix, list
+
+	string result = ""
+	variable numEntries, i
+
+	numEntries = ItemsInList(list)
+	for(i = 0; i < numEntries; i += 1)
+		result = AddListItem(prefix + StringFromList(i, list), result, ";", inf)
+	endfor
+
+	return result
+End
+
+/// @brief Determine the namespace of the given neurodata type.
+///
+/// Note: - core specification "2.2.0"
+///       - hdmf-common "1.1.0"
+threadsafe Function/S DetermineNamespace(neurodata_type)
+	string neurodata_type
+
+	Make/T/FREE nwb_spec = { \
+		"AbstractFeatureSeries", \
+		"AnnotationSeries", \
+		"AxisMap", \
+		"BehavioralEpochs", \
+		"BehavioralEvents", \
+		"BehavioralTimeSeries", \
+		"Clustering", \
+		"ClusterWaveforms", \
+		"CompassDirection", \
+		"CorrectedImageStack", \
+		"CurrentClampSeries", \
+		"CurrentClampStimulusSeries", \
+		"DecompositionSeries", \
+		"Device", \
+		"DfOverF", \
+		"ElectricalSeries", \
+		"ElectrodeGroup", \
+		"EventDetection", \
+		"EventWaveform", \
+		"EyeTracking", \
+		"FeatureExtraction", \
+		"FilteredEphys", \
+		"Fluorescence", \
+		"GrayscaleImage", \
+		"Image", \
+		"ImageMaskSeries", \
+		"Images", \
+		"ImageSegmentation", \
+		"ImageSeries", \
+		"ImagingPlane", \
+		"ImagingRetinotopy", \
+		"IndexSeries", \
+		"IntervalSeries", \
+		"IntracellularElectrode", \
+		"IZeroClampSeries", \
+		"LabMetaData", \
+		"LFP", \
+		"MotionCorrection", \
+		"NWBContainer", \
+		"NWBData", \
+		"NWBDataInterface", \
+		"NWBFile", \
+		"OpticalChannel", \
+		"OpticalSeries", \
+		"OptogeneticSeries", \
+		"OptogeneticStimulusSite", \
+		"PatchClampSeries", \
+		"PlaneSegmentation", \
+		"Position", \
+		"ProcessingModule", \
+		"PupilTracking", \
+		"RetinotopyImage", \
+		"RetinotopyMap", \
+		"RGBAImage", \
+		"RGBImage", \
+		"RoiResponseSeries", \
+		"ScratchData", \
+		"SpatialSeries", \
+		"SpikeEventSeries", \
+		"Subject", \
+		"SweepTable", \
+		"TimeIntervals", \
+		"TimeSeries", \
+		"TwoPhotonSeries", \
+		"Units", \
+		"VoltageClampSeries", \
+		"VoltageClampStimulusSeries" \
+		}
+	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) nwb_spec
+	if(V_Value != -1)
+		return NWB_SPEC_NAME
+	endif
+
+	Make/T/FREE hdmf_spec = { \
+		"Container", \
+		"CSRMatrix", \
+		"Data", \
+		"DynamicTable", \
+		"DynamicTableRegion", \
+		"ElementIdentifiers", \
+		"Index", \
+		"VectorData", \
+		"VectorIndex" \
+		}
+	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) hdmf_spec
+	if(V_Value != -1)
+		return HDMF_SPEC_NAME
+	endif
+
+	Make/T/FREE ndx_mies_spec = {              \
+        "MIESMetaData",                        \
+        "GeneratedBy",                         \
+        "UserComment",                         \
+        "UserCommentString",                   \
+        "UserCommentDevice",                   \
+        "Testpulse",                           \
+        "TestpulseDevice",                     \
+        "TestpulseMetadata",                   \
+        "TestpulseRawData",                    \
+        "LabNotebook",                         \
+        "LabNotebookDevice",                   \
+        "LabNotebookNumericalValues",          \
+        "LabNotebookNumericalKeys",            \
+        "LabNotebookTextualValues",            \
+        "LabNotebookTextualKeys",              \
+        "StimulusSets",                        \
+        "StimulusSetWavebuilderParameter",     \
+        "StimulusSetWavebuilderParameterText", \
+        "StimulusSetWavebuilderSegmentTypes",  \
+        "StimulusSetReferencedWaveform",       \
+        "StimulusSetReferencedFolder",         \
+        "StimulusSetReferenced"                \
+		}
+	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) ndx_mies_spec
+	if(V_Value != -1)
+		return NDX_MIES_SPEC_NAME
 	endif
 
 	return ""
 End
 
-/// @brief Derive the clamp mode from the `ancestry` attribute and return it
+/// @brief Initializes the random number generator with a new seed between (0,1]
+/// The time base is assumed to be at least 0.1 microsecond precise, so a new seed
+/// is available every 0.1 microsecond.
 ///
-/// @param ancestry Contents of ancestry attribute
-threadsafe Function GetClampModeFromAncestry(ancestry)
-	string ancestry
+/// Usage example for the case that one needs n non reproducible random numbers.
+/// Whenever the following code block is executed a new seed is set, resulting in a different series of numbers
+///
+/// \rst
+/// .. code-block:: igorpro
+///
+///		Make/D/N=(n) newRandoms
+///		NewRandomSeed() // Initialize random number series with a new seed
+///		newRandoms[] = GetReproducibleRandom() // Get n randoms from the new series
+///
+/// \endrst
+threadsafe Function NewRandomSeed()
 
-	ancestry = RemoveEnding(ancestry, ";")
+	SetRandomSeed/BETR=1 ((stopmstimer(-2) * 10 ) & 0xffffffff) / 2^32
 
-	strswitch(ancestry)
-		case "TimeSeries;PatchClampSeries;VoltageClampSeries":
-		case "TimeSeries;PatchClampSeries;VoltageClampStimulusSeries":
-			return V_CLAMP_MODE
-		case "TimeSeries;PatchClampSeries;CurrentClampSeries":
-		case "TimeSeries;PatchClampSeries;CurrentClampStimulusSeries":
-			return I_CLAMP_MODE
-		case "TimeSeries;PatchClampSeries;CurrentClampSeries;IZeroClampSeries":
-			return I_EQUAL_ZERO_MODE
-		case "TimeSeries": // unassociated channel data
-			return NaN
-		default:
-			ASSERT_TS(0, "Unknown ancestry: " + ancestry)
-			break
-	endswitch
 End
 
-/// @brief Derive the channel type, one of @ref IPNWB_ChannelTypes, from the
-///        `ancestry` attribute and return it
+/// @brief Return a random value in the range (0,1] which can be used as a seed for `SetRandomSeed`
 ///
-/// @param ancestry Contents of ancestry attribute
-threadsafe Function GetChannelTypeFromAncestry(ancestry)
-	string ancestry
+/// Return a reproducible random number depending on the RNG seed.
+threadsafe Function GetReproducibleRandom()
 
-	ancestry = RemoveEnding(ancestry, ";")
+	variable randomSeed
 
-	strswitch(ancestry)
-		case "TimeSeries;PatchClampSeries;VoltageClampSeries":
-		case "TimeSeries;PatchClampSeries;CurrentClampSeries":
-		case "TimeSeries;PatchClampSeries;CurrentClampSeries;IZeroClampSeries":
-			return CHANNEL_TYPE_ADC
-		case "TimeSeries;PatchClampSeries;VoltageClampStimulusSeries":
-		case "TimeSeries;PatchClampSeries;CurrentClampStimulusSeries":
-			return CHANNEL_TYPE_DAC
-		case "TimeSeries": // unassociated channel
-			return CHANNEL_TYPE_OTHER
-		default:
-			ASSERT_TS(0, "Unknown ancestry: " + ancestry)
-			break
-	endswitch
+	do
+		randomSeed = abs(enoise(1, NOISE_GEN_MERSENNE_TWISTER))
+	while(randomSeed == 0)
+
+	return randomSeed
+End
+
+/// @brief Helper structure for GenerateRFC4122UUID()
+static Structure Uuid
+	uint32  time_low
+	uint16  time_mid
+	uint16  time_hi_and_version
+	uint16  clock_seq
+	uint16  node0
+	uint16  node1
+	uint16  node2
+EndStructure
+
+/// @brief Generate a version 4 UUID according to https://tools.ietf.org/html/rfc4122
+///
+/// \rst
+/// .. code-block:: text
+///
+///     4.4.  Algorithms for Creating a UUID from Truly Random or
+///           Pseudo-Random Numbers
+///
+///        The version 4 UUID is meant for generating UUIDs from truly-random or
+///        pseudo-random numbers.
+///
+///        The algorithm is as follows:
+///
+///        o  Set the two most significant bits (bits 6 and 7) of the
+///           clock_seq_hi_and_reserved to zero and one, respectively.
+///
+///        o  Set the four most significant bits (bits 12 through 15) of the
+///           time_hi_and_version field to the 4-bit version number from
+///           Section 4.1.3.
+///
+///        o  Set all the other bits to randomly (or pseudo-randomly) chosen
+///           values.
+///
+///     See Section 4.5 for a discussion on random numbers.
+///
+///     [...]
+///
+///      In the absence of explicit application or presentation protocol
+///      specification to the contrary, a UUID is encoded as a 128-bit object,
+///      as follows:
+///
+///      The fields are encoded as 16 octets, with the sizes and order of the
+///      fields defined above, and with each field encoded with the Most
+///      Significant Byte first (known as network byte order).  Note that the
+///      field names, particularly for multiplexed fields, follow historical
+///      practice.
+///
+///      0                   1                   2                   3
+///       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+///      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///      |                          time_low                             |
+///      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///      |       time_mid                |         time_hi_and_version   |
+///      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///      |clk_seq_hi_res |  clk_seq_low  |         node (0-1)            |
+///      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///      |                         node (2-5)                            |
+///      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+///
+///     [...]
+///
+///     4.1.3.  Version
+///
+///        The version number is in the most significant 4 bits of the time
+///        stamp (bits 4 through 7 of the time_hi_and_version field).
+///
+///        The following table lists the currently-defined versions for this
+///        UUID variant.
+///
+///        Msb0  Msb1  Msb2  Msb3   Version  Description
+///
+///         0     0     0     1        1     The time-based version
+///                                          specified in this document.
+///
+///         0     0     1     0        2     DCE Security version, with
+///                                          embedded POSIX UIDs.
+///
+///         0     0     1     1        3     The name-based version
+///                                          specified in this document
+///                                          that uses MD5 hashing.
+///
+///         0     1     0     0        4     The randomly or pseudo-
+///                                          randomly generated version
+///                                          specified in this document.
+///
+///         0     1     0     1        5     The name-based version
+///                                          specified in this document
+///                                          that uses SHA-1 hashing.
+///
+///        The version is more accurately a sub-type; again, we retain the term
+///        for compatibility.
+///
+/// \endrst
+///
+/// See also https://www.rfc-editor.org/errata/eid3546 and https://www.rfc-editor.org/errata/eid1957
+/// for some clarifications.
+threadsafe Function/S GenerateRFC4122UUID()
+
+	string str, randomness
+	STRUCT Uuid uu
+
+	randomness = Hash(num2strHighPrec(GetReproducibleRandom(), precision=15), 1)
+
+	WAVE binary = HexToBinary(randomness)
+
+	uu.time_low = binary[0] | (binary[1] << 8) | (binary[2] << 16) | (binary[3] << 24)
+	uu.time_mid = binary[4] | (binary[5] << 8)
+	uu.time_hi_and_version = binary[6] | (binary[7] << 8)
+	uu.clock_seq = binary[8] | (binary[9] << 8)
+
+	uu.node0 = binary[10] | (binary[11] << 8)
+	uu.node1 = binary[12] | (binary[13] << 8)
+	uu.node2 = binary[14] | (binary[15] << 8)
+
+	// set the version
+	uu.clock_seq = (uu.clock_seq & 0x3FFF) | 0x8000
+	uu.time_hi_and_version = (uu.time_hi_and_version & 0x0FFF) | 0x4000
+
+	sprintf str, "%8.8x-%4.4x-%4.4x-%4.4x-%4.4x%4.4x%4.4x", uu.time_low, uu.time_mid, uu.time_hi_and_version, uu.clock_seq, uu.node0, uu.node1, uu.node2
+
+	return str
+End
+
+/// @brief Convert a hexadecimal character into a number
+threadsafe Function HexToNumber(ch)
+	string ch
+
+	variable var
+
+	ASSERT_TS(strlen(ch) <= 2, "Expected only up to two characters")
+
+	sscanf ch, "%x", var
+	ASSERT_TS(V_flag == 1, "Unexpected string")
+
+	return var
+End
+
+/// @brief Convert a number into hexadecimal
+threadsafe Function/S NumberToHex(var)
+	variable var
+
+	string str
+
+	ASSERT_TS(IsInteger(var) && var >= 0 && var < 256 , "Invalid input")
+
+	sprintf str, "%02x", var
+
+	return str
+End
+
+/// @brief Convert a string in hex format to an unsigned binary wave
+///
+/// This function works on a byte level so it does not care about endianess.
+threadsafe Function/WAVE HexToBinary(str)
+	string str
+
+	variable length
+
+	length = strlen(str)
+	ASSERT_TS(mod(length, 2) == 0, "Expected a string with a power of 2 length")
+
+	Make/N=(length / 2)/FREE/B/U bin = HexToNumber(str[p * 2]) | (HexToNumber(str[p * 2 + 1]) << 4)
+
+	return bin
+End
+
+/// @brief Converts a number to a string with specified precision (digits after decimal dot).
+/// This function is an extension for the regular num2str that is limited to 5 digits.
+/// Input numbers are rounded using the "round-half-to-even" rule to the given precision.
+/// The default precision is 5.
+/// If val is complex only the real part is converted to a string.
+/// @param[in] val       number that should be converted to a string
+/// @param[in] precision [optional, default 5] number of precision digits after the decimal dot using "round-half-to-even" rounding rule.
+///                      Precision must be in the range 0 to 15.
+/// @return string with textual number representation
+threadsafe Function/S num2strHighPrec(val, [precision])
+	variable val, precision
+
+	string str
+
+	precision = ParamIsDefault(precision) ? 5 : precision
+	ASSERT_TS(precision >= 0 && precision <= 15, "Invalid precision, must be >= 0 and <= 15.")
+
+	sprintf str, "%.*f", precision, val
+
+	return str
+End
+
+/// @brief Helper function for try/catch with AbortOnRTE
+///
+/// Not clearing the RTE before calling `AbortOnRTE` will always trigger the RTE no
+/// matter what you do in that line.
+///
+/// Usage:
+/// \rst
+/// .. code-block:: igorpro
+///
+///    try
+///       ClearRTError()
+///       myFunc(); AbortOnRTE
+///    catch
+///      err = GetRTError(1)
+///    endtry
+///
+/// \endrst
+threadsafe Function ClearRTError()
+
+	variable err = GetRTError(1)
+End
+
+/// @brief Normalize the line endings in the given string to either classic Mac OS/Igor Pro EOLs (`\r`)
+///        or Unix EOLs (`\n`)
+threadsafe Function/S NormalizeToEOL(str, eol)
+	string str, eol
+
+	str = ReplaceString("\r\n", str, eol)
+
+	if(!cmpstr(eol, "\r"))
+		str = ReplaceString("\n", str, eol)
+	elseif(!cmpstr(eol, "\n"))
+		str = ReplaceString("\r", str, eol)
+	else
+		ASSERT_TS(0, "unsupported EOL character")
+	endif
+
+	return str
 End
