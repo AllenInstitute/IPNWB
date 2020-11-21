@@ -406,13 +406,14 @@ threadsafe Function ReadSubjectInfo(fileID, subjectInfo)
 
 	groupID = H5_OpenGroup(fileID, "/general/subject")
 
-	subjectInfo.subject_id  = ReadTextDataSetAsString(groupID, "subject_id")
-	subjectInfo.description = ReadTextDataSetAsString(groupID, "description")
-	subjectInfo.species     = ReadTextDataSetAsString(groupID, "species")
-	subjectInfo.genotype    = ReadTextDataSetAsString(groupID, "genotype")
-	subjectInfo.sex         = ReadTextDataSetAsString(groupID, "sex")
-	subjectInfo.age         = ReadTextDataSetAsString(groupID, "age")
-	subjectInfo.weight      = ReadTextDataSetAsString(groupID, "weight")
+	subjectInfo.age           = ReadTextDataSetAsString(groupID, "age")
+	subjectInfo.date_of_birth = ReadTextDataSetAsString(groupID, "date_of_birth")
+	subjectInfo.description   = ReadTextDataSetAsString(groupID, "description")
+	subjectInfo.genotype      = ReadTextDataSetAsString(groupID, "genotype")
+	subjectInfo.sex           = ReadTextDataSetAsString(groupID, "sex")
+	subjectInfo.species       = ReadTextDataSetAsString(groupID, "species")
+	subjectInfo.subject_id    = ReadTextDataSetAsString(groupID, "subject_id")
+	subjectInfo.weight        = ReadTextDataSetAsString(groupID, "weight")
 
 	HDF5CloseGroup/Z groupID
 End
