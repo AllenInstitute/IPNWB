@@ -113,14 +113,14 @@ EndStructure
 threadsafe Function InitSubjectInfo(si)
 	STRUCT SubjectInfo &si
 
-	si.age         = PLACEHOLDER
-	si.date_of_birth = GetISO8601TimeStamp()
-	si.description = "Description of subject and where subject came from (e.g., breeder, if animal)."
-	si.genotype    = PLACEHOLDER
-	si.sex         = PLACEHOLDER
-	si.species     = PLACEHOLDER
-	si.subject_id  = PLACEHOLDER
-	si.weight      = PLACEHOLDER
+	si.age           = PLACEHOLDER
+	si.date_of_birth = PLACEHOLDER
+	si.description   = PLACEHOLDER
+	si.genotype      = PLACEHOLDER
+	si.sex           = PLACEHOLDER
+	si.species       = PLACEHOLDER
+	si.subject_id    = PLACEHOLDER
+	si.weight        = PLACEHOLDER
 End
 
 /// @brief Structure to hold all properties of the NWB file directly below `/`
