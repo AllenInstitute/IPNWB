@@ -85,13 +85,14 @@ threadsafe Function CreateCommonGroups(locationID, toplevelInfo, [generalInfo, s
 		WriteNeuroDataType(locationID, NWB_SUBJECT, "Subject")
 	endif
 
-	WriteTextDatasetIfSet(groupID, "subject_id" , si.subject_id)
-	WriteTextDatasetIfSet(groupID, "description", si.description)
-	WriteTextDatasetIfSet(groupID, "species"    , si.species)
-	WriteTextDatasetIfSet(groupID, "genotype"   , si.genotype)
-	WriteTextDatasetIfSet(groupID, "sex"        , si.sex)
-	WriteTextDatasetIfSet(groupID, "age"        , si.age)
-	WriteTextDatasetIfSet(groupID, "weight"     , si.weight)
+	WriteTextDatasetIfSet(groupID, "age"          , si.age)
+	WriteTextDatasetIfSet(groupID, "date_of_birth", si.date_of_birth)
+	WriteTextDatasetIfSet(groupID, "description"  , si.description)
+	WriteTextDatasetIfSet(groupID, "genotype"     , si.genotype)
+	WriteTextDatasetIfSet(groupID, "sex"          , si.sex)
+	WriteTextDatasetIfSet(groupID, "species"      , si.species)
+	WriteTextDatasetIfSet(groupID, "subject_id"   , si.subject_id)
+	WriteTextDatasetIfSet(groupID, "weight"       , si.weight)
 
 	HDF5CloseGroup/Z groupID
 
