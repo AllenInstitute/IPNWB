@@ -110,6 +110,20 @@ threadsafe Function GetSingleChunkCompression()
 	return SINGLE_CHUNK_COMPRESSION
 End
 
+threadsafe Function/S CompressionModeToString(variable mode)
+
+	switch(mode)
+		case NO_COMPRESSION:
+			return "no"
+		case CHUNKED_COMPRESSION:
+			return "chunked"
+		case SINGLE_CHUNK_COMPRESSION:
+			return "single chunk"
+		default:
+			ASSERT_TS(0, "Invalid mode: " + num2str(mode))
+	endswitch
+End
+
 /// @brief get location of the patchclamp series acquisition object
 ///
 /// @param version  target NWB version
