@@ -594,8 +594,6 @@ threadsafe Function/S H5_ListGroupMembers(locationID, path)
 	variable locationID
 	string path
 
-	ASSERT_TS(H5_GroupExists(locationID, path), "H5_ListGroupMembers: " + path + " not in HDF5 file")
-
 	HDF5ListGroup/Z locationID, path
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
@@ -613,8 +611,6 @@ End
 threadsafe Function/S H5_ListGroups(fileID, path)
 	variable fileID
 	string path
-
-	ASSERT_TS(H5_GroupExists(fileID, path), "H5_ListGroups: " + path + " not in HDF5 file")
 
 	HDF5ListGroup/TYPE=1/Z fileID, path
 	if(V_flag)
