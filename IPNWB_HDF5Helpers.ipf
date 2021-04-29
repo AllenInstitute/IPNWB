@@ -514,37 +514,23 @@ threadsafe Function H5_GroupExists(locationID, path)
 	variable locationID
 	string path
 
-	variable groupID, success, absPath
-	string group
-
-	group = GetFile(path, sep = "/")
-	absPath = !cmpstr(path[0], "/")
-	path = RemoveEnding(GetFolder(path, sep = "/"), "/")
-	if(absPath)
-		path = "/" + path
-	endif
-
-	if(!cmpstr(group, "") || !cmpstr(group, "."))
-		if(!cmpstr(path, ""))
-			path = "."
-		endif
-		HDF5OpenGroup/Z locationID, path, groupID
-		success = !V_flag
-		if(success)
-			HDF5CloseGroup/Z groupID
-		endif
-		return success
-	endif
+	variable ret, groupID
 
 #if IgorVersion() < 9
-	HDF5ListGroup/Z/TYPE=(0x01) locationID, path
+	// workaround HDF5 XOP < 2.0.3 being unable to open
+	// a group which contains a link in the path
+	HDF5ListAttributes/TYPE=(0x01)/Z locationID, path
+	ret = V_Flag
 #else
-	HDF5ListGroup/Z/TYPE=(0x01)/CONT=1 locationID, path
-#endif
-	if(V_flag)
-		return 0
+	HDF5OpenGroup/Z locationID, path, groupID
+	ret = V_Flag
+
+	if(!ret)
+		HDF5CloseGroup/Z groupID
 	endif
-	return (WhichListItem(group, S_HDF5ListGroup) != -1)
+#endif
+
+	return !ret
 End
 
 /// @brief Create all groups along the given path
@@ -608,8 +594,6 @@ threadsafe Function/S H5_ListGroupMembers(locationID, path)
 	variable locationID
 	string path
 
-	ASSERT_TS(H5_GroupExists(locationID, path), "H5_ListGroupMembers: " + path + " not in HDF5 file")
-
 	HDF5ListGroup/Z locationID, path
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
@@ -627,8 +611,6 @@ End
 threadsafe Function/S H5_ListGroups(fileID, path)
 	variable fileID
 	string path
-
-	ASSERT_TS(H5_GroupExists(fileID, path), "H5_ListGroups: " + path + " not in HDF5 file")
 
 	HDF5ListGroup/TYPE=1/Z fileID, path
 	if(V_flag)

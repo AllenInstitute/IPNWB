@@ -518,8 +518,8 @@ Function [WAVE/Z sweep_number, WAVE/Z/T series] LoadSweepTable(variable location
 
 	groupID = H5_OpenGroup(locationID, path)
 	if(!IsNaN(groupID))
-		WAVE sweep_number = IPNWB#H5_LoadDataset(groupID, "sweep_number")
-		WAVE/T series = IPNWB#H5_LoadDataset(groupID, "series")
+		WAVE sweep_number = H5_LoadDataset(groupID, "sweep_number")
+		WAVE/T series = H5_LoadDataset(groupID, "series")
 		series[] = (series[p])[2,inf] // Remove leading group linker "G:"
 		HDF5CloseGroup/Z groupID
 		return [sweep_number, series]
