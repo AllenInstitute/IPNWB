@@ -725,3 +725,17 @@ threadsafe Function/S H5_GetLinkTarget(discLocation, path)
 
 	return str
 End
+
+/// @brief Return the HDF5 Library version
+threadsafe Function/S H5_GetLibraryVersion()
+
+	string version, niceVersion
+
+	// returned number is in the format MMmmrr
+	// but we want it to be a nicer formatted string
+	sprintf version, "%06d", HDF5LibraryInfo(0)
+
+	sprintf niceVersion, "%d.%d.%d", str2num(version[0, 1]), str2num(version[2, 3]), str2num(version[4, 5])
+
+	return niceVersion
+End
