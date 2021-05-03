@@ -135,6 +135,11 @@ threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwri
 
 	WAVE/Z chunkSizes = H5_GetChunkSizes(wv, compressionMode)
 
+#if IgorVersion() >= 9.0 && (NumberByKey("BUILD", IgorInfo(0)) >= 36478)
+	// do nothing, we assume that SetIgorOption HDF5LibVerLowBound
+	// defaults to 1, see also "Reading Igor HDF5 Files With Old HDF5 Programs"
+	// so that we can always write large attributes
+#else
 	if(attrFlag & 16) // saving wave note as attribute
 		if(strlen(note(wv)) >= H5_ATTRIBUTE_SIZE_LIMIT)
 			// by default HDF5 attributes are stored in the object header and thus attributes are limited to 64k size
@@ -145,6 +150,7 @@ threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwri
 			WAVE wv = wvCopy
 		endif
 	endif
+#endif
 
 	if(overwrite)
 		if(compressionMode != NO_COMPRESSION)
