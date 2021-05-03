@@ -10,9 +10,6 @@
 /// @brief Constants
 
 StrConstant PLACEHOLDER = "PLACEHOLDER"
-
-static StrConstant NWB_VERSION_V1 = "NWB-1.0.5"
-static StrConstant NWB_VERSION_V2 = "2.2.4"
 Constant NWB_VERSION_LATEST = 2
 
 /// @name HDF5 file paths
@@ -28,8 +25,6 @@ StrConstant NWB_LABNOTEBOOK = "/general/labnotebook"
 StrConstant NWB_INTRACELLULAR_EPHYS = "/general/intracellular_ephys"
 StrConstant NWB_STIMULUS_TEMPLATES = "/stimulus/templates"
 StrConstant NWB_STIMULUS_PRESENTATION = "/stimulus/presentation"
-static StrConstant NWB_PATCHCLAMPSERIES_V1 = "/acquisition/timeseries"
-static StrConstant NWB_PATCHCLAMPSERIES_V2 = "/acquisition"
 StrConstant NWB_IMAGES = "/acquisition/images"
 StrConstant NWB_EPOCHS = "/epochs"
 StrConstant NWB_PROCESSING = "/processing"
@@ -94,75 +89,6 @@ Constant NOISE_GEN_MERSENNE_TWISTER    = 2
 /// Maximum length of a valid name in bytes in Igor Pro.
 Constant MAX_OBJECT_NAME_LENGTH_IN_BYTES = 31
 
-/// @brief Convenience getters
-///
-/// Igor Pro does not allow cross IM access to constants
-/// @{
-threadsafe Function GetNoCompression()
-	return NO_COMPRESSION
-End
-
-threadsafe Function GetChunkedCompression()
-	return CHUNKED_COMPRESSION
-End
-
-threadsafe Function GetSingleChunkCompression()
-	return SINGLE_CHUNK_COMPRESSION
-End
-
-threadsafe Function/S CompressionModeToString(variable mode)
-
-	switch(mode)
-		case NO_COMPRESSION:
-			return "no"
-		case CHUNKED_COMPRESSION:
-			return "chunked"
-		case SINGLE_CHUNK_COMPRESSION:
-			return "single chunk"
-		default:
-			ASSERT_TS(0, "Invalid mode: " + num2str(mode))
-	endswitch
-End
-
-/// @brief get location of the patchclamp series acquisition object
-///
-/// @param version  target NWB version
-/// @returns        full path to patchclampseries group
-threadsafe Function/S GetNWBgroupPatchClampSeries(version)
-	variable version
-
-	if(version == 1)
-		return NWB_PATCHCLAMPSERIES_V1
-	elseif(version == 2)
-		return NWB_PATCHCLAMPSERIES_V2
-	else
-		return ""
-	endif
-End
-
-/// @brief get NWB version for current Igor Pro implementation
-///
-/// @param version  maior NWB version e.g. 2
-/// @returns        full version string in the format `(?:NWB-)?[1,2]\.[0-9](?:\.[0-9])?[b]?`
-threadsafe Function/S GetNWBVersionString(version)
-	variable version
-
-	switch(version)
-		case 1:
-			return NWB_VERSION_V1
-		case NWB_VERSION_LATEST:
-			return NWB_VERSION_V2
-		default:
-			return ""
-	endswitch
-End
-
-/// @brief get latest supported NWB version
-/// @returns maior version
-threadsafe Function GetNWBVersion()
-	return NWB_VERSION_LATEST
-End
-/// @}
 
 /// @name Constants for the compression modes
 /// @anchor CompressionMode

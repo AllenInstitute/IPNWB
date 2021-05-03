@@ -11,6 +11,7 @@
 #include "IPNWB_Constants" version>=0.18
 #include "IPNWB_Debugging" version>=0.18
 #include "IPNWB_HDF5Helpers" version>=0.18
+#include "IPNWB_NWBUtils" version>=0.18
 #include "IPNWB_Reader" version>=0.18
 #include "IPNWB_Structures" version>=0.18
 #include "IPNWB_Utils" version>=0.18
