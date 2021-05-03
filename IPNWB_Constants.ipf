@@ -1,8 +1,11 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -38,6 +41,16 @@ StrConstant NWB_SPECIFICATIONS = "/specifications"
 StrConstant NWB_ELECTRODE_PREFIX = "electrode_"
 /// @}
 
+/// @name Channel constants (inspired by the ITC XOP)
+/// @anchor IPNWB_ChannelTypes
+/// @{
+Constant CHANNEL_TYPE_OTHER = -1
+////@}
+
+StrConstant CHANNEL_NAMES = "AD;DA;;TTL"
+
+#ifdef IPNWB_INCLUDE_UTILS
+
 /// @name Constants for FunctionInfo and WaveType
 ///
 /// @anchor IPNWB_IgorTypes
@@ -60,8 +73,6 @@ Constant COLS   = 1
 Constant LAYERS = 2
 Constant CHUNKS = 3
 /// @}
-
-StrConstant CHANNEL_NAMES = "AD;DA;;TTL"
 
 /// @name Channel constants (inspired by the ITC XOP)
 /// @anchor IPNWB_ChannelTypes
@@ -89,6 +100,7 @@ Constant NOISE_GEN_MERSENNE_TWISTER    = 2
 /// Maximum length of a valid name in bytes in Igor Pro.
 Constant MAX_OBJECT_NAME_LENGTH_IN_BYTES = 31
 
+#endif // IPNWB_INCLUDE_UTILS
 
 /// @name Constants for the compression modes
 /// @anchor CompressionMode

@@ -1,14 +1,19 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
 /// @file IPNWB_Debugging.ipf
 ///
 /// @brief Holds functions for debugging
+
+#ifdef IPNWB_INCLUDE_UTILS
 
 /// @brief Low overhead function to check assertions (threadsafe variant)
 ///
@@ -306,3 +311,5 @@ Function DEBUG_STOREFUNCTION()
 		count[V_Value] += 1
 	endif
 End
+
+#endif // IPNWB_INCLUDE_UTILS

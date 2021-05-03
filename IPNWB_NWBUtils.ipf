@@ -8,6 +8,10 @@
 /// @file IPNWB_NWBUtils.ipf
 /// @brief NWB utility functions
 
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
+
 static StrConstant NWB_PATCHCLAMPSERIES_V1 = "/acquisition/timeseries"
 static StrConstant NWB_PATCHCLAMPSERIES_V2 = "/acquisition"
 

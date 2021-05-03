@@ -1,8 +1,11 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -33,7 +36,7 @@ threadsafe Function InitWriteChannelParams(p)
 	p.groupIndex = NaN
 End
 
-/// @brief Loader structure analog to #IPNWB::WriteChannelParams
+/// @brief Loader structure analog to WriteChannelParams
 Structure ReadChannelParams
 	string   device           ///< name of the measure device, e.g. "ITC18USB_Dev_0"
 	string   channelSuffix    ///< custom channel suffix, in case the channel number is ambiguous

@@ -1,16 +1,19 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
-static Constant H5_ATTRIBUTE_SIZE_LIMIT = 60e3
-static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-error
-
 /// @file IPNWB_HDF5Helpers.ipf
 /// @brief __H5__ Wrapper functions for convenient use of the HDF5 operations
+
+static Constant H5_ATTRIBUTE_SIZE_LIMIT = 60e3
+static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-error
 
 /// @brief Write a string or text wave into a HDF5 dataset
 ///

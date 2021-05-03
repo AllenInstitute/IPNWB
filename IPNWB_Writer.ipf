@@ -1,8 +1,11 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -365,8 +368,8 @@ End
 /// @param path            Absolute path in the HDF5 file where the data should
 ///                        be stored
 /// @param version         major NWB version
-/// @param p               Filled #IPNWB::WriteChannelParams structure
-/// @param tsp             Filled #IPNWB::TimeSeriesProperties structure
+/// @param p               Filled WriteChannelParams structure
+/// @param tsp             Filled TimeSeriesProperties structure
 /// @param compressionMode [optional, defaults to NO_COMPRESSION] Type of
 ///                        compression to use, one of @ref CompressionMode
 Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode])

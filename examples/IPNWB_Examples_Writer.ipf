@@ -1,4 +1,6 @@
 #pragma TextEncoding = "UTF-8"
+
+#define IPNWB_DEFINE_IM
 #include "IPNWB_include"
 
 Function NWBWriterExample()

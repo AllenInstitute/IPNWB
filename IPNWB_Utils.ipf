@@ -1,13 +1,18 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
 /// @file IPNWB_Utils.ipf
 /// @brief Utility functions
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
+
+#ifdef IPNWB_INCLUDE_UTILS
 
 /// @brief Returns 1 if var is a finite/normal number, 0 otherwise
 ///
@@ -874,3 +879,5 @@ End
 threadsafe Function/S GetIgorProVersion()
 	return StringByKey("IGORFILEVERSION", IgorInfo(3))
 End
+
+#endif // IPNWB_INCLUDE_UTILS

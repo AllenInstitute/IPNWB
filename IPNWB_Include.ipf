@@ -8,6 +8,13 @@
 /// @file IPNWB_Include.ipf
 /// @brief Main include
 
+/// Use the following line in the builtin Procedure window or use
+/// SetIgorOption poundDefine=IPNWB_DEFINE_IM to use IPNWB in an independent module
+/// #define IPNWB_DEFINE_IM
+
+/// Use the following if you need the generic helper functions
+/// #define IPNWB_INCLUDE_UTILS
+
 #include "IPNWB_Constants" version>=0.18
 #include "IPNWB_Debugging" version>=0.18
 #include "IPNWB_HDF5Helpers" version>=0.18
