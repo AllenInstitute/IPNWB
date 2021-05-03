@@ -389,7 +389,7 @@ Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode]
 
 	EnsureValidNWBVersion(version)
 
-	if(p.channelType == CHANNEL_TYPE_OTHER)
+	if(p.channelType == IPNWB_CHANNEL_TYPE_OTHER)
 		channelTypeStr = "stimset"
 		sprintf group, "%s/%s", path, p.stimSet
 	else
@@ -410,7 +410,7 @@ Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode]
 	endif
 
 	// skip writing DA data with I=0 clamp mode (it will just be constant zero)
-	if(p.channelType == CHANNEL_TYPE_DAC && p.clampMode == I_EQUAL_ZERO_MODE)
+	if(p.channelType == IPNWB_CHANNEL_TYPE_DAC && p.clampMode == I_EQUAL_ZERO_MODE)
 		return NaN
 	endif
 
@@ -438,7 +438,7 @@ Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode]
 	endif
 
 	// write human readable version of description
-	if(p.channelType != CHANNEL_TYPE_OTHER)
+	if(p.channelType != IPNWB_CHANNEL_TYPE_OTHER)
 		comment = note(p.data)
 		if(version == 1)
 			H5_WriteTextAttribute(groupID, "comment", group, str=comment, overwrite=1)
@@ -448,7 +448,7 @@ Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode]
 	endif
 
 	// only write electrode_name for associated channels
-	if(IsFinite(p.electrodeNumber) && (p.channelType == CHANNEL_TYPE_DAC || p.channelType == CHANNEL_TYPE_ADC))
+	if(IsFinite(p.electrodeNumber) && (p.channelType == IPNWB_CHANNEL_TYPE_DAC || p.channelType == IPNWB_CHANNEL_TYPE_ADC))
 		sprintf electrodeName, "electrode_%s", p.electrodeName
 		if(version == 1)
 			H5_WriteTextDataset(groupID, "electrode_name", str=(electrodeName), overwrite=1)
@@ -492,7 +492,7 @@ Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode]
 		H5_WriteDataset(groupID, "num_samples", var=DimSize(p.data, ROWS), varType=IGOR_TYPE_32BIT_INT, overwrite=1)
 	endif
 
-	if(p.channelType != CHANNEL_TYPE_OTHER)
+	if(p.channelType != IPNWB_CHANNEL_TYPE_OTHER)
 		H5_WriteDataset(groupID, "starting_time", var=p.startingTime, varType=IGOR_TYPE_64BIT_FLOAT, overwrite=1)
 		H5_WriteAttribute(groupID, "rate", group + "/starting_time", p.samplingRate, IGOR_TYPE_32BIT_FLOAT, overwrite=1)
 		H5_WriteTextAttribute(groupID, "unit", group + "/starting_time", str="Seconds", overwrite=1)

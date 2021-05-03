@@ -18,7 +18,7 @@ Structure WriteChannelParams
 	variable samplingRate    ///< sampling rate in Hz
 	variable startingTime    ///< timestamp since Igor Pro epoch in UTC of the start of this measurement
 	variable sweep           ///< running number for each measurement
-	variable channelType     ///< channel type, one of @ref IPNWB_ChannelTypes
+	variable channelType     ///< channel type, one of @ref IPNWBChannelTypes
 	variable channelNumber   ///< running number of the channel
 	variable electrodeNumber ///< electrode identifier the channel was acquired with
 	string electrodeName     ///< electrode identifier the channel was acquired with (string version)
@@ -41,7 +41,7 @@ Structure ReadChannelParams
 	string   device           ///< name of the measure device, e.g. "ITC18USB_Dev_0"
 	string   channelSuffix    ///< custom channel suffix, in case the channel number is ambiguous
 	variable sweep            ///< running number for each measurement
-	variable channelType      ///< channel type, one of @ref IPNWB_ChannelTypes
+	variable channelType      ///< channel type, one of @ref IPNWBChannelTypes
 	variable channelNumber    ///< running number of the channel
 	variable electrodeNumber  ///< electrode identifier the channel was acquired with
 	variable groupIndex       ///< constant for all channels in this measurement.
@@ -187,7 +187,7 @@ EndStructure
 /// @brief Initialization of TimeSeriesProperties
 ///
 /// @param[out] tsp         structure to initialize
-/// @param[in]  channelType one of @ref IPNWB_ChannelTypes
+/// @param[in]  channelType one of @ref IPNWBChannelTypes
 /// @param[in]  clampMode   one of @ref IPNWB_ClampModes
 threadsafe Function InitTimeSeriesProperties(tsp, channelType, clampMode)
 	STRUCT TimeSeriesProperties &tsp

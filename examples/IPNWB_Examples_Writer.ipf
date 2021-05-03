@@ -45,7 +45,7 @@ Function NWBWriterExample()
 	params.electrodeNumber = 1
 	params.electrodeName   = "Nose of the mouse"
 	params.stimset         = "My fancy sine curve"
-	params.channelType     = 0 // @see IPNWB_ChannelTypes
+	params.channelType     = 0 // @see IPNWBChannelTypes
 	WAVE params.data       = AD
 
 	device = "My selfbuilt DAC"

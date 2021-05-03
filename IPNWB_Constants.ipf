@@ -42,10 +42,13 @@ StrConstant NWB_ELECTRODE_PREFIX = "electrode_"
 /// @}
 
 /// @name Channel constants (inspired by the ITC XOP)
-/// @anchor IPNWB_ChannelTypes
+/// @anchor IPNWBChannelTypes
 /// @{
-Constant CHANNEL_TYPE_OTHER = -1
-////@}
+Constant IPNWB_CHANNEL_TYPE_OTHER = -1
+Constant IPNWB_CHANNEL_TYPE_ADC   = 0
+Constant IPNWB_CHANNEL_TYPE_DAC   = 1
+Constant IPNWB_CHANNEL_TYPE_TTL   = 3
+/// @}
 
 StrConstant CHANNEL_NAMES = "AD;DA;;TTL"
 
@@ -72,15 +75,6 @@ Constant ROWS   = 0
 Constant COLS   = 1
 Constant LAYERS = 2
 Constant CHUNKS = 3
-/// @}
-
-/// @name Channel constants (inspired by the ITC XOP)
-/// @anchor IPNWB_ChannelTypes
-/// @{
-Constant CHANNEL_TYPE_OTHER = -1
-Constant CHANNEL_TYPE_ADC   = 0
-Constant CHANNEL_TYPE_DAC   = 1
-Constant CHANNEL_TYPE_TTL   = 3
 /// @}
 
 /// @name Constants for the acquisition modes

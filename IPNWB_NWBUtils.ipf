@@ -148,7 +148,7 @@ threadsafe Function/S DetermineNamespace(neurodata_type)
 End
 
 /// @brief Return the initial values for the missing_fields attribute depending
-///        on the channel type, one of @ref IPNWB_ChannelTypes, and the clamp
+///        on the channel type, one of @ref IPNWBChannelTypes, and the clamp
 ///        mode, one in @ref IPNWB_ClampModes.
 threadsafe Function/S GetTimeSeriesMissingFields(channelType, clampMode)
 	variable channelType, clampMode
@@ -171,7 +171,7 @@ threadsafe Function/S GetTimeSeriesMissingFields(channelType, clampMode)
 	endswitch
 End
 
-/// @brief Derive the channel type, one of @ref IPNWB_ChannelTypes, from the
+/// @brief Derive the channel type, one of @ref IPNWBChannelTypes, from the
 ///        `neurodata_type` attribute and return it
 ///
 /// @param neurodata_type string with neurodata type specification defined in
@@ -183,12 +183,12 @@ threadsafe Function GetChannelTypeFromNeurodataType(neurodata_type)
 		case "VoltageClampSeries":
 		case "CurrentClampSeries":
 		case "IZeroClampSeries":
-			return CHANNEL_TYPE_ADC
+			return IPNWB_CHANNEL_TYPE_ADC
 		case "VoltageClampStimulusSeries":
 		case "CurrentClampStimulusSeries":
-			return CHANNEL_TYPE_DAC
+			return IPNWB_CHANNEL_TYPE_DAC
 		case "TimeSeries": // unassociated channel data
-			return CHANNEL_TYPE_OTHER
+			return IPNWB_CHANNEL_TYPE_OTHER
 		default:
 			ASSERT_TS(0, "Unknown neurodata_type: " + neurodata_type)
 			break
@@ -225,7 +225,7 @@ End
 ///
 /// @see GetClampModeFromNeurodataType
 ///
-/// @param channelType  one in @see IPNWB_ChannelTypes
+/// @param channelType  one in @see IPNWBChannelTypes
 /// @param clampMode    one in @see IPNWB_ClampModes
 ///
 /// @return neurodata_type string with neurodata type specification defined in
@@ -234,7 +234,7 @@ threadsafe Function/S DetermineDataTypeFromProperties(channelType, clampMode)
 	variable channelType, clampMode
 
 	switch(channelType)
-		case CHANNEL_TYPE_ADC:
+		case IPNWB_CHANNEL_TYPE_ADC:
 			switch(clampMode)
 				case V_CLAMP_MODE:
 					return "VoltageClampSeries"
@@ -243,7 +243,7 @@ threadsafe Function/S DetermineDataTypeFromProperties(channelType, clampMode)
 				case I_EQUAL_ZERO_MODE:
 					return "IZeroClampSeries"
 			endswitch
-		case CHANNEL_TYPE_DAC:
+		case IPNWB_CHANNEL_TYPE_DAC:
 			switch(clampMode)
 				case V_CLAMP_MODE:
 					return "VoltageClampStimulusSeries"
