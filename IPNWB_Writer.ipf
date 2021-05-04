@@ -372,7 +372,7 @@ End
 /// @param tsp             Filled TimeSeriesProperties structure
 /// @param compressionMode [optional, defaults to NO_COMPRESSION] Type of
 ///                        compression to use, one of @ref CompressionMode
-Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode])
+threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode])
 	variable locationID
 	string path
 	variable version
