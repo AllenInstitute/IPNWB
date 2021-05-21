@@ -1,16 +1,19 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
-static Constant H5_ATTRIBUTE_SIZE_LIMIT = 60e3
-static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-error
-
 /// @file IPNWB_HDF5Helpers.ipf
 /// @brief __H5__ Wrapper functions for convenient use of the HDF5 operations
+
+static Constant H5_ATTRIBUTE_SIZE_LIMIT = 60e3
+static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-error
 
 /// @brief Write a string or text wave into a HDF5 dataset
 ///
@@ -135,6 +138,11 @@ threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwri
 
 	WAVE/Z chunkSizes = H5_GetChunkSizes(wv, compressionMode)
 
+#if IgorVersion() >= 9.0 && (NumberByKey("BUILD", IgorInfo(0)) >= 36478)
+	// do nothing, we assume that SetIgorOption HDF5LibVerLowBound
+	// defaults to 1, see also "Reading Igor HDF5 Files With Old HDF5 Programs"
+	// so that we can always write large attributes
+#else
 	if(attrFlag & 16) // saving wave note as attribute
 		if(strlen(note(wv)) >= H5_ATTRIBUTE_SIZE_LIMIT)
 			// by default HDF5 attributes are stored in the object header and thus attributes are limited to 64k size
@@ -145,6 +153,7 @@ threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwri
 			WAVE wv = wvCopy
 		endif
 	endif
+#endif
 
 	if(overwrite)
 		if(compressionMode != NO_COMPRESSION)
@@ -653,54 +662,12 @@ threadsafe Function H5_OpenGroup(locationID, path)
 	return NaN
 End
 
-#if (IgorVersion() >= 8.00)
-
 /// @brief Flush the file contents to disc
-/// @param fileID       HDF5 file identifier
-/// @param discLocation unused (for compatibility with the Igor Pro 7 version only)
-/// @param write        unused (for compatibility with the Igor Pro 7 version only)
 ///
-/// @return fileID  (for compatibility with the Igor Pro 7 version only)
-threadsafe Function H5_FlushFile(fileID, discLocation, [write])
-	variable fileID
-	string discLocation
-	variable write
-
+/// @param fileID HDF5 file identifier
+threadsafe Function H5_FlushFile(variable fileID)
 	HDF5FlushFile fileID
-
-	return fileID
 End
-
-#else
-
-/// @brief Flush the file contents to disc
-///
-/// Currently uses open/close and thus it is not very fast. This approach results
-/// in the fileID being changed!
-///
-/// @param fileID       HDF5 file identifier
-/// @param discLocation Full path to the HDF5 file
-/// @param write        [optional, defaults to false] Reopen the file for writing
-///
-/// @return changed fileID
-threadsafe Function H5_FlushFile(fileID, discLocation, [write])
-	variable fileID
-	string discLocation
-	variable write
-
-	DEBUGPRINT("H5_FlushFile: Flushing!")
-
-	HDF5CloseFile/Z fileID
-
-	if(V_flag)
-		DEBUGPRINT("Closing the HDF5 File returned error:", var = V_flag)
-		return NaN
-	endif
-
-	return H5_OpenFile(discLocation, write = write)
-End
-
-#endif
 
 /// @todo Needs HDF5 XOP support for reading link targets
 /// use HDF5LinkInfo
@@ -718,4 +685,18 @@ threadsafe Function/S H5_GetLinkTarget(discLocation, path)
 	ASSERT_TS(V_flag == 1, msg)
 
 	return str
+End
+
+/// @brief Return the HDF5 Library version
+threadsafe Function/S H5_GetLibraryVersion()
+
+	string version, niceVersion
+
+	// returned number is in the format MMmmrr
+	// but we want it to be a nicer formatted string
+	sprintf version, "%06d", HDF5LibraryInfo(0)
+
+	sprintf niceVersion, "%d.%d.%d", str2num(version[0, 1]), str2num(version[2, 3]), str2num(version[4, 5])
+
+	return niceVersion
 End

@@ -98,6 +98,7 @@ general:
   testpulse: # custom entry
     - XXXX: # Name of the device
       TPStorage/TPStorage_X: testpulse property waves
+      StoredTestPulses: Raw testpulses as 1D datasets
   user_comment:
   - XXXX: # Name of the device
       userComment: All user comments from this session

@@ -1,7 +1,10 @@
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -153,16 +156,16 @@ threadsafe Function AnalyseChannelName(channel, p)
 	p.ttlBit = str2num(p.channelSuffix)
 	strswitch(channelID)
 		case "AD":
-			p.channelType = CHANNEL_TYPE_ADC
+			p.channelType = IPNWB_CHANNEL_TYPE_ADC
 			break
 		case "DA":
-			p.channelType = CHANNEL_TYPE_DAC
+			p.channelType = IPNWB_CHANNEL_TYPE_DAC
 			break
 		case "TTL":
-			p.channelType = CHANNEL_TYPE_TTL
+			p.channelType = IPNWB_CHANNEL_TYPE_TTL
 			break
 		default:
-			p.channelType = CHANNEL_TYPE_OTHER
+			p.channelType = IPNWB_CHANNEL_TYPE_OTHER
 	endswitch
 	p.channelNumber = str2num(channelNumber)
 End
@@ -210,15 +213,15 @@ threadsafe Function LoadSourceAttribute(locationID, channel, p)
 				p.electrodeNumber = str2num(value)
 				break
 			case "AD":
-				p.channelType = CHANNEL_TYPE_ADC
+				p.channelType = IPNWB_CHANNEL_TYPE_ADC
 				p.channelNumber = str2num(value)
 				break
 			case "DA":
-				p.channelType = CHANNEL_TYPE_DAC
+				p.channelType = IPNWB_CHANNEL_TYPE_DAC
 				p.channelNumber = str2num(value)
 				break
 			case "TTL":
-				p.channelType = CHANNEL_TYPE_TTL
+				p.channelType = IPNWB_CHANNEL_TYPE_TTL
 				p.channelNumber = str2num(value)
 				break
 			case "TTLBit":

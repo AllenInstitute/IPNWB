@@ -1,14 +1,19 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3 // Use modern global access method and strict wave access.
 #pragma rtFunctionErrors=1
-#pragma IndependentModule=IPNWB
 #pragma version=0.18
+
+#ifdef IPNWB_DEFINE_IM
+#pragma IndependentModule=IPNWB
+#endif
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
 /// @file IPNWB_Debugging.ipf
 ///
 /// @brief Holds functions for debugging
+
+#ifdef IPNWB_INCLUDE_UTILS
 
 /// @brief Low overhead function to check assertions (threadsafe variant)
 ///
@@ -31,10 +36,54 @@ threadsafe Function ASSERT_TS(var, errorMsg)
 	variable var
 	string errorMsg
 
+	string stacktrace
+
 	try
 		AbortOnValue var==0, 1
 	catch
+#if IgorVersion() >= 9.0
+		// Recursion detection, if ASSERT_TS appears multiple times in StackTrace
+		if (ItemsInList(ListMatch(GetRTStackInfo(0), GetRTStackInfo(1))) > 1)
+
+			print "Double threadsafe assertion Fail encountered !"
+
+			AbortOnValue 1, 1
+		endif
+#endif
+
+		print "!!! Threadsafe assertion FAILED !!!"
+		printf "Message: \"%s\"\r", RemoveEnding(errorMsg, "\r")
+
+#ifndef AUTOMATED_TESTING
+
+		print "Please provide the following information if you contact the MIES developers:"
+		print "################################"
+		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+#endif // AUTOMATED_TESTING
+
+#if !defined(AUTOMATED_TESTING) || defined(AUTOMATED_TESTING_DEBUGGING)
+
+#if IgorVersion() >= 9.0
+		stacktrace = GetStackTrace()
+#else
+		stacktrace = "stacktrace not available"
+#endif
+		print stacktrace
+
+#endif // !AUTOMATED_TESTING || AUTOMATED_TESTING_DEBUGGING
+
+#ifndef AUTOMATED_TESTING
+
+		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		printf "Time: %s\r", GetIso8601TimeStamp(localTimeZone = 1)
+		printf "Experiment: %s (%s)\r", GetExperimentName(), GetExperimentFileType()
+		printf "Igor Pro version: %s (%s)\r", GetIgorProVersion(), StringByKey("BUILD", IgorInfo(0))
+		print "################################"
+
 		printf "Assertion FAILED with message %s\r", errorMsg
+
+#endif // AUTOMATED_TESTING
+
 		AbortOnValue 1, 1
 	endtry
 End
@@ -262,3 +311,5 @@ Function DEBUG_STOREFUNCTION()
 		count[V_Value] += 1
 	endif
 End
+
+#endif // IPNWB_INCLUDE_UTILS
