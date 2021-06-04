@@ -597,3 +597,15 @@ End
 threadsafe Function GetNWBVersion()
 	return NWB_VERSION_LATEST
 End
+
+/// @brief Return the name of the history dataset
+Function/S GetHistoryAndLogFileDatasetName(variable version)
+
+	if(version == 1)
+		return "history"
+	elseif(version == 2)
+		return "data_collection"
+	else
+		ASSERT_TS(0, "Invalid nwb version")
+	endif
+End
