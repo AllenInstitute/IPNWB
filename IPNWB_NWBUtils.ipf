@@ -557,6 +557,8 @@ threadsafe Function/S CompressionModeToString(variable mode)
 	endswitch
 End
 
+/// @}
+
 /// @brief get location of the patchclamp series acquisition object
 ///
 /// @param version  target NWB version
@@ -595,4 +597,3 @@ End
 threadsafe Function GetNWBVersion()
 	return NWB_VERSION_LATEST
 End
-/// @}
