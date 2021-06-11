@@ -381,7 +381,7 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 	variable compressionMode
 
 	variable groupID, numPlaces, numEntries, i
-	string neurodata_type, source, helpText, channelTypeStr, electrodeName, group, comment
+	string neurodata_type, source, helpText, channelTypeStr, electrodeName, group, comment, electrodePath
 
 	if(ParamIsDefault(compressionMode))
 		compressionMode = NO_COMPRESSION
@@ -453,8 +453,8 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 		if(version == 1)
 			H5_WriteTextDataset(groupID, "electrode_name", str=(electrodeName), overwrite=1)
 		elseif(version == NWB_VERSION_LATEST)
-			sprintf path, "%s/%s", NWB_INTRACELLULAR_EPHYS, electrodeName
-			H5_CreateSoftLink(groupID, "electrode", path)
+			sprintf electrodePath, "%s/%s", NWB_INTRACELLULAR_EPHYS, electrodeName
+			H5_CreateSoftLink(groupID, "electrode", electrodePath)
 		endif
 	endif
 
