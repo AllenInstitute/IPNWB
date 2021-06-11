@@ -575,7 +575,7 @@ threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath)
 			if(V_flag)
 				HDf5DumpErrors/CLR=1
 				HDF5DumpState
-				ASSERT_TS(0, "H5_CreateGroupsRecursively: Could not create HDF5 group")
+				ASSERT_TS(0, "H5_CreateGroupsRecursively: Could not create HDF5 group: " + fullPath)
 			endif
 			HDF5CloseGroup/Z id
 
