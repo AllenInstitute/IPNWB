@@ -364,21 +364,25 @@ End
 
 /// @brief Write the data of a single channel to the NWB file
 ///
-/// @param locationID      HDF5 file identifier
-/// @param path            Absolute path in the HDF5 file where the data should
-///                        be stored
-/// @param version         major NWB version
-/// @param p               Filled WriteChannelParams structure
-/// @param tsp             Filled TimeSeriesProperties structure
-/// @param compressionMode [optional, defaults to NO_COMPRESSION] Type of
-///                        compression to use, one of @ref CompressionMode
-threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode])
+/// @param locationID          HDF5 file identifier
+/// @param path                Absolute path in the HDF5 file where the data should
+///                            be stored
+/// @param version             major NWB version
+/// @param p                   Filled #WriteChannelParams structure
+/// @param tsp                 Filled #TimeSeriesProperties structure
+/// @param compressionMode     [optional, defaults to NO_COMPRESSION] Type of
+///                            compression to use, one of @ref CompressionMode
+/// @param nwbFilePath         [optional, required only for epoch writing] disc location of the NWB file
+///
+/// @return locationID, this is different from the parameter if epoch information was written
+threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode, nwbFilePath])
 	variable locationID
 	string path
 	variable version
 	STRUCT WriteChannelParams &p
 	STRUCT TimeSeriesProperties &tsp
 	variable compressionMode
+	string nwbFilePath
 
 	variable groupID, numPlaces, numEntries, i
 	string neurodata_type, source, helpText, channelTypeStr, electrodeName, group, comment, electrodePath
@@ -411,7 +415,7 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 
 	// skip writing DA data with I=0 clamp mode (it will just be constant zero)
 	if(p.channelType == IPNWB_CHANNEL_TYPE_DAC && p.clampMode == I_EQUAL_ZERO_MODE)
-		return NaN
+		return locationID
 	endif
 
 	H5_CreateGroupsRecursively(locationID, group)
@@ -507,6 +511,164 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 	endif
 
 	HDF5CloseGroup groupID
+
+	if(version == NWB_VERSION_LATEST && WaveExists(p.epochs) && !IsEmpty(nwbFilePath))
+		HDF5CloseFile locationID
+		WriteEpochs(nwbFilePath, p.epochs, group, p.startingTime, p.samplingRate)
+		return H5_OpenFile(nwbFilePath, write = 1)
+	endif
+
+	return locationID
+End
+
+threadsafe static Function WriteEpochs(string nwbFilePath, WAVE/T epochs, string timeseries, variable startingTime, variable samplingRate)
+	variable i, numEntries, startTime, stopTime, treeLevel
+
+	numEntries = DimSize(epochs, ROWS)
+	for(i = 0; i < numEntries; i += 1)
+		startTime = startingTime + str2num(epochs[i][%StartTime])
+		stopTime  = startingTime + str2num(epochs[i][%EndTime])
+		WAVE/T tags = ListToTextWave(epochs[i][%Name], ";")
+		treeLevel = str2num(epochs[i][%TreeLevel])
+
+//		printf "ts %s, range [%g, %g], tags = %s, treeLevel = %g\r", timeseries, startTime, stopTime, TextWaveToList(tags, ";"), treeLevel
+
+		AppendToEpochTable(nwbFilePath, startTime, stopTime, tags, {timeseries}, {startingTime}, {samplingRate}, treeLevel)
+	endfor
+End
+
+/// @brief Append an epoch to the TimeIntervals table
+///
+/// Note: NWBv2 specific function
+///
+/// @param nwbFilePath   HDF5 file path (required for writing the timeseries compound using a custom XOP)
+/// @param startTime     start time of the epoch in seconds in the global time coordinate system (included in the range)
+/// @param stopTime      stop time of the epoch in seconds in the global time coordinate system (*not* included in the range)
+/// @param tags          text wave with strings for the epoch, format is unspecified
+/// @param timeseries    absolute paths to *existing* timeseries groups
+/// @param startingTime  timeseries starting time in s according to NWBv2 spec
+/// @param rate          timeseries rate in Hz according to NWBv2 spec
+/// @param treelevel     Tree level of the epoch
+threadsafe static Function AppendToEpochTable(string nwbFilePath, variable startTime, variable stopTime, WAVE/T tags, WAVE/T timeseries, WAVE startingTime, WAVE rate, variable treelevel)
+	variable groupID, err, numReadback, numTimeseries, locationID
+	variable appendMode = ROWS, compressionMode = NO_COMPRESSION
+
+	ASSERT_TS(EqualWaves(timeseries, startingTime, 512) == 1 && EqualWaves(timeseries, rate, 512) == 1, "Non matching wave sizes")
+
+	locationID = H5_OpenFile(nwbFilePath, write = 1)
+	nwbFilePath = GetWindowsPath(nwbFilePath)
+
+	if(!H5_GroupExists(locationID, NWB_TIME_INTERVALS_EPOCHS))
+		STRUCT DynamicTable dt
+		InitDynamicTable(dt)
+		dt.description = "experimental epochs"
+		dt.colnames = "start_time;stop_time;tags;timeseries;treelevel"
+		dt.data_type = "TimeIntervals"
+
+		CreateDynamicTable(locationID, NWB_TIME_INTERVALS_EPOCHS, dt)
+		appendMode = -1
+		compressionMode = CHUNKED_COMPRESSION
+	endif
+	groupID = H5_OpenGroup(locationID, NWB_TIME_INTERVALS_EPOCHS)
+	ASSERT_TS(!IsNaN(groupID), "Could not open group at " + NWB_TIME_INTERVALS_EPOCHS)
+
+	WAVE/Z idSize = H5_GetDatasetSize(groupID, "id")
+	numReadback = WaveExists(idSize) ? idSize[ROWS] : 0
+	H5_WriteDataset(groupID, "id", var = numReadback + 1, varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "start_time", var = startTime, varType = IGOR_TYPE_64BIT_FLOAT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "stop_time", var = stopTime, varType = IGOR_TYPE_64BIT_FLOAT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "treelevel", var = treeLevel, varType = IGOR_TYPE_64BIT_FLOAT, compressionMode = compressionMode, appendData = appendMode)
+
+	WAVE/Z tagsSize = H5_GetDatasetSize(groupID, "tags")
+	numReadback = WaveExists(tagsSize) ? tagsSize[ROWS] : 0
+	H5_WriteDataset(groupID, "tags_index", var = (numReadback + DimSize(tags, ROWS)), varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteTextDataset(groupID, "tags", wvText = tags, compressionMode = compressionMode, appendData = appendMode)
+
+	WAVE/Z timeseriesSize = H5_GetDatasetSize(groupID, "timeseries")
+	numReadback = WaveExists(timeseriesSize) ? timeseriesSize[ROWS] : 0
+
+	H5_WriteDataset(groupID, "timeseries_index", var = (numReadback + DimSize(timeseries, ROWS)), varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+
+	HDF5CloseGroup groupID
+	groupID = NaN
+	HDF5CloseFile locationID
+	locationID = NaN
+
+	numTimeSeries = DimSize(timeseries, ROWS)
+	Make/FREE/I/N=(numTimeSeries) offsets = round((startTime - startingTime[p]) * rate[p])
+	Make/FREE/I/N=(numTimeSeries) sizes = round((stopTime - startTime) * rate[p])
+
+#if exists("IPNWB_WriteCompound")
+	try
+		ClearRTError()
+		IPNWB_WriteCompound/S=offsets/C=sizes/REF=timeseries/LOC=(NWB_TIME_INTERVALS_TIMESERIES_EPOCHS) nwbFilePath; AbortOnRTE
+	catch
+		err = ClearRTError()
+		ASSERT_TS(0, "Could not write compound epoch data to NWB file.")
+	endtry
+#else
+	ASSERT_TS(0, "Operation IPNWB_WriteCompound not present.")
+#endif
+
+	if(appendMode == ROWS)
+		return NaN
+	endif
+
+	locationID = H5_OpenFile(nwbFilePath, write = 1)
+	groupID = H5_OpenGroup(locationID, NWB_TIME_INTERVALS_EPOCHS)
+	ASSERT_TS(!IsNaN(groupID), "Could not open group at " + NWB_TIME_INTERVALS_EPOCHS)
+
+	STRUCT ElementIdentifiers id
+	InitElementIdentifiers(id)
+	WriteNeuroDataType(groupID, "id", id.data_type)
+
+	STRUCT VectorData start_time_vector
+	InitVectorData(start_time_vector)
+	start_time_vector.description = "Start time of epoch, in seconds"
+	start_time_vector.path = NWB_TIME_INTERVALS_EPOCHS + "/start_time"
+	WriteNeuroDataType(groupID, "start_time", start_time_vector.data_type)
+	H5_WriteTextAttribute(groupID, "description", "start_time", str = start_time_vector.description)
+
+	STRUCT VectorData stop_time_vector
+	InitVectorData(stop_time_vector)
+	stop_time_vector.description = "Stop time of epoch, in seconds"
+	stop_time_vector.path = NWB_TIME_INTERVALS_EPOCHS + "/stop_time"
+	WriteNeuroDataType(groupID, "stop_time", stop_time_vector.data_type)
+	H5_WriteTextAttribute(groupID, "description", "stop_time", str = stop_time_vector.description)
+
+	STRUCT VectorData tags_vector
+	InitVectorData(tags_vector)
+	tags_vector.description = "user-defined tags"
+	tags_vector.path = NWB_TIME_INTERVALS_EPOCHS + "/tags"
+	WriteNeuroDataType(groupID, "tags", tags_vector.data_type)
+	H5_WriteTextAttribute(groupID, "description", "tags", str = tags_vector.description)
+
+	STRUCT VectorIndex tags_vector_index
+	InitVectorIndex(tags_vector_index)
+	WriteNeuroDataType(groupID, "tags_index", "VectorIndex")
+	H5_WriteTextAttribute(groupID, "target", "tags_index", str = ("D:" + tags_vector.path), refMode = OBJECT_REFERENCE)
+
+	STRUCT VectorData timeseries_vector
+	InitVectorData(timeseries_vector)
+	timeseries_vector.description = "index into a TimeSeries object"
+	timeseries_vector.path = NWB_TIME_INTERVALS_TIMESERIES_EPOCHS
+	WriteNeuroDataType(groupID, "timeseries", timeseries_vector.data_type)
+	H5_WriteTextAttribute(groupID, "description", "timeseries", str = timeseries_vector.description)
+
+	STRUCT VectorIndex timeseries_index
+	InitVectorIndex(timeseries_index)
+	WriteNeuroDataType(groupID, "timeseries_index", "VectorIndex")
+	H5_WriteTextAttribute(groupID, "target", "timeseries_index", str = ("D:" + timeseries_vector.path), refMode = OBJECT_REFERENCE)
+
+	STRUCT VectorData treelevel_vector
+	InitVectorData(treelevel_vector)
+	treelevel_vector.description = "Tree Level"
+	treelevel_vector.path = NWB_TIME_INTERVALS_EPOCHS + "/treelevel"
+	WriteNeuroDataType(groupID, "treelevel", treelevel_vector.data_type)
+	H5_WriteTextAttribute(groupID, "description", "treelevel", str = treelevel_vector.description)
+
+	HDF5CloseGroup groupID
+	HDF5CloseFile locationID
 End
 
 /// @brief Create a Dynamic Table group at path
