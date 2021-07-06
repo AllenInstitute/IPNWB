@@ -530,3 +530,201 @@ Function [WAVE/Z sweep_number, WAVE/Z/T series] LoadSweepTable(variable location
 
 	return [$"", $""]
 End
+
+/// @brief Return the epoch table as wave reference wave
+///
+/// Due to IP limitations, the NWB file path of the closed file must be passed.
+///
+/// See GetEpochsWaveInternal() for the wave layout.
+Function/WAVE LoadEpochTable(string nwbFilePath)
+
+	variable locationID, err, groupID, i, idx, numEntries, offset, size, rate, onePointInSeconds
+	variable offset_startTime, size_endTime
+
+	nwbFilePath = GetWindowsPath(nwbFilePath)
+	locationID = H5_OpenFile(nwbFilePath)
+
+	if(!H5_GroupExists(locationID, NWB_TIME_INTERVALS_EPOCHS))
+		return $""
+	endif
+
+	groupID = H5_OpenGroup(locationID, NWB_TIME_INTERVALS_EPOCHS)
+	ASSERT_TS(!IsNaN(groupID), "Could not open group at " + NWB_TIME_INTERVALS_EPOCHS)
+
+	WAVE startTime = H5_LoadDataset(groupID, "start_time")
+	WAVE stopTime = H5_LoadDataset(groupID, "stop_time")
+	WAVE treelevel = H5_LoadDataset(groupID, "treelevel")
+
+	WAVE tags_rugged = H5_LoadDataset(groupID, "tags")
+	WAVE tags_index = H5_LoadDataset(groupID, "tags_index")
+
+	WAVE/T tags = ExpandRuggedVector(tags_rugged, tags_index, ";")
+	WaveClear tags_rugged, tags_index
+
+	WAVE timeseries_index = H5_LoadDataset(groupID, "timeseries_index")
+
+	HDF5CloseFile locationID
+
+#if exists("IPNWB_ReadCompound")
+	try
+		ClearRTError()
+		IPNWB_ReadCompound/C=sizes_rugged/FREE/REF=timeseries_rugged/LOC=(NWB_TIME_INTERVALS_TIMESERIES_EPOCHS)/S=offsets_rugged nwbFilePath; AbortOnRTE
+	catch
+		err = ClearRTError()
+		ASSERT(0, "Could not read compound epoch data from NWB file.")
+	endtry
+#else
+	WAVE/Z timeseries_rugged, offsets_rugged, sizes_rugged
+	ASSERT(0, "Operation IPNWB_ReadCompound not present.")
+#endif
+
+	WAVE/T timeseries = ExpandRuggedVector(timeseries_rugged, timeseries_index, ";")
+	WAVE offsets = ExpandRuggedVector(offsets_rugged, timeseries_index, ";")
+	WAVE sizes = ExpandRuggedVector(sizes_rugged, timeseries_index, ";")
+
+	ASSERT(EqualWaves(timeseries, offsets, 512) == 1      \
+	          && EqualWaves(timeseries, sizes, 512) == 1     \
+	          && EqualWaves(timeseries, startTime, 512) == 1 \
+	          && EqualWaves(timeseries, stopTime, 512) == 1  \
+	          && EqualWaves(timeseries, treelevel, 512) == 1 \
+	          && EqualWaves(timeseries, tags, 512) == 1, "Non-matching wave sizes")
+
+	locationID = H5_OpenFile(nwbFilePath)
+
+	groupID = H5_OpenGroup(locationID, NWB_TIME_INTERVALS_EPOCHS)
+	ASSERT_TS(!IsNaN(groupID), "Could not open group at " + NWB_TIME_INTERVALS_EPOCHS)
+
+	WAVE startingTimes = GetTimeseriesProperties(locationID, timeseries, "starting_time")
+	WAVE rates = GetTimeseriesProperties(locationID, timeseries, "starting_time", attrName = "rate")
+	WAVE/WAVE epochsAll = GetEpochsWaveInternal(timeseries)
+
+	numEntries = DimSize(timeseries, ROWS)
+	for(i = 0; i < numEntries; i += 1)
+		WAVE/T epochs = epochsAll[%$timeseries[i]]
+		idx = GetNumberFromWaveNote(epochs, NOTE_INDEX)
+		EnsureLargeEnoughWave(epochs, minimumSize = idx)
+
+		epochs[idx][%StartTime] = num2StrHighPrec(startTime[i] - startingTimes[%$timeseries[i]], precision = EPOCHTIME_PRECISION)
+		epochs[idx][%EndTime]   = num2StrHighPrec(stopTime[i] - startingTimes[%$timeseries[i]], precision = EPOCHTIME_PRECISION)
+		epochs[idx][%Name]      = tags[i]
+		epochs[idx][%TreeLevel] = SelectString(IsInteger(treelevel[i]), num2StrHighPrec(treelevel[i], precision = EPOCHTIME_PRECISION), num2istr(treelevel[i]))
+
+		rate = rates[%$timeseries[i]]
+		onePointInSeconds = 1 / rate
+
+		offset = (offsets[i] / rate)
+		size   = offset + (sizes[i] / rate)
+		offset_startTime = str2num(epochs[idx][%StartTime])
+		size_endTime = str2num(epochs[idx][%EndTime])
+
+		ASSERT(abs(offset - offset_startTime) <= 1.01 * onePointInSeconds, "BUG: Invalid start_time vs offset")
+		ASSERT(abs(size - size_endTime) <= 1.01 * onePointInSeconds, "BUG: Invalid size vs size_endTime")
+
+		SetNumberInWaveNote(epochs, NOTE_INDEX, ++idx)
+	endfor
+
+	numEntries = DimSize(epochsAll, ROWS)
+	for(i = 0; i < numEntries; i += 1)
+		WAVE/T epochs = epochsAll[i]
+		idx = GetNumberFromWaveNote(epochs, NOTE_INDEX)
+		Redimension/N=(idx, -1) epochs
+		Note/K epochs
+	endfor
+
+	if(!numEntries)
+		return $""
+	endif
+
+	return epochsAll
+End
+
+/// @brief Return timeseries properties which can be a dataset or attribute as wave
+static Function/WAVE GetTimeseriesProperties(variable locationID, WAVE/T timeseries, string name, [string attrName])
+
+	variable i, numEntries
+	string path
+
+	WAVE/T uniqueTimeseries = GetUniqueEntries(timeseries)
+	numEntries = DimSize(uniqueTimeseries, ROWS)
+
+	Make/FREE/D/N=(numEntries) values
+	for(i = 0; i < numEntries; i += 1)
+		SetDimLabel ROWS, i, $uniqueTimeseries[i], values
+
+		path = uniqueTimeseries[i] + "/" + name
+
+		if(ParamIsDefault(attrName))
+			WAVE/Z wv = H5_LoadDataset(locationID, path)
+			ASSERT_TS(WaveExists(wv), "Missing " + name)
+		else
+			WAVE/Z wv = H5_LoadAttribute(locationID, path, attrName)
+			ASSERT_TS(WaveExists(wv), "Missing " + name)
+		endif
+
+		values[i] = wv[0]
+	endfor
+
+	return values
+End
+
+/// @brief Return a free wave reference wave
+///
+/// ROWS:
+/// - One entry for each unique timeseries path, with dimension label
+///
+/// Each row will hold a Nx4 wave for the epoch info of each row.
+///
+/// @sa GetEpochsWave()
+static Function/WAVE GetEpochsWaveInternal(WAVE/T timeseries)
+	variable numEntries, i
+
+	WAVE/T uniqueTimeseries = GetUniqueEntries(timeseries)
+	numEntries = DimSize(uniqueTimeseries, ROWS)
+
+	Make/FREE/WAVE/N=(numEntries) epochsAll
+
+	for(i = 0; i < numEntries; i += 1)
+		SetDimLabel ROWS, i, $uniqueTimeseries[i], epochsAll
+
+		Make/FREE/T/N=(MINIMUM_WAVE_SIZE, 4) epochs
+		SetEpochsDimensionLabels(epochs)
+		SetNumberInWaveNote(epochs, NOTE_INDEX, 0)
+
+		epochsAll[i] = epochs
+	endfor
+
+	return epochsAll
+End
+
+/// @brief Expand data from rugged DynamicTable column entry
+///
+/// See also https://github.com/hdmf-dev/hdmf-common-schema/blob/main/common/table.yaml#L4.
+static Function/WAVE ExpandRuggedVector(WAVE/T data_rugged, WAVE index, string sep)
+
+	variable i, numEntries, j, first, last
+
+	numEntries = DimSize(index, ROWS)
+
+	if(DimSize(data_rugged, ROWS) == numEntries)
+		Duplicate/FREE/T data_rugged, data
+		return data
+	endif
+
+	Make/FREE/T/N=(numEntries) data
+
+	for(i = 0; i < numEntries; i += 1)
+		if(i == 0)
+			first = 0
+		else
+			first = index[i - 1]
+		endif
+
+		last = index[i]
+
+		for(j = first; j < last; j += 1)
+			data[i] += data_rugged[j] + sep
+		endfor
+	endfor
+
+	return data
+End

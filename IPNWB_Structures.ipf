@@ -24,9 +24,17 @@ Structure WriteChannelParams
 	string electrodeName     ///< electrode identifier the channel was acquired with (string version)
 	variable clampMode       ///< clamp mode, one of @ref IPNWB_ClampModes
 	variable groupIndex      ///< Should be filled with the result of GetNextFreeGroupIndex(locationID, path) before
-							 ///  the first call and must stay constant for all channels for this measurement.
-							 ///  If `NaN` an automatic solution is provided.
+	                         ///  the first call and must stay constant for all channels for this measurement.
+	                         ///  If `NaN` an automatic solution is provided.
 	WAVE data                ///< channel data
+	WAVE/T epochs            ///< epoch information (optional)
+	                         ///  Expected format:
+	                         ///  size nx4
+	                         ///   Columns:
+	                         ///   - Start time [s] in stimset coordinates
+	                         ///   - End time [s] in stimset coordinates
+	                         ///   - key value pair lists using "=" and ";" separators
+	                         ///   - Tree level (convertible to double)
 EndStructure
 
 /// @brief Initialize WriteChannelParams structure
@@ -34,6 +42,8 @@ threadsafe Function InitWriteChannelParams(p)
 	STRUCT WriteChannelParams &p
 
 	p.groupIndex = NaN
+
+	WAVE/T/Z p.epochs = $""
 End
 
 /// @brief Loader structure analog to WriteChannelParams

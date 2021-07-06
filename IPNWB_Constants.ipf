@@ -33,6 +33,8 @@ StrConstant NWB_EPOCHS = "/epochs"
 StrConstant NWB_PROCESSING = "/processing"
 StrConstant NWB_ANALYSIS = "/analysis"
 StrConstant NWB_SPECIFICATIONS = "/specifications"
+StrConstant NWB_TIME_INTERVALS_EPOCHS = "/intervals/epochs"
+StrConstant NWB_TIME_INTERVALS_TIMESERIES_EPOCHS = "/intervals/epochs/timeseries"
 /// @}
 
 /// @name IPNWB naming conventions

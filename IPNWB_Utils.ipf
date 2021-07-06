@@ -880,4 +880,164 @@ threadsafe Function/S GetIgorProVersion()
 	return StringByKey("IGORFILEVERSION", IgorInfo(3))
 End
 
+/// @brief Return the path converted to a windows style path
+threadsafe Function/S GetWindowsPath(path)
+	string path
+
+	return ParseFilepath(5, path, "\\", 0, 0)
+End
+
+threadsafe Function SetEpochsDimensionLabels(WAVE wv)
+	SetDimLabel COLS, 0, StartTime, wv
+	SetDimLabel COLS, 1, EndTime, wv
+	SetDimLabel COLS, 2, Name, wv
+	SetDimLabel COLS, 3, TreeLevel, wv
+End
+
+/// @brief Returns an unsorted free wave with all unique entries from wv neglecting NaN/Inf.
+///
+/// uses built-in igor function FindDuplicates. Entries are deleted from left to right.
+Function/Wave GetUniqueEntries(wv, [caseSensitive])
+	Wave wv
+	variable caseSensitive
+
+	variable numRows, i
+
+	if(IsTextWave(wv))
+		if(ParamIsDefault(caseSensitive))
+			caseSensitive = 1
+		else
+			caseSensitive = !!caseSensitive
+		endif
+
+		return GetUniqueTextEntries(wv, caseSensitive=caseSensitive)
+	endif
+
+	numRows = DimSize(wv, ROWS)
+	ASSERT_TS(numRows == numpnts(wv), "Wave must be 1D")
+
+	Duplicate/FREE wv, result
+
+	if(numRows <= 1)
+		return result
+	endif
+
+	FindDuplicates/RN=result wv
+
+	/// @todo this should be removed as it does not belong into this function
+	WaveTransform/O zapNaNs wv
+	WaveTransform/O zapINFs wv
+
+	return result
+End
+
+/// @brief Convenience wrapper around GetUniqueTextEntries() for string lists
+Function/S GetUniqueTextEntriesFromList(list, [sep, caseSensitive])
+	string list, sep
+	variable caseSensitive
+
+	if(ParamIsDefault(sep))
+		sep = ";"
+	else
+		ASSERT_TS(strlen(sep) == 1, "Separator should be one byte long")
+	endif
+
+	if(ParamIsDefault(caseSensitive))
+		caseSensitive = 1
+	else
+		caseSensitive = !!caseSensitive
+	endif
+
+	WAVE/T wv = ListToTextWave(list, sep)
+	WAVE/T unique = GetUniqueTextEntries(wv, caseSensitive=caseSensitive)
+
+	return TextWaveToList(unique, sep)
+End
+
+/// @brief Search and Remove Duplicates from Text Wave wv
+///
+/// Duplicates are removed from left to right
+///
+/// @param wv             text wave reference
+/// @param caseSensitive  [optional] Indicates whether comparison should be case sensitive. defaults to True
+///
+/// @return free wave with unique entries
+static Function/Wave GetUniqueTextEntries(wv, [caseSensitive])
+	Wave/T wv
+	variable caseSensitive
+
+	variable numEntries, numDuplicates, i
+
+	if(ParamIsDefault(caseSensitive))
+		caseSensitive = 1
+	else
+		caseSensitive = !!caseSensitive
+	endif
+
+	numEntries = DimSize(wv, ROWS)
+	ASSERT_TS(numEntries == numpnts(wv), "Wave must be 1D.")
+
+	Duplicate/T/FREE wv result
+	if(numEntries <= 1)
+		return result
+	endif
+
+	if(caseSensitive)
+		FindDuplicates/RT=result wv
+	else
+		Make/I/FREE index
+		MAKE/T/FREE/N=(numEntries) duplicates = LowerStr(wv[p])
+		FindDuplicates/INDX=index duplicates
+		numDuplicates = DimSize(index, ROWS)
+		for(i = numDuplicates - 1; i >= 0; i -= 1)
+			DeletePoints index[i], 1, result
+		endfor
+	endif
+
+	return result
+End
+
+/// @brief Updates the numeric value of `key` found in the wave note to `val`
+///
+/// @param wv     wave
+/// @param key    key of the Key/Value pair
+/// @param val    value of the Key/Value pair
+/// @param format [optional] printf compatible format string to set
+///               the conversion to string for `val`
+///
+/// The expected wave note format is: `key1:val1;key2:val2;`
+threadsafe Function SetNumberInWaveNote(wv, key, val, [format])
+	Wave wv
+	string key
+	variable val
+	string format
+
+	string str
+
+	ASSERT_TS(WaveExists(wv), "Missing wave")
+	ASSERT_TS(!IsEmpty(key), "Empty key")
+
+	if(!ParamIsDefault(format))
+		ASSERT_TS(!IsEmpty(format), "Empty format")
+		sprintf str, format, val
+		Note/K wv, ReplaceStringByKey(key, note(wv), str)
+	else
+		Note/K wv, ReplaceNumberByKey(key, note(wv), val)
+	endif
+End
+
+/// @brief Returns the numeric value of `key` found in the wave note,
+/// returns NaN if it could not be found
+///
+/// The expected wave note format is: `key1:val1;key2:val2;`
+threadsafe Function GetNumberFromWaveNote(wv, key)
+	Wave wv
+	string key
+
+	ASSERT_TS(WaveExists(wv), "Missing wave")
+	ASSERT_TS(!IsEmpty(key), "Empty key")
+
+	return NumberByKey(key, note(wv))
+End
+
 #endif // IPNWB_INCLUDE_UTILS
