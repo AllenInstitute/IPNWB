@@ -356,6 +356,19 @@ End
 ///
 /// Included here for convenience.
 /// @{
+
+#ifdef IPNWB_DEFINE_IM
+
+// Constants for HDF5DataInfo dataspace_type field
+Constant H5S_NO_CLASS = -1			// Error
+Constant H5S_SCALAR = 0				// Scalar variable
+Constant H5S_SIMPLE = 1				// Constant simple data space
+Constant H5S_NULL = 2				// Constant null data space
+
+#endif
+
+#if IgorVersion() < 9
+
 static Constant kHDF5DataInfoVersion = 1000		// 1000 means 1.000.
 static Constant H5S_MAX_RANK = 32
 
@@ -366,8 +379,6 @@ threadsafe static Function InitHDF5DataInfo(di)				// Sets input fields.
 	di.version = kHDF5DataInfoVersion
 	di.structName = "HDF5DataInfo"
 End
-
-#if IgorVersion() < 9
 
 static Structure HDF5DataInfo					// Use with HDF5DatasetInfo and HDF5AttributeInfo functions
 	// Input fields (inputs to HDF5 XOP)
@@ -439,6 +450,37 @@ threadsafe Function/WAVE H5_LoadDataset(locationID, name)
 	ASSERT_TS(WaveExists(wv), "H5_LoadDataset: loaded wave not found")
 
 	return wv
+End
+
+/// @brief Return the dimension sizes of the given dataset
+///
+/// @param locationID HDF5 identifier, can be a file or group
+/// @param dataset    name of the dataset
+///
+/// @return wave with the dimension sizes or an invalid wave reference
+threadsafe Function/WAVE H5_GetDatasetSize(variable locationID, string dataset)
+	variable ret, rank
+
+	STRUCT HDF5DataInfo di
+	InitHDF5DataInfo(di)
+	ret = HDF5DatasetInfo(locationID, dataset, 2^0, di)
+
+	if(ret)
+		return $""
+	endif
+
+	if(di.dataspace_type == H5S_SIMPLE)
+		rank = di.ndims
+	else
+		rank = 1
+	endif
+
+	ASSERT_TS(rank > 0 && rank < 4, "Unsupported dimension count")
+
+	Make/FREE/N=(4)/D dims = NaN
+	dims[0, rank - 1] = di.dims[p]
+
+	return dims
 End
 
 /// @brief Check if a given attribute exists
@@ -575,7 +617,7 @@ threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath)
 			if(V_flag)
 				HDf5DumpErrors/CLR=1
 				HDF5DumpState
-				ASSERT_TS(0, "H5_CreateGroupsRecursively: Could not create HDF5 group")
+				ASSERT_TS(0, "H5_CreateGroupsRecursively: Could not create HDF5 group: " + fullPath)
 			endif
 			HDF5CloseGroup/Z id
 
