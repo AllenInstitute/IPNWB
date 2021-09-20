@@ -606,7 +606,7 @@ Function/WAVE LoadEpochTable(string nwbFilePath)
 
 		epochs[idx][%StartTime] = num2StrHighPrec(startTime[i] - startingTimes[%$timeseries[i]], precision = EPOCHTIME_PRECISION)
 		epochs[idx][%EndTime]   = num2StrHighPrec(stopTime[i] - startingTimes[%$timeseries[i]], precision = EPOCHTIME_PRECISION)
-		epochs[idx][%Name]      = tags[i]
+		epochs[idx][%Tags]      = tags[i]
 		epochs[idx][%TreeLevel] = SelectString(IsInteger(treelevel[i]), num2StrHighPrec(treelevel[i], precision = EPOCHTIME_PRECISION), num2istr(treelevel[i]))
 
 		rate = rates[%$timeseries[i]]

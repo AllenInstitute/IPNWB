@@ -528,7 +528,7 @@ threadsafe static Function WriteEpochs(string nwbFilePath, WAVE/T epochs, string
 	for(i = 0; i < numEntries; i += 1)
 		startTime = startingTime + str2num(epochs[i][%StartTime])
 		stopTime  = startingTime + str2num(epochs[i][%EndTime])
-		WAVE/T tags = ListToTextWave(epochs[i][%Name], ";")
+		WAVE/T tags = ListToTextWave(epochs[i][%Tags], ";")
 		treeLevel = str2num(epochs[i][%TreeLevel])
 
 //		printf "ts %s, range [%g, %g], tags = %s, treeLevel = %g\r", timeseries, startTime, stopTime, TextWaveToList(tags, ";"), treeLevel
