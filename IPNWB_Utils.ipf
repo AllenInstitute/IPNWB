@@ -890,7 +890,7 @@ End
 threadsafe Function SetEpochsDimensionLabels(WAVE wv)
 	SetDimLabel COLS, 0, StartTime, wv
 	SetDimLabel COLS, 1, EndTime, wv
-	SetDimLabel COLS, 2, Name, wv
+	SetDimLabel COLS, 2, Tags, wv
 	SetDimLabel COLS, 3, TreeLevel, wv
 End
 
