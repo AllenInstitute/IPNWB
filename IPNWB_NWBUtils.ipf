@@ -131,6 +131,11 @@ threadsafe Function/S DetermineNamespace(neurodata_type)
         "LabNotebookNumericalKeys",            \
         "LabNotebookTextualValues",            \
         "LabNotebookTextualKeys",              \
+        "Results",                             \
+        "ResultsNumericalValues",              \
+        "ResultsNumericalKeys",                \
+        "ResultsTextualValues",                \
+        "ResultsTextualKeys",                  \
         "StimulusSets",                        \
         "StimulusSetWavebuilderParameter",     \
         "StimulusSetWavebuilderParameterText", \
