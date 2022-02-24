@@ -313,6 +313,10 @@ threadsafe Function H5_OpenFile(discLocation, [write])
 		write = 0
 	endif
 
+#if IgorVersion() >= 9.0
+	ASSERT_TS(FileExists(discLocation), "H5_OpenFile: HDF5 file does not exist.")
+#endif
+
 	if(write)
 		HDF5OpenFile/Z fileID as discLocation
 	else
