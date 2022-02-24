@@ -306,17 +306,19 @@ End
 threadsafe Function H5_OpenFile(discLocation, [write])
 	string discLocation
 	variable write
+
+	variable fileID
+
 	if(ParamIsDefault(write))
 		write = 0
 	endif
-
-	variable fileID
 
 	if(write)
 		HDF5OpenFile/Z fileID as discLocation
 	else
 		HDF5OpenFile/Z/R fileID as discLocation
 	endif
+
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
