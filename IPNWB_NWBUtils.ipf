@@ -271,6 +271,11 @@ threadsafe Function/S ReadNWBVersion(fileID)
 
 	if(!H5_AttributeExists(fileID, "/", "nwb_version"))
 		WAVE/T/Z nwbVersion = H5_LoadDataSet(fileID, "/nwb_version")
+
+		if(!WaveExists(nwbVersion))
+			// fallback to old naming before IPNWB/a99dba5d (IPNWB: Raise nwb version to 1.0.5, 2016-08-05)
+			WAVE/T/Z nwbVersion = H5_LoadDataSet(fileID, "/neurodata_version")
+		endif
 	else
 		WAVE/T/Z nwbVersion = H5_LoadAttribute(fileID, "/", "nwb_version")
 	endif
@@ -310,7 +315,7 @@ threadsafe Function AnalyzeNWBVersion(version, version0, version1, version2)
 	variable &version0, &version1, &version2
 
 	string strVersion0, strVersion1, strVersion2, msg
-	string regexp = "^(?:NWB-)?([0-9]+)\.([0-9]+)\.*([b]|[0-9]+)"
+	string regexp = "^(?:NWB-)?([0-9]+)\.([0-9]+)\.*([bx]|[0-9]+)"
 
 	SplitString/E=(regexp) version, strVersion0, strVersion1, strVersion2
 	sprintf msg, "Unexpected number of matches (%d) in nwb version string %s.", V_flag, version
