@@ -314,6 +314,7 @@ threadsafe Function AnalyzeNWBVersion(version, version0, version1, version2)
 	string version
 	variable &version0, &version1, &version2
 
+	variable err
 	string strVersion0, strVersion1, strVersion2, msg
 	string regexp = "^(?:NWB-)?([0-9]+)\.([0-9]+)\.*([bx]|[0-9]+)"
 
@@ -321,7 +322,7 @@ threadsafe Function AnalyzeNWBVersion(version, version0, version1, version2)
 	sprintf msg, "Unexpected number of matches (%d) in nwb version string %s.", V_flag, version
 	ASSERT_TS(V_flag >= 2, msg)
 
-	version2 = str2num(strVersion2)
+	version2 = str2num(strVersion2); err = GetRTError(1)
 	version1 = str2num(strVersion1)
 	version0 = str2num(strVersion0)
 
