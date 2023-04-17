@@ -602,7 +602,7 @@ Function/WAVE LoadEpochTable(string nwbFilePath)
 	for(i = 0; i < numEntries; i += 1)
 		WAVE/T epochs = epochsAll[%$timeseries[i]]
 		idx = GetNumberFromWaveNote(epochs, NOTE_INDEX)
-		EnsureLargeEnoughWave(epochs, minimumSize = idx)
+		EnsureLargeEnoughWave(epochs, indexShouldExist = idx)
 
 		epochs[idx][%StartTime] = num2StrHighPrec(startTime[i] - startingTimes[%$timeseries[i]], precision = EPOCHTIME_PRECISION)
 		epochs[idx][%EndTime]   = num2StrHighPrec(stopTime[i] - startingTimes[%$timeseries[i]], precision = EPOCHTIME_PRECISION)
