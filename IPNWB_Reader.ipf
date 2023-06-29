@@ -687,7 +687,7 @@ static Function/WAVE GetEpochsWaveInternal(WAVE/T timeseries)
 		SetDimLabel ROWS, i, $uniqueTimeseries[i], epochsAll
 
 		Make/FREE/T/N=(MINIMUM_WAVE_SIZE, 4) epochs
-		SetEpochsDimensionLabels(epochs)
+		SetEpochsDimensionLabelsSingleChannel(epochs)
 		SetNumberInWaveNote(epochs, NOTE_INDEX, 0)
 
 		epochsAll[i] = epochs
