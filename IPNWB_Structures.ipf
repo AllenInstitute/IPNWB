@@ -52,10 +52,10 @@ Structure ReadChannelParams
 	string   channelSuffix    ///< custom channel suffix, in case the channel number is ambiguous
 	variable sweep            ///< running number for each measurement
 	variable channelType      ///< channel type, one of @ref IPNWBChannelTypes
-	variable channelNumber    ///< running number of the channel
+	variable channelNumber    ///< running number of the hardware channel
 	variable electrodeNumber  ///< electrode identifier the channel was acquired with
 	variable groupIndex       ///< constant for all channels in this measurement.
-	variable ttlBit           ///< unambigous ttl-channel-number
+	variable ttlBit           ///< additional information to make the channel number unambigous, in the range 2^0, ..., 2^3
 EndStructure
 
 /// @brief Initialization routine for InitReadChannelParams
