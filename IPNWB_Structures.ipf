@@ -56,6 +56,7 @@ Structure ReadChannelParams
 	variable electrodeNumber  ///< electrode identifier the channel was acquired with
 	variable groupIndex       ///< constant for all channels in this measurement.
 	variable ttlBit           ///< additional information to make the channel number unambigous, in the range 2^0, ..., 2^3
+	variable samplingRate     ///< sampling rate in Hz
 EndStructure
 
 /// @brief Initialization routine for InitReadChannelParams
@@ -70,6 +71,7 @@ threadsafe Function InitReadChannelParams(p)
 	p.electrodeNumber = NaN
 	p.groupIndex      = NaN
 	p.ttlBit          = NaN
+	p.samplingRate    = NaN
 End
 
 /// @brief Structure to hold all properties of the NWB file directly below `/general`

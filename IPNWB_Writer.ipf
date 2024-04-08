@@ -428,7 +428,7 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 			sprintf channelTypeStr, "%s=%d", channelTypeStr, p.channelNumber
 		endif
 
-		sprintf source, "Device=%s;Sweep=%d;%s;ElectrodeNumber=%s;ElectrodeName=%s", p.device, p.sweep, channelTypeStr, num2str(p.electrodeNumber), p.electrodeName
+		sprintf source, "Device=%s;Sweep=%d;%s;ElectrodeNumber=%s;ElectrodeName=%s;SamplingRate=%s", p.device, p.sweep, channelTypeStr, num2str(p.electrodeNumber), p.electrodeName, num2str(p.samplingRate,"%g")
 
 		if(strlen(p.channelSuffixDesc) > 0 && strlen(p.channelSuffix) > 0)
 			ASSERT_TS(strsearch(p.channelSuffix, "=", 0) == -1, "WriteSingleChannel: channelSuffix must not contain an equals (=) symbol")
