@@ -227,6 +227,9 @@ threadsafe Function LoadSourceAttribute(locationID, channel, p)
 			case "TTLBit":
 				p.ttlBit = str2num(value)
 				break
+			case "SamplingRate":
+				p.samplingRate = str2num(value)
+				break
 			default:
 		endswitch
 	endfor
