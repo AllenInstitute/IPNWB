@@ -235,9 +235,9 @@ threadsafe Function H5_WriteTextAttribute(locationID, attrName, path, [list, str
 	overwrite = ParamIsDefault(overwrite) ? 0 : !!overwrite
 
 	if(overwrite)
-		HDF5SaveData/A={attrName, forceSimpleDataSpace}/IGOR=0/REF=(refMode)/O/Z data, locationID, path
+		HDF5SaveData/A={attrName, forceSimpleDataSpace}/IGOR=0/REF=(refMode)/STRF={0, 0, 1}/O/Z data, locationID, path
 	else
-		HDF5SaveData/A={attrName, forceSimpleDataSpace}/IGOR=0/REF=(refMode)/Z data, locationID, path
+		HDF5SaveData/A={attrName, forceSimpleDataSpace}/IGOR=0/REF=(refMode)/STRF={0, 0, 1}/Z data, locationID, path
 	endif
 
 	if(V_flag)
