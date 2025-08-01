@@ -115,20 +115,10 @@ End
 
 /// @brief Create the HDF5 group for intracellular ephys
 ///
-/// @param locationID                                    HDF5 identifier
-/// @param filtering [optional, defaults to PLACEHOLDER] filtering information
-threadsafe Function CreateIntraCellularEphys(variable locationID, [string filtering])
-
-	variable groupID
-
-	if(ParamIsDefault(filtering))
-		filtering = PLACEHOLDER
-	endif
+/// @param locationID HDF5 identifier
+threadsafe Function CreateIntraCellularEphys(variable locationID)
 
 	H5_CreateGroupsRecursively(locationID, NWB_INTRACELLULAR_EPHYS)
-	groupID = H5_OpenGroup(locationID, NWB_INTRACELLULAR_EPHYS)
-	H5_WriteTextDataset(groupID, "filtering", str = filtering, overwrite = 1)
-	HDF5CloseGroup groupID
 End
 
 /// @brief Add an entry for the device @p name in the nwb file specified by @p locationID
