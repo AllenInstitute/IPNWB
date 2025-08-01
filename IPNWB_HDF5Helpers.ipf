@@ -471,7 +471,9 @@ threadsafe Function H5_AttributeExists(variable locationID, string path, string 
 
 	if(datasetExists && groupExists)
 		FATAL_ERROR("Could not handle attribute when both a group and a dataset exist with the same name.")
-	elseif(groupExists)
+	endif
+
+	if(groupExists)
 		objectTypeVar = 1
 	elseif(datasetExists)
 		objectTypeVar = 2
