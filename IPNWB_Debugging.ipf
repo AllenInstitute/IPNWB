@@ -86,6 +86,12 @@ threadsafe Function ASSERT_TS(variable var, string errorMsg)
 	endtry
 End
 
+/// @brief Abort execution with the given message
+threadsafe Function FATAL_ERROR(string errorMsg)
+
+	ASSERT_TS(0, errorMsg)
+End
+
 #if defined(DEBUGGING_ENABLED)
 
 static StrConstant functionReturnMessage = "return value"
