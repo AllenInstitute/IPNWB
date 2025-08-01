@@ -29,7 +29,8 @@ Installation
 * Install the HDF5 XOP and the HDF5 Browser as described in ``DisplayHelpTopic
   "Installing The HDF5 Package"``
 * Create the following shortcut in
-  ``C:\Users\$username\Documents\WaveMetrics\Igor Pro [78] User Files``
+  ``C:\Users\$username\Documents\WaveMetrics\Igor Pro XXX User Files``
+  where XXX is your major Igor Pro version
 
   * In "Igor Procedures" a shortcut pointing to the basefolder of the IPNWB
     package
