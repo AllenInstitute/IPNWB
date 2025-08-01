@@ -1,5 +1,5 @@
 
- 991ab801aae626710a8ec710869bb1b4508e91b7 ndx-MIES (heads/first-steps)
+ ce4ff3351e9f3979e24f3620f5c3795e98556a58 ndx-MIES (v0.1.0~1)
  24fba6174ddbad171ee5bb824edfa31f86b1b16d specifications (2.2.4)
 
 # diff namespace core upstream vs IPNWB specifications for nwb.base
@@ -12,86 +12,175 @@
 # diff namespace core upstream vs IPNWB specifications for nwb.image
 # diff namespace core upstream vs IPNWB specifications for nwb.misc
 # diff namespace core upstream vs IPNWB specifications for nwb.namespace
-2,4c2
+2,60c2,63
 < - name: core
 <   doc: NWB namespace
 <   author:
----
-> - author:
-17a16
->   doc: NWB namespace
-18a18
->   name: core
-23c23
+<   - Andrew Tritt
+<   - Oliver Ruebel
+<   - Ryan Ly
+<   - Ben Dichter
+<   - Keith Godfrey
+<   - Jeff Teeters
+<   contact:
+<   - ajtritt@lbl.gov
+<   - oruebel@lbl.gov
+<   - rly@lbl.gov
+<   - bdichter@lbl.gov
+<   - keithg@alleninstitute.org
+<   - jteeters@berkeley.edu
+<   full_name: NWB core
+<   schema:
+<   - namespace: hdmf-common
+<   - doc: This source module contains base data types used throughout the NWB:N data
+<       format.
 <     source: nwb.base.yaml
----
->     source: nwb.base
-26c26
+<     title: Base data types
+<   - doc: This source module contains neurodata_types for device data.
 <     source: nwb.device.yaml
----
->     source: nwb.device
-29c29
+<     title: Devices
+<   - doc: This source module contains neurodata_types for epoch data.
 <     source: nwb.epoch.yaml
----
->     source: nwb.epoch
-32c32
+<     title: Epochs
+<   - doc: This source module contains neurodata_types for image data.
 <     source: nwb.image.yaml
----
->     source: nwb.image
-35c35
+<     title: Image data
+<   - doc: Main NWB:N file specification.
 <     source: nwb.file.yaml
----
->     source: nwb.file
-38c38
+<     title: NWB:N file
+<   - doc: Miscellaneous types.
 <     source: nwb.misc.yaml
----
->     source: nwb.misc
-41c41
+<     title: Miscellaneous neurodata_types.
+<   - doc: This source module contains neurodata_types for behavior data.
 <     source: nwb.behavior.yaml
----
->     source: nwb.behavior
-45c45
+<     title: Behavior
+<   - doc: This source module contains neurodata_types for extracellular electrophysiology
+<       data.
 <     source: nwb.ecephys.yaml
----
->     source: nwb.ecephys
-49c49
+<     title: Extracellular electrophysiology
+<   - doc: This source module contains neurodata_types for intracellular electrophysiology
+<       data.
 <     source: nwb.icephys.yaml
----
->     source: nwb.icephys
-52c52
+<     title: Intracellular electrophysiology
+<   - doc: This source module contains neurodata_types for opto-genetics data.
 <     source: nwb.ogen.yaml
----
->     source: nwb.ogen
-55c55
+<     title: Optogenetics
+<   - doc: This source module contains neurodata_types for optical physiology data.
 <     source: nwb.ophys.yaml
----
->     source: nwb.ophys
-58c58
+<     title: Optical physiology
+<   - doc: This source module contains neurodata_type for retinotopy data.
 <     source: nwb.retinotopy.yaml
+<     title: Retinotopy
+<   version: 2.2.4
 ---
->     source: nwb.retinotopy
+>   - author:
+>       - Andrew Tritt
+>       - Oliver Ruebel
+>       - Ryan Ly
+>       - Ben Dichter
+>       - Keith Godfrey
+>       - Jeff Teeters
+>
+>     contact:
+>       - ajtritt@lbl.gov
+>       - oruebel@lbl.gov
+>       - rly@lbl.gov
+>       - bdichter@lbl.gov
+>       - keithg@alleninstitute.org
+>       - jteeters@berkeley.edu
+>
+>     doc: NWB namespace
+>
+>     full_name: NWB core
+>
+>     name: core
+>
+>     schema:
+>       - namespace: hdmf-common
+>       - doc: This source module contains base data types used throughout the NWB:N data format.
+>         source: nwb.base
+>         title: Base data types
+>       - doc: This source module contains neurodata_types for device data.
+>         source: nwb.device
+>         title: Devices
+>       - doc: This source module contains neurodata_types for epoch data.
+>         source: nwb.epoch
+>         title: Epochs
+>       - doc: This source module contains neurodata_types for image data.
+>         source: nwb.image
+>         title: Image data
+>       - doc: Main NWB:N file specification.
+>         source: nwb.file
+>         title: NWB:N file
+>       - doc: Miscellaneous types.
+>         source: nwb.misc
+>         title: Miscellaneous neurodata_types.
+>       - doc: This source module contains neurodata_types for behavior data.
+>         source: nwb.behavior
+>         title: Behavior
+>       - doc: This source module contains neurodata_types for extracellular electrophysiology data.
+>         source: nwb.ecephys
+>         title: Extracellular electrophysiology
+>       - doc: This source module contains neurodata_types for intracellular electrophysiology data.
+>         source: nwb.icephys
+>         title: Intracellular electrophysiology
+>       - doc: This source module contains neurodata_types for opto-genetics data.
+>         source: nwb.ogen
+>         title: Optogenetics
+>       - doc: This source module contains neurodata_types for optical physiology data.
+>         source: nwb.ophys
+>         title: Optical physiology
+>       - doc: This source module contains neurodata_type for retinotopy data.
+>         source: nwb.retinotopy
+>         title: Retinotopy
+>
+>     version: 2.2.4
 # diff namespace core upstream vs IPNWB specifications for nwb.ogen
 # diff namespace core upstream vs IPNWB specifications for nwb.ophys
 # diff namespace core upstream vs IPNWB specifications for nwb.retinotopy
 # diff namespace hdmf-common upstream vs IPNWB specifications for namespace
-2,4c2
+2,21c2,21
 < - name: hdmf-common
 <   doc: Common data structures provided by HDMF
 <   author:
----
-> - author:
-13a12
->   doc: Common data structures provided by HDMF
-14a14
->   name: hdmf-common
-17c17
+<   - Andrew Tritt
+<   - Oliver Ruebel
+<   - Ryan Ly
+<   - Ben Dichter
+<   contact:
+<   - ajtritt@lbl.gov
+<   - oruebel@lbl.gov
+<   - rly@lbl.gov
+<   - bdichter@lbl.gov
+<   full_name: HDMF Common
+<   schema:
+<   - doc: data types for a column-based table
 <     source: table.yaml
----
->     source: table
-20c20
+<     title: Table data types
+<   - doc: data types for different types of sparse matrices
 <     source: sparse.yaml
+<   version: 1.1.3
 ---
->     source: sparse
+>   - author:
+>       - Andrew Tritt
+>       - Oliver Ruebel
+>       - Ryan Ly
+>       - Ben Dichter
+>     contact:
+>       - ajtritt@lbl.gov
+>       - oruebel@lbl.gov
+>       - rly@lbl.gov
+>       - bdichter@lbl.gov
+>     doc: Common data structures provided by HDMF
+>     full_name: HDMF Common
+>     name: hdmf-common
+>     schema:
+>       - doc: data types for a column-based table
+>         source: table
+>         title: Table data types
+>       - doc: data types for different types of sparse matrices
+>         source: sparse
+>     version: 1.1.3
 # diff namespace hdmf-common upstream vs IPNWB specifications for sparse
 # diff namespace hdmf-common upstream vs IPNWB specifications for table
 # diff namespace ndx-mies upstream vs IPNWB specifications for namespace
