@@ -158,6 +158,7 @@ threadsafe Function AnalyseChannelName(string channel, STRUCT ReadChannelParams 
 			break
 		default:
 			p.channelType = IPNWB_CHANNEL_TYPE_OTHER
+			break
 	endswitch
 	p.channelNumber = str2num(channelNumber)
 End
