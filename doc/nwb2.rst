@@ -33,5 +33,4 @@ datasets that belong to a given sweep number.  A sweep table is loaded by
 `LoadSweepTable` and created using `AppendToSweepTable`
 
 .. image:: sweep_table.png
-
-   The structure of the sweep table dataset.
+   :alt: The structure of the sweep table dataset.
