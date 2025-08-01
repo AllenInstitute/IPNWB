@@ -11,4 +11,3 @@ The following tree describes the NWB layout version 1
 
 .. literalinclude:: specifications_core_1_nwb.yaml
    :language: yaml
-
