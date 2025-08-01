@@ -242,6 +242,9 @@ threadsafe Function/S DetermineDataTypeFromProperties(variable channelType, vari
 					return "CurrentClampSeries"
 				case I_EQUAL_ZERO_MODE:
 					return "IZeroClampSeries"
+				default:
+					// unassociated channel
+					break
 			endswitch
 		case IPNWB_CHANNEL_TYPE_DAC:
 			switch(clampMode)
@@ -249,7 +252,13 @@ threadsafe Function/S DetermineDataTypeFromProperties(variable channelType, vari
 					return "VoltageClampStimulusSeries"
 				case I_CLAMP_MODE:
 					return "CurrentClampStimulusSeries"
+				default:
+					// unassociated channel
+					break
 			endswitch
+		default:
+			// TTL
+			break
 	endswitch
 
 	return "TimeSeries"
