@@ -49,9 +49,9 @@ cp ${DIR}/ndx-mies/spec/*.extensions.yaml ${DIR}/namespace/ndx-mies/yaml
 #
 # jqfilter to remove ".yaml" from namespace specifications:
 jqfilter="walk(if type == \"object\" and has(\"source\") then .[] |= rtrimstr(\".yaml\") else . end)"
-yq --tojson r specifications/core/nwb.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/core/yaml/nwb.namespace.yaml
-yq --tojson r specifications/hdmf-common-schema/common/namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/hdmf-common/yaml/namespace.yaml
-yq --tojson r ndx-mies/spec/ndx-mies.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/ndx-mies/yaml/namespace.yaml
+yq --output-format json '.' specifications/core/nwb.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/core/yaml/nwb.namespace.yaml
+yq  --output-format json '.' specifications/hdmf-common-schema/common/namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/hdmf-common/yaml/namespace.yaml
+yq  --output-format json '.' ndx-mies/spec/ndx-mies.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/ndx-mies/yaml/namespace.yaml
 
 # jqfilter to get only required objects:
 # ▶ jqfilter='walk(if type == "object" and has("required") then select(.required != false) else . end)'
@@ -78,7 +78,7 @@ do
 	echo "# diff namespace $namespace upstream vs IPNWB specifications for $specification" | tee --append $logfile
 	diff "${DIR}/${upstream_path}/${specification}.yaml" "$file" | tee --append $logfile
 
-	yq --tojson r "$file" | jq $jqargs . > ${DIR}/namespace/${namespace}/json/${specification}.json
+	yq --output-format json '.' "$file" | jq $jqargs . > ${DIR}/namespace/${namespace}/json/${specification}.json
 done
 
 d2u ${DIR}/namespace/*/json/*.json
