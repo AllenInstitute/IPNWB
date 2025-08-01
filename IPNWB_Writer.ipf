@@ -205,7 +205,7 @@ threadsafe Function AddModificationTimeEntry(variable locationID, variable versi
 	if(V_flag)
 		HDF5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "AddModificationTimeEntry: Could not append to the HDF5 dataset")
+		FATAL_ERROR("AddModificationTimeEntry: Could not append to the HDF5 dataset")
 	endif
 End
 
@@ -318,7 +318,7 @@ threadsafe Function GetNextFreeGroupIndex(variable locationID, string path)
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "GetNextFreeGroupIndex: Could not get list of objects at path:" + path)
+		FATAL_ERROR("GetNextFreeGroupIndex: Could not get list of objects at path:" + path)
 	endif
 
 	list = S_HDF5ListGroup
@@ -574,10 +574,10 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 		IPNWB_WriteCompound/S=offsets/C=sizes/REF=timeseries/LOC=(NWB_TIME_INTERVALS_TIMESERIES_EPOCHS) nwbFilePath; AbortOnRTE
 	catch
 		err = ClearRTError()
-		ASSERT_TS(0, "Could not write compound epoch data to NWB file.")
+		FATAL_ERROR("Could not write compound epoch data to NWB file.")
 	endtry
 #else
-	ASSERT_TS(0, "Operation IPNWB_WriteCompound not present.")
+	FATAL_ERROR("Operation IPNWB_WriteCompound not present.")
 #endif
 
 	if(appendMode == ROWS)
