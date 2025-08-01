@@ -1,6 +1,9 @@
-#pragma TextEncoding = "UTF-8"
+#pragma rtGlobals        = 3
+#pragma rtFunctionErrors = 1
+#pragma TextEncoding     = "UTF-8"
 
 #define IPNWB_DEFINE_IM
+
 #include "IPNWB_include"
 
 Function NWBReaderExample()
@@ -10,7 +13,7 @@ Function NWBReaderExample()
 	STRUCT IPNWB#TimeSeriesProperties tsp
 
 	// Open a dialog for selecting an HDF5 file name
-	fileID = IPNWB#H5_OpenFile("c:\\NWB-Sample-20160216.nwb")
+	fileID  = IPNWB#H5_OpenFile("c:\\NWB-Sample-20160216.nwb")
 	version = IPNWB#GetNWBMajorVersion(IPNWB#ReadNWBVersion(fileID))
 
 	integrityCheck = IPNWB#CheckIntegrity(fileID)

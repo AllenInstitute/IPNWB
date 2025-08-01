@@ -1,7 +1,7 @@
-#pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3 // Use modern global access method and strict wave access.
-#pragma rtFunctionErrors=1
-#pragma version=0.18
+#pragma TextEncoding     = "UTF-8"
+#pragma rtGlobals        = 3 // Use modern global access method and strict wave access.
+#pragma rtFunctionErrors = 1
+#pragma version          = 0.18
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -9,8 +9,8 @@
 /// @brief Utility functions
 
 #ifdef IPNWB_DEFINE_IM
-#pragma IndependentModule=IPNWB
-#endif
+#pragma IndependentModule = IPNWB
+#endif // IPNWB_DEFINE_IM
 
 #ifdef IPNWB_INCLUDE_UTILS
 
@@ -18,8 +18,7 @@
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-threadsafe Function IsFinite(var)
-	variable var
+threadsafe Function IsFinite(variable var)
 
 	return numType(var) == 0
 End
@@ -28,8 +27,7 @@ End
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-threadsafe Function IsNaN(var)
-	variable var
+threadsafe Function IsNaN(variable var)
 
 	return numType(var) == 2
 End
@@ -39,8 +37,7 @@ End
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-threadsafe Function isNull(str)
-	string& str
+threadsafe Function isNull(string &str)
 
 	variable len = strlen(str)
 	return numtype(len) == 2
@@ -51,8 +48,7 @@ End
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-threadsafe Function isEmpty(str)
-	string& str
+threadsafe Function isEmpty(string &str)
 
 	variable len = strlen(str)
 	return numtype(len) == 2 || len <= 0
@@ -60,12 +56,12 @@ End
 
 /// @brief Return the seconds since Igor Pro epoch (1/1/1904) in UTC time zone
 threadsafe Function DateTimeInUTC()
+
 	return DateTime - date2secs(-1, -1, -1)
 End
 
 /// @brief Returns one if var is an integer and zero otherwise
-threadsafe Function IsInteger(var)
-	variable var
+threadsafe Function IsInteger(variable var)
 
 	return IsFinite(var) && trunc(var) == var
 End
@@ -75,10 +71,9 @@ End
 ///                              in UTC (or local time zone depending on `localTimeZone`)
 /// @param numFracSecondsDigits  [optional, defaults to zero] Number of sub-second digits
 /// @param localTimeZone         [optional, defaults to false] Use the local time zone instead of UTC
-threadsafe Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSecondsDigits, localTimeZone])
-	variable secondsSinceIgorEpoch, numFracSecondsDigits, localTimeZone
+threadsafe Function/S GetISO8601TimeStamp([variable secondsSinceIgorEpoch, variable numFracSecondsDigits, variable localTimeZone])
 
-	string str
+	string   str
 	variable timezone
 
 	if(ParamIsDefault(localTimeZone))
@@ -102,7 +97,7 @@ threadsafe Function/S GetISO8601TimeStamp([secondsSinceIgorEpoch, numFracSeconds
 	endif
 
 	if(localTimeZone)
-		timezone = Date2Secs(-1,-1,-1)
+		timezone = Date2Secs(-1, -1, -1)
 		sprintf str, "%sT%s%+03d:%02d", Secs2Date(secondsSinceIgorEpoch, -2), Secs2Time(secondsSinceIgorEpoch, 3, numFracSecondsDigits), trunc(timezone / 3600), abs(mod(timezone / 60, 60))
 	else
 		sprintf str, "%sT%sZ", Secs2Date(secondsSinceIgorEpoch, -2), Secs2Time(secondsSinceIgorEpoch, 3, numFracSecondsDigits)
@@ -154,11 +149,7 @@ End
 /// \endrst
 ///
 /// [1]: 8th edition of the SI Brochure (2014), http://www.bipm.org/en/publications/si-brochure
-threadsafe Function ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
-	string unitWithPrefix
-	string &prefix
-	variable &numPrefix
-	string &unit
+threadsafe Function ParseUnit(string unitWithPrefix, string &prefix, variable &numPrefix, string &unit)
 
 	string expr
 
@@ -179,15 +170,14 @@ End
 /// @brief Return the numerical value of a SI decimal multiplier
 ///
 /// @see ParseUnit
-threadsafe Function GetDecimalMultiplierValue(prefix)
-	string prefix
+threadsafe Function GetDecimalMultiplierValue(string prefix)
 
 	if(isEmpty(prefix))
 		return 1
 	endif
 
 	Make/FREE/T prefixes = {"Y", "Z", "E", "P", "T", "G", "M", "k", "h", "da", "d", "c", "m", "mu", "n", "p", "f", "a", "z", "y"}
-	Make/FREE/D values   = {1e24, 1e21, 1e18, 1e15, 1e12, 1e9, 1e6, 1e3, 1e2, 1e1, 1e-1, 1e-2, 1e-3, 1e-6, 1e-9, 1e-12, 1e-15, 1e-18, 1e-21, 1e-24}
+	Make/FREE/D values = {1e24, 1e21, 1e18, 1e15, 1e12, 1e9, 1e6, 1e3, 1e2, 1e1, 1e-1, 1e-2, 1e-3, 1e-6, 1e-9, 1e-12, 1e-15, 1e-18, 1e-21, 1e-24}
 
 	FindValue/Z/TXOP=(1 + 4)/TEXT=(prefix) prefixes
 	ASSERT_TS(V_Value != -1, "GetDecimalMultiplierValue: Could not find prefix")
@@ -197,24 +187,21 @@ threadsafe Function GetDecimalMultiplierValue(prefix)
 End
 
 /// @brief Return 1 if the wave is a text wave, zero otherwise
-threadsafe Function IsTextWave(wv)
-	WAVE wv
+threadsafe Function IsTextWave(WAVE wv)
 
 	return WaveType(wv, 1) == 2
 End
 
 /// @brief Return 1 if the wave is a numeric wave, zero otherwise
-threadsafe Function IsNumericWave(wv)
-	WAVE wv
+threadsafe Function IsNumericWave(WAVE wv)
 
 	return WaveType(wv, 1) == 1
 End
 
 /// @brief Remove a string prefix from each list item and
 /// return the new list
-threadsafe Function/S RemovePrefixFromListItem(prefix, list, [listSep])
-	string prefix, list
-	string listSep
+threadsafe Function/S RemovePrefixFromListItem(string prefix, string list, [string listSep])
+
 	if(ParamIsDefault(listSep))
 		listSep = ";"
 	endif
@@ -222,23 +209,22 @@ threadsafe Function/S RemovePrefixFromListItem(prefix, list, [listSep])
 	string result, entry
 	variable numEntries, i, len
 
-	result = ""
-	len = strlen(prefix)
+	result     = ""
+	len        = strlen(prefix)
 	numEntries = ItemsInList(list, listSep)
 	for(i = 0; i < numEntries; i += 1)
 		entry = StringFromList(i, list, listSep)
-		if(!cmpstr(entry[0,(len-1)], prefix))
-			entry = entry[(len),inf]
+		if(!cmpstr(entry[0, (len - 1)], prefix))
+			entry = entry[(len), Inf]
 		endif
-		result = AddListItem(entry, result, listSep, inf)
+		result = AddListItem(entry, result, listSep, Inf)
 	endfor
 
 	return result
 End
 
 /// @brief Turn a persistent wave into a free wave
-threadsafe Function/Wave MakeWaveFree(wv)
-	WAVE wv
+threadsafe Function/WAVE MakeWaveFree(WAVE wv)
 
 	DFREF dfr = NewFreeDataFolder()
 
@@ -253,22 +239,20 @@ End
 ///
 /// @param dfr 	    datafolder reference where the new datafolder should be created
 /// @param baseName first part of the wave name, might be shorted due to Igor Pro limitations
-threadsafe Function/S UniqueWaveName(dfr, baseName)
-	dfref dfr
-	string baseName
+threadsafe Function/S UniqueWaveName(DFREF dfr, string baseName)
 
 	variable index, numRuns
 	string name
 	string path
 
-	ASSERT_TS(!isEmpty(baseName), "UniqueWaveName: baseName must not be empty" )
+	ASSERT_TS(!isEmpty(baseName), "UniqueWaveName: baseName must not be empty")
 	ASSERT_TS(DataFolderExistsDFR(dfr), "UniqueWaveName: dfr does not exist")
 
 	// shorten basename so that we can attach some numbers
-	numRuns = 10000
+	numRuns  = 10000
 	baseName = CleanupName(baseName[0, MAX_OBJECT_NAME_LENGTH_IN_BYTES - (ceil(log(numRuns)) + 1)], 0)
-	path = GetDataFolder(1, dfr)
-	name = baseName
+	path     = GetDataFolder(1, dfr)
+	name     = baseName
 
 	do
 		if(!WaveExists($(path + name)))
@@ -290,8 +274,7 @@ End
 /// Unlike DataFolderExists() a dfref pointing to an empty ("") dataFolder is considered non-existing here.
 /// @returns one if dfr is valid and references an existing or free datafolder, zero otherwise
 /// Taken from http://www.igorexchange.com/node/2055
-threadsafe Function DataFolderExistsDFR(dfr)
-	dfref dfr
+threadsafe Function DataFolderExistsDFR(DFREF dfr)
 
 	string dataFolder
 
@@ -299,8 +282,8 @@ threadsafe Function DataFolderExistsDFR(dfr)
 		case 0: // invalid ref, does not exist
 			return 0
 		case 1: // might be valid
-			dataFolder = GetDataFolder(1,dfr)
-			return cmpstr(dataFolder,"") != 0 && DataFolderExists(dataFolder)
+			dataFolder = GetDataFolder(1, dfr)
+			return cmpstr(dataFolder, "") != 0 && DataFolderExists(dataFolder)
 		case 3: // free data folders always exist
 			return 1
 		default:
@@ -316,8 +299,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-threadsafe Function/S GetBaseName(filePathWithSuffix, [sep])
-	string filePathWithSuffix, sep
+threadsafe Function/S GetBaseName(string filePathWithSuffix, [string sep])
 
 	if(ParamIsDefault(sep))
 		sep = ":"
@@ -333,8 +315,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-threadsafe Function/S GetFileSuffix(filePathWithSuffix, [sep])
-	string filePathWithSuffix, sep
+threadsafe Function/S GetFileSuffix(string filePathWithSuffix, [string sep])
 
 	if(ParamIsDefault(sep))
 		sep = ":"
@@ -350,8 +331,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-threadsafe Function/S GetFolder(filePathWithSuffix, [sep])
-	string filePathWithSuffix, sep
+threadsafe Function/S GetFolder(string filePathWithSuffix, [string sep])
 
 	if(ParamIsDefault(sep))
 		sep = ":"
@@ -367,8 +347,7 @@ End
 /// @param filePathWithSuffix full path
 /// @param sep                [optional, defaults to ":"] character
 ///                           separating the path components
-threadsafe Function/S GetFile(filePathWithSuffix, [sep])
-	string filePathWithSuffix, sep
+threadsafe Function/S GetFile(string filePathWithSuffix, [string sep])
 
 	if(ParamIsDefault(sep))
 		sep = ":"
@@ -385,8 +364,7 @@ End
 /// - ` `/`T` between date and time
 /// - fractional seconds
 /// - `,`/`.` as decimal separator
-threadsafe Function ParseISO8601TimeStamp(timestamp)
-	string timestamp
+threadsafe Function ParseISO8601TimeStamp(string timestamp)
 
 	string year, month, day, hour, minute, second, regexp, fracSeconds, tzOffsetSign, tzOffsetHour, tzOffsetMinute
 	variable secondsSinceEpoch, timeOffset
@@ -427,9 +405,7 @@ threadsafe Function ParseISO8601TimeStamp(timestamp)
 End
 
 /// @brief Convert a text wave to string list
-threadsafe Function/S TextWaveToList(txtWave, sep)
-	WAVE/T txtWave
-	string sep
+threadsafe Function/S TextWaveToList(WAVE/T txtWave, string sep)
 
 	string list = ""
 	variable i, numRows
@@ -449,8 +425,7 @@ End
 ///
 /// @return full path or an empty string if the file does not exist or the
 /// 		shortcut points to a non existing file/folder
-Function/S ResolveAlias(path, [pathName])
-	string pathName, path
+Function/S ResolveAlias(string path, [string pathName])
 
 	if(ParamIsDefault(pathName))
 		GetFileFolderInfo/Q/Z path
@@ -468,16 +443,15 @@ Function/S ResolveAlias(path, [pathName])
 
 	if(ParamIsDefault(pathName))
 		return ResolveAlias(S_aliasPath)
-	else
-		return ResolveAlias(S_aliasPath, pathName = pathName)
 	endif
+
+	return ResolveAlias(S_aliasPath, pathName = pathName)
 End
 
 /// @brief Check wether the given path points to an existing file
 ///
 /// Resolves shortcuts and symlinks recursively.
-Function FileExists(filepath)
-	string filepath
+Function FileExists(string filepath)
 
 	filepath = ResolveAlias(filepath)
 	GetFileFolderInfo/Q/Z filepath
@@ -486,8 +460,7 @@ Function FileExists(filepath)
 End
 
 /// @brief Check wether the given path points to an existing folder
-Function FolderExists(folderpath)
-	string folderpath
+Function FolderExists(string folderpath)
 
 	folderpath = ResolveAlias(folderpath)
 	GetFileFolderInfo/Q/Z folderpath
@@ -497,15 +470,14 @@ End
 
 /// @brief Add a string prefix to each list item and
 /// return the new list
-threadsafe Function/S AddPrefixToEachListItem(prefix, list)
-	string prefix, list
+threadsafe Function/S AddPrefixToEachListItem(string prefix, string list)
 
 	string result = ""
 	variable numEntries, i
 
 	numEntries = ItemsInList(list)
 	for(i = 0; i < numEntries; i += 1)
-		result = AddListItem(prefix + StringFromList(i, list), result, ";", inf)
+		result = AddListItem(prefix + StringFromList(i, list), result, ";", Inf)
 	endfor
 
 	return result
@@ -528,7 +500,7 @@ End
 /// \endrst
 threadsafe Function NewRandomSeed()
 
-	SetRandomSeed/BETR=1 ((stopmstimer(-2) * 10 ) & 0xffffffff) / 2^32
+	SetRandomSeed/BETR=1 ((stopmstimer(-2) * 10) & 0xffffffff) / 2^32
 
 End
 
@@ -548,13 +520,13 @@ End
 
 /// @brief Helper structure for GenerateRFC4122UUID()
 static Structure Uuid
-	uint32  time_low
-	uint16  time_mid
-	uint16  time_hi_and_version
-	uint16  clock_seq
-	uint16  node0
-	uint16  node1
-	uint16  node2
+	uint32 time_low
+	uint16 time_mid
+	uint16 time_hi_and_version
+	uint16 clock_seq
+	uint16 node0
+	uint16 node1
+	uint16 node2
 EndStructure
 
 /// @brief Generate a version 4 UUID according to https://tools.ietf.org/html/rfc4122
@@ -648,21 +620,21 @@ threadsafe Function/S GenerateRFC4122UUID()
 	string str, randomness
 	STRUCT Uuid uu
 
-	randomness = Hash(num2strHighPrec(GetReproducibleRandom(), precision=15), 1)
+	randomness = Hash(num2strHighPrec(GetReproducibleRandom(), precision = 15), 1)
 
 	WAVE binary = HexToBinary(randomness)
 
-	uu.time_low = binary[0] | (binary[1] << 8) | (binary[2] << 16) | (binary[3] << 24)
-	uu.time_mid = binary[4] | (binary[5] << 8)
+	uu.time_low            = binary[0] | (binary[1] << 8) | (binary[2] << 16) | (binary[3] << 24)
+	uu.time_mid            = binary[4] | (binary[5] << 8)
 	uu.time_hi_and_version = binary[6] | (binary[7] << 8)
-	uu.clock_seq = binary[8] | (binary[9] << 8)
+	uu.clock_seq           = binary[8] | (binary[9] << 8)
 
 	uu.node0 = binary[10] | (binary[11] << 8)
 	uu.node1 = binary[12] | (binary[13] << 8)
 	uu.node2 = binary[14] | (binary[15] << 8)
 
 	// set the version
-	uu.clock_seq = (uu.clock_seq & 0x3FFF) | 0x8000
+	uu.clock_seq           = (uu.clock_seq & 0x3FFF) | 0x8000
 	uu.time_hi_and_version = (uu.time_hi_and_version & 0x0FFF) | 0x4000
 
 	sprintf str, "%8.8x-%4.4x-%4.4x-%4.4x-%4.4x%4.4x%4.4x", uu.time_low, uu.time_mid, uu.time_hi_and_version, uu.clock_seq, uu.node0, uu.node1, uu.node2
@@ -671,8 +643,7 @@ threadsafe Function/S GenerateRFC4122UUID()
 End
 
 /// @brief Convert a hexadecimal character into a number
-threadsafe Function HexToNumber(ch)
-	string ch
+threadsafe Function HexToNumber(string ch)
 
 	variable var
 
@@ -685,12 +656,11 @@ threadsafe Function HexToNumber(ch)
 End
 
 /// @brief Convert a number into hexadecimal
-threadsafe Function/S NumberToHex(var)
-	variable var
+threadsafe Function/S NumberToHex(variable var)
 
 	string str
 
-	ASSERT_TS(IsInteger(var) && var >= 0 && var < 256 , "Invalid input")
+	ASSERT_TS(IsInteger(var) && var >= 0 && var < 256, "Invalid input")
 
 	sprintf str, "%02x", var
 
@@ -700,8 +670,7 @@ End
 /// @brief Convert a string in hex format to an unsigned binary wave
 ///
 /// This function works on a byte level so it does not care about endianess.
-threadsafe Function/WAVE HexToBinary(str)
-	string str
+threadsafe Function/WAVE HexToBinary(string str)
 
 	variable length
 
@@ -722,8 +691,7 @@ End
 /// @param[in] precision [optional, default 5] number of precision digits after the decimal dot using "round-half-to-even" rounding rule.
 ///                      Precision must be in the range 0 to 15.
 /// @return string with textual number representation
-threadsafe Function/S num2strHighPrec(val, [precision])
-	variable val, precision
+threadsafe Function/S num2strHighPrec(variable val, [variable precision])
 
 	string str
 
@@ -759,8 +727,7 @@ End
 
 /// @brief Normalize the line endings in the given string to either classic Mac OS/Igor Pro EOLs (`\r`)
 ///        or Unix EOLs (`\n`)
-threadsafe Function/S NormalizeToEOL(str, eol)
-	string str, eol
+threadsafe Function/S NormalizeToEOL(string str, string eol)
 
 	str = ReplaceString("\r\n", str, eol)
 
@@ -778,8 +745,7 @@ End
 #if IgorVersion() >= 9.0
 
 /// @brief Return a nicely formatted multiline stacktrace
-threadsafe Function/S GetStackTrace([prefix])
-	string prefix
+threadsafe Function/S GetStackTrace([string prefix])
 
 	string stacktrace, entry, func, line, file, str
 	string output
@@ -799,7 +765,7 @@ threadsafe Function/S GetStackTrace([prefix])
 
 	output = prefix + "Stacktrace:\r"
 
-	for(i = 0; i < numCallers - 2; i += 1)
+	for(i = 0; i < (numCallers - 2); i += 1)
 		entry = StringFromList(i, stacktrace)
 		func  = StringFromList(0, entry, ",")
 		file  = StringFromList(1, entry, ",")
@@ -814,8 +780,7 @@ End
 #else
 
 /// @brief Return a nicely formatted multiline stacktrace
-Function/S GetStackTrace([prefix])
-	string prefix
+Function/S GetStackTrace([string prefix])
 
 	string stacktrace, entry, func, line, file, str
 	string output, module
@@ -835,17 +800,17 @@ Function/S GetStackTrace([prefix])
 
 	output = prefix + "Stacktrace:\r"
 
-	for(i = 0; i < numCallers - 2; i += 1)
-		entry = StringFromList(i, stacktrace)
-		func  = StringFromList(0, entry, ",")
+	for(i = 0; i < (numCallers - 2); i += 1)
+		entry  = StringFromList(i, stacktrace)
+		func   = StringFromList(0, entry, ",")
 		module = StringByKey("MODULE", FunctionInfo(func))
 
 		if(!IsEmpty(module))
 			func = module + "#" + func
 		endif
 
-		file  = StringFromList(1, entry, ",")
-		line  = StringFromList(2, entry, ",")
+		file = StringFromList(1, entry, ",")
+		line = StringFromList(2, entry, ",")
 		sprintf str, "%s%s(...)#L%s [%s]\r", prefix, func, line, file
 		output += str
 	endfor
@@ -856,6 +821,7 @@ End
 #endif
 
 threadsafe Function/S GetExperimentName()
+
 	return IgorInfo(1)
 End
 
@@ -867,27 +833,28 @@ threadsafe Function/S GetExperimentFileType()
 #else
 	if(!cmpstr(GetExperimentName(), UNTITLED_EXPERIMENT))
 		return ""
-	else
-		// hardcoded to pxp
-		return "Packed"
 	endif
+
+	// hardcoded to pxp
+	return "Packed"
 #endif
 
 End
 
 /// @brief Return the Igor Pro version string
 threadsafe Function/S GetIgorProVersion()
+
 	return StringByKey("IGORFILEVERSION", IgorInfo(3))
 End
 
 /// @brief Return the path converted to a windows style path
-threadsafe Function/S GetWindowsPath(path)
-	string path
+threadsafe Function/S GetWindowsPath(string path)
 
 	return ParseFilepath(5, path, "\\", 0, 0)
 End
 
 threadsafe Function SetEpochsDimensionLabels(WAVE wv)
+
 	SetDimLabel COLS, 0, StartTime, wv
 	SetDimLabel COLS, 1, EndTime, wv
 	SetDimLabel COLS, 2, Tags, wv
@@ -897,9 +864,7 @@ End
 /// @brief Returns an unsorted free wave with all unique entries from wv neglecting NaN/Inf.
 ///
 /// uses built-in igor function FindDuplicates. Entries are deleted from left to right.
-Function/Wave GetUniqueEntries(wv, [caseSensitive])
-	Wave wv
-	variable caseSensitive
+Function/WAVE GetUniqueEntries(WAVE wv, [variable caseSensitive])
 
 	variable numRows, i
 
@@ -910,7 +875,7 @@ Function/Wave GetUniqueEntries(wv, [caseSensitive])
 			caseSensitive = !!caseSensitive
 		endif
 
-		return GetUniqueTextEntries(wv, caseSensitive=caseSensitive)
+		return GetUniqueTextEntries(wv, caseSensitive = caseSensitive)
 	endif
 
 	numRows = DimSize(wv, ROWS)
@@ -925,16 +890,14 @@ Function/Wave GetUniqueEntries(wv, [caseSensitive])
 	FindDuplicates/RN=result wv
 
 	/// @todo this should be removed as it does not belong into this function
-	WaveTransform/O zapNaNs wv
-	WaveTransform/O zapINFs wv
+	WaveTransform/O zapNaNs, wv
+	WaveTransform/O zapINFs, wv
 
 	return result
 End
 
 /// @brief Convenience wrapper around GetUniqueTextEntries() for string lists
-Function/S GetUniqueTextEntriesFromList(list, [sep, caseSensitive])
-	string list, sep
-	variable caseSensitive
+Function/S GetUniqueTextEntriesFromList(string list, [string sep, variable caseSensitive])
 
 	if(ParamIsDefault(sep))
 		sep = ";"
@@ -948,8 +911,8 @@ Function/S GetUniqueTextEntriesFromList(list, [sep, caseSensitive])
 		caseSensitive = !!caseSensitive
 	endif
 
-	WAVE/T wv = ListToTextWave(list, sep)
-	WAVE/T unique = GetUniqueTextEntries(wv, caseSensitive=caseSensitive)
+	WAVE/T wv     = ListToTextWave(list, sep)
+	WAVE/T unique = GetUniqueTextEntries(wv, caseSensitive = caseSensitive)
 
 	return TextWaveToList(unique, sep)
 End
@@ -962,9 +925,7 @@ End
 /// @param caseSensitive  [optional] Indicates whether comparison should be case sensitive. defaults to True
 ///
 /// @return free wave with unique entries
-static Function/Wave GetUniqueTextEntries(wv, [caseSensitive])
-	Wave/T wv
-	variable caseSensitive
+static Function/WAVE GetUniqueTextEntries(WAVE/T wv, [variable caseSensitive])
 
 	variable numEntries, numDuplicates, i
 
@@ -977,7 +938,7 @@ static Function/Wave GetUniqueTextEntries(wv, [caseSensitive])
 	numEntries = DimSize(wv, ROWS)
 	ASSERT_TS(numEntries == numpnts(wv), "Wave must be 1D.")
 
-	Duplicate/T/FREE wv result
+	Duplicate/T/FREE wv, result
 	if(numEntries <= 1)
 		return result
 	endif
@@ -1006,11 +967,7 @@ End
 ///               the conversion to string for `val`
 ///
 /// The expected wave note format is: `key1:val1;key2:val2;`
-threadsafe Function SetNumberInWaveNote(wv, key, val, [format])
-	Wave wv
-	string key
-	variable val
-	string format
+threadsafe Function SetNumberInWaveNote(WAVE wv, string key, variable val, [string format])
 
 	string str
 
@@ -1030,9 +987,7 @@ End
 /// returns NaN if it could not be found
 ///
 /// The expected wave note format is: `key1:val1;key2:val2;`
-threadsafe Function GetNumberFromWaveNote(wv, key)
-	Wave wv
-	string key
+threadsafe Function GetNumberFromWaveNote(WAVE wv, string key)
 
 	ASSERT_TS(WaveExists(wv), "Missing wave")
 	ASSERT_TS(!IsEmpty(key), "Empty key")
