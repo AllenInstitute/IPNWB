@@ -614,9 +614,9 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	H5_WriteTextAttribute(groupID, "description", "tags", str = tags_vector.description)
 
 	STRUCT VectorIndex tags_vector_index
-	InitVectorIndex(tags_vector_index)
+	InitVectorIndex(tags_vector_index, tags_vector)
 	WriteNeuroDataType(groupID, "tags_index", "VectorIndex")
-	H5_WriteTextAttribute(groupID, "target", "tags_index", str = ("D:" + tags_vector.path), refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "target", "tags_index", str = ("D:" + tags_vector_index.target.path), refMode = OBJECT_REFERENCE)
 
 	STRUCT VectorData timeseries_vector
 	InitVectorData(timeseries_vector)
@@ -625,10 +625,10 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	WriteNeuroDataType(groupID, "timeseries", timeseries_vector.data_type)
 	H5_WriteTextAttribute(groupID, "description", "timeseries", str = timeseries_vector.description)
 
-	STRUCT VectorIndex timeseries_index
-	InitVectorIndex(timeseries_index)
+	STRUCT VectorIndex timeseries_vector_index
+	InitVectorIndex(timeseries_vector_index, timeseries_vector)
 	WriteNeuroDataType(groupID, "timeseries_index", "VectorIndex")
-	H5_WriteTextAttribute(groupID, "target", "timeseries_index", str = ("D:" + timeseries_vector.path), refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "target", "timeseries_index", str = ("D:" + timeseries_vector_index.target.path), refMode = OBJECT_REFERENCE)
 
 	STRUCT VectorData treelevel_vector
 	InitVectorData(treelevel_vector)
@@ -718,8 +718,7 @@ threadsafe static Function AppendToSweepTable(variable locationID, string refere
 	H5_WriteTextAttribute(groupID, "description", "series", str = series.description)
 
 	STRUCT VectorIndex series_index
-	InitVectorIndex(series_index)
-	series_index.target = series
+	InitVectorIndex(series_index, series)
 	WriteNeuroDataType(groupID, "series_index", series_index.data_type)
 	H5_WriteTextAttribute(groupID, "target", "series_index", str = "D:" + series_index.target.path, refMode = OBJECT_REFERENCE)
 

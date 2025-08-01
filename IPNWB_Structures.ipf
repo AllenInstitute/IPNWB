@@ -255,7 +255,8 @@ Structure VectorIndex
 	STRUCT VectorData target
 EndStructure
 
-threadsafe Function InitVectorIndex(STRUCT VectorIndex &vi)
+threadsafe Function InitVectorIndex(STRUCT VectorIndex &vi, STRUCT VectorData &vd)
 
-	vi.data_type = "VectorIndex"
+	vi.target      = vd
+	vi.data_type   = "VectorIndex"
 End
