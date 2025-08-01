@@ -242,6 +242,8 @@ threadsafe Function/S DetermineDataTypeFromProperties(variable channelType, vari
 					return "CurrentClampSeries"
 				case I_EQUAL_ZERO_MODE:
 					return "IZeroClampSeries"
+				default:
+					FATAL_ERROR("Unknown clampmode")
 			endswitch
 		case IPNWB_CHANNEL_TYPE_DAC:
 			switch(clampMode)
@@ -249,10 +251,12 @@ threadsafe Function/S DetermineDataTypeFromProperties(variable channelType, vari
 					return "VoltageClampStimulusSeries"
 				case I_CLAMP_MODE:
 					return "CurrentClampStimulusSeries"
+				default:
+					FATAL_ERROR("Unknown clampmode")
 			endswitch
+		default:
+			return "TimeSeries"
 	endswitch
-
-	return "TimeSeries"
 End
 
 /// @brief get the (major) version of the nwb file

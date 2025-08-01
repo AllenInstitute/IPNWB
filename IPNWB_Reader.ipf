@@ -220,6 +220,8 @@ threadsafe Function LoadSourceAttribute(variable locationID, string channel, STR
 				p.samplingRate = str2num(value)
 				break
 			default:
+				// ignore unknown entries from future versions
+				break
 		endswitch
 	endfor
 End
