@@ -551,13 +551,13 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 
 	WAVE/Z tagsSize = H5_GetDatasetSize(groupID, "tags")
 	numReadback = WaveExists(tagsSize) ? tagsSize[ROWS] : 0
-	H5_WriteDataset(groupID, "tags_index", var = (numReadback + DimSize(tags, ROWS)), varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "tags_index", var = (numReadback + DimSize(tags, ROWS)), varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
 	H5_WriteTextDataset(groupID, "tags", wvText = tags, compressionMode = compressionMode, appendData = appendMode)
 
 	WAVE/Z timeseriesSize = H5_GetDatasetSize(groupID, "timeseries")
 	numReadback = WaveExists(timeseriesSize) ? timeseriesSize[ROWS] : 0
 
-	H5_WriteDataset(groupID, "timeseries_index", var = (numReadback + DimSize(timeseries, ROWS)), varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "timeseries_index", var = (numReadback + DimSize(timeseries, ROWS)), varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
 
 	HDF5CloseGroup groupID
 	groupID = NaN
@@ -698,7 +698,7 @@ threadsafe static Function AppendToSweepTable(variable locationID, string refere
 	numIds = WaveExists(ids) ? DimSize(ids, ROWS) : 0
 	H5_WriteDataset(groupID, "id", var = numIds, varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
 	H5_WriteTextDataset(groupID, "series", overwrite = 1, str = "G:" + reference, refMode = OBJECT_REFERENCE, compressionMode = compressionMode, appendData = appendMode)
-	H5_WriteDataset(groupID, "series_index", var = (numIds + 1), varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "series_index", var = (numIds + 1), varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
 	H5_WriteDataset(groupID, "sweep_number", var = sweepNumber, varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
 
 	if(appendMode == ROWS)
