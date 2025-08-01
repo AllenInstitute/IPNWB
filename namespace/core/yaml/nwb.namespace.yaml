@@ -23,7 +23,7 @@ namespaces:
 
     schema:
       - namespace: hdmf-common
-      - doc: This source module contains base data types used throughout the NWB:N data format.
+      - doc: This source module contains base data types used throughout the NWB data format.
         source: nwb.base
         title: Base data types
       - doc: This source module contains neurodata_types for device data.
@@ -35,9 +35,9 @@ namespaces:
       - doc: This source module contains neurodata_types for image data.
         source: nwb.image
         title: Image data
-      - doc: Main NWB:N file specification.
+      - doc: Main NWB file specification.
         source: nwb.file
-        title: NWB:N file
+        title: NWB file
       - doc: Miscellaneous types.
         source: nwb.misc
         title: Miscellaneous neurodata_types.
@@ -60,4 +60,4 @@ namespaces:
         source: nwb.retinotopy
         title: Retinotopy
 
-    version: 2.2.4
+    version: 2.9.0

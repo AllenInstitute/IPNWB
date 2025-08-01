@@ -1,6 +1,6 @@
 
  ce4ff3351e9f3979e24f3620f5c3795e98556a58 ndx-MIES (v0.1.0~1)
- 24fba6174ddbad171ee5bb824edfa31f86b1b16d specifications (2.2.4)
+ ade50ef33446beb3c7df4c6f1072ae0e821b5115 specifications (2.9.0)
 
 # diff namespace core upstream vs IPNWB specifications for nwb.base
 # diff namespace core upstream vs IPNWB specifications for nwb.behavior
@@ -32,7 +32,7 @@
 <   full_name: NWB core
 <   schema:
 <   - namespace: hdmf-common
-<   - doc: This source module contains base data types used throughout the NWB:N data
+<   - doc: This source module contains base data types used throughout the NWB data
 <       format.
 <     source: nwb.base.yaml
 <     title: Base data types
@@ -45,9 +45,9 @@
 <   - doc: This source module contains neurodata_types for image data.
 <     source: nwb.image.yaml
 <     title: Image data
-<   - doc: Main NWB:N file specification.
+<   - doc: Main NWB file specification.
 <     source: nwb.file.yaml
-<     title: NWB:N file
+<     title: NWB file
 <   - doc: Miscellaneous types.
 <     source: nwb.misc.yaml
 <     title: Miscellaneous neurodata_types.
@@ -71,7 +71,7 @@
 <   - doc: This source module contains neurodata_type for retinotopy data.
 <     source: nwb.retinotopy.yaml
 <     title: Retinotopy
-<   version: 2.2.4
+<   version: "2.9.0"
 ---
 >   - author:
 >       - Andrew Tritt
@@ -97,7 +97,7 @@
 >
 >     schema:
 >       - namespace: hdmf-common
->       - doc: This source module contains base data types used throughout the NWB:N data format.
+>       - doc: This source module contains base data types used throughout the NWB data format.
 >         source: nwb.base
 >         title: Base data types
 >       - doc: This source module contains neurodata_types for device data.
@@ -109,9 +109,9 @@
 >       - doc: This source module contains neurodata_types for image data.
 >         source: nwb.image
 >         title: Image data
->       - doc: Main NWB:N file specification.
+>       - doc: Main NWB file specification.
 >         source: nwb.file
->         title: NWB:N file
+>         title: NWB file
 >       - doc: Miscellaneous types.
 >         source: nwb.misc
 >         title: Miscellaneous neurodata_types.
@@ -134,12 +134,16 @@
 >         source: nwb.retinotopy
 >         title: Retinotopy
 >
->     version: 2.2.4
+>     version: 2.9.0
 # diff namespace core upstream vs IPNWB specifications for nwb.ogen
 # diff namespace core upstream vs IPNWB specifications for nwb.ophys
 # diff namespace core upstream vs IPNWB specifications for nwb.retinotopy
+# diff namespace hdmf-common upstream vs IPNWB specifications for base
+# diff namespace hdmf-common upstream vs IPNWB specifications for experimental
 # diff namespace hdmf-common upstream vs IPNWB specifications for namespace
-2,21c2,21
+1d0
+< # hdmf-schema-language=2.0.2
+3,26d1
 < - name: hdmf-common
 <   doc: Common data structures provided by HDMF
 <   author:
@@ -154,12 +158,41 @@
 <   - bdichter@lbl.gov
 <   full_name: HDMF Common
 <   schema:
+<   - doc: base data types
+<     source: base.yaml
+<     title: Base data types
 <   - doc: data types for a column-based table
 <     source: table.yaml
 <     title: Table data types
 <   - doc: data types for different types of sparse matrices
 <     source: sparse.yaml
-<   version: 1.1.3
+<     title: Sparse data types
+<   version: 1.8.0
+28,51c3,52
+< - name: hdmf-experimental
+<   doc: Experimental data structures provided by HDMF. These are not guaranteed to be available in the future.
+<   author:
+<   - Andrew Tritt
+<   - Oliver Ruebel
+<   - Ryan Ly
+<   - Ben Dichter
+<   - Matthew Avaylon
+<   contact:
+<   - ajtritt@lbl.gov
+<   - oruebel@lbl.gov
+<   - rly@lbl.gov
+<   - bdichter@lbl.gov
+<   - mavaylon@lbl.gov
+<   full_name: HDMF Experimental
+<   schema:
+<   - namespace: hdmf-common
+<   - doc: Experimental data types
+<     source: experimental.yaml
+<     title: Experimental data types
+<   - doc: data types for storing references to web accessible resources
+<     source: resources.yaml
+<     title: Resource reference data types
+<   version: 0.5.0
 ---
 >   - author:
 >       - Andrew Tritt
@@ -175,12 +208,43 @@
 >     full_name: HDMF Common
 >     name: hdmf-common
 >     schema:
+>       - doc: base data types
+>         source: base
+>         title: Base data types
 >       - doc: data types for a column-based table
 >         source: table
 >         title: Table data types
 >       - doc: data types for different types of sparse matrices
 >         source: sparse
->     version: 1.1.3
+>         title: Sparse data types
+>     version: 1.8.0
+>
+>   - author:
+>       - Andrew Tritt
+>       - Oliver Ruebel
+>       - Ryan Ly
+>       - Ben Dichter
+>       - Matthew Avaylon
+>     contact:
+>       - ajtritt@lbl.gov
+>       - oruebel@lbl.gov
+>       - rly@lbl.gov
+>       - bdichter@lbl.gov
+>       - mavaylon@lbl.gov
+>     doc: Experimental data structures provided by HDMF. These are not guaranteed to be available in the
+>       future.
+>     full_name: HDMF Experimental
+>     name: hdmf-experimental
+>     schema:
+>       - namespace: hdmf-common
+>       - doc: Experimental data types
+>         source: experimental
+>         title: Experimental data types
+>       - doc: data types for storing references to web accessible resources
+>         source: resources
+>         title: Resource reference data types
+>     version: 0.5.0
+# diff namespace hdmf-common upstream vs IPNWB specifications for resources
 # diff namespace hdmf-common upstream vs IPNWB specifications for sparse
 # diff namespace hdmf-common upstream vs IPNWB specifications for table
 # diff namespace ndx-mies upstream vs IPNWB specifications for namespace

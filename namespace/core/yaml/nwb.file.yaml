@@ -2,12 +2,12 @@ groups:
 - neurodata_type_def: NWBFile
   neurodata_type_inc: NWBContainer
   name: root
-  doc: An NWB:N file storing cellular-based neurophysiology data from a single
+  doc: An NWB file storing cellular-based neurophysiology data from a single
     experimental session.
   attributes:
   - name: nwb_version
     dtype: text
-    value: 2.2.4
+    value: "2.9.0"
     doc: File version string. Use semantic versioning, e.g. 1.2.1. This will be the
       name of the format with trailing major, minor and patch numbers.
   datasets:
@@ -62,7 +62,7 @@ groups:
       doc: Acquired, raw data.
       quantity: '*'
     - neurodata_type_inc: DynamicTable
-      doc: Tabular data that is relevent to acquisition
+      doc: Tabular data that is relevant to acquisition
       quantity: '*'
   - name: analysis
     doc: Lab-specific and custom scientific analysis of data. There is no defined
@@ -78,7 +78,7 @@ groups:
       doc: Custom analysis results.
       quantity: '*'
     - neurodata_type_inc: DynamicTable
-      doc: Tabular data that is relevent to data stored in analysis
+      doc: Tabular data that is relevant to data stored in analysis
       quantity: '*'
   - name: scratch
     doc: 'A place to store one-off analysis results. Data placed here is not intended for
@@ -120,7 +120,7 @@ groups:
       or is pulled from an external stimulus library. Stimuli are here
       defined as any signal that is pushed into the system as part of the experiment
       (eg, sound, video, voltage, etc). Many different experiments can use the same
-      stimuli, and stimuli can be re-used during an experiment. The stimulus group
+      stimuli, and stimuli can be reused during an experiment. The stimulus group
       is organized so that one version of template stimuli can be stored and these
       be used multiple times. These templates can exist in the present file or can
       be linked to a remote library file.'
@@ -131,6 +131,16 @@ groups:
       - neurodata_type_inc: TimeSeries
         doc: TimeSeries objects containing data of presented stimuli.
         quantity: '*'
+      - neurodata_type_inc: NWBDataInterface
+        doc: 'Generic NWB data interfaces, usually from an extension,
+          containing data of presented stimuli.'
+        quantity: '*'
+      - neurodata_type_inc: DynamicTable
+        doc: DynamicTable objects containing data of presented stimuli.
+        quantity: '*'
+      # even though TimeSeries is a child type of NWBDataInterface, we do not remove TimeSeries
+      # in order to maintain backwards compatibility in the APIs that
+      # use the neurodata_type_inc from the schema to set the variable name
     - name: templates
       doc: 'Template stimuli. Timestamps in templates are based on stimulus
         design and are relative to the beginning of the stimulus. When templates are
@@ -139,6 +149,9 @@ groups:
       groups:
       - neurodata_type_inc: TimeSeries
         doc: TimeSeries objects containing template data of presented stimuli.
+        quantity: '*'
+      - neurodata_type_inc: Images
+        doc: Images objects containing images of presented stimuli.
         quantity: '*'
   - name: general
     doc: "Experimental metadata, including protocol, notes and description of hardware\
@@ -228,6 +241,18 @@ groups:
       - name: file_name
         dtype: text
         doc: Name of script file.
+    - name: was_generated_by
+      dtype: text
+      doc: Name and version of software package(s) used to generate data contained in
+       this NWB File. For each software package or library, include the name of the
+       software as the first value and the version as the second value.
+      dims:
+      - num_sources
+      - name, version
+      shape:
+      - null
+      - 2
+      quantity: '?'
     - name: stimulus
       dtype: text
       doc: Notes about stimuli, such as how and where they were presented.
@@ -255,6 +280,13 @@ groups:
       - neurodata_type_inc: Device
         doc: Data acquisition devices.
         quantity: '*'
+      - name: models
+        doc: Collection of data acquisition device models.
+        quantity: '?'
+        groups:
+        - neurodata_type_inc: DeviceModel
+          doc: Data acquisition device models.
+          quantity: '*'
     - name: subject
       neurodata_type_inc: Subject
       doc: Information about the animal or person from which the data was measured.
@@ -267,75 +299,20 @@ groups:
         doc: Physical group of electrodes.
         quantity: '*'
       - name: electrodes
-        neurodata_type_inc: DynamicTable
-        doc: A table of all electrodes (i.e. channels) used for recording.
+        neurodata_type_inc: ElectrodesTable
+        doc: A table of all electrodes (i.e. channels) used for recording. Changed in NWB 2.9.0 to use the newly added
+          ElectrodesTable neurodata type instead of a DynamicTable with added columns.
         quantity: '?'
-        datasets:
-        - name: x
-          neurodata_type_inc: VectorData
-          dtype: float32
-          doc: x coordinate of the channel location in the brain (+x is posterior).
-        - name: y
-          neurodata_type_inc: VectorData
-          dtype: float32
-          doc: y coordinate of the channel location in the brain (+y is inferior).
-        - name: z
-          neurodata_type_inc: VectorData
-          dtype: float32
-          doc: z coordinate of the channel location in the brain (+z is right).
-        - name: imp
-          neurodata_type_inc: VectorData
-          dtype: float32
-          doc: Impedance of the channel.
-        - name: location
-          neurodata_type_inc: VectorData
-          dtype: text
-          doc: Location of the electrode (channel). Specify the area, layer, comments
-            on estimation of area/layer, stereotaxic coordinates if in vivo, etc. Use
-            standard atlas names for anatomical regions when possible.
-        - name: filtering
-          neurodata_type_inc: VectorData
-          dtype: float32
-          doc: Description of hardware filtering.
-        - name: group
-          neurodata_type_inc: VectorData
-          dtype:
-            target_type: ElectrodeGroup
-            reftype: object
-          doc: Reference to the ElectrodeGroup this electrode is a part of.
-        - name: group_name
-          neurodata_type_inc: VectorData
-          dtype: text
-          doc: Name of the ElectrodeGroup this electrode is a part of.
-        - name: rel_x
-          neurodata_type_inc: VectorData
-          dtype: float32
-          doc: x coordinate in electrode group
-          quantity: '?'
-        - name: rel_y
-          neurodata_type_inc: VectorData
-          dtype: float32
-          doc: y coordinate in electrode group
-          quantity: '?'
-        - name: rel_z
-          neurodata_type_inc: VectorData
-          dtype: float32
-          doc: z coordinate in electrode group
-          quantity: '?'
-        - name: reference
-          neurodata_type_inc: VectorData
-          dtype: text
-          doc: Description of the reference used for this electrode.
-          quantity: '?'
     - name: intracellular_ephys
       doc: Metadata related to intracellular electrophysiology.
       quantity: '?'
       datasets:
       - name: filtering
         dtype: text
-        doc: Description of filtering used. Includes filtering type and
-          parameters, frequency fall-off, etc. If this changes between TimeSeries,
-          filter description should be stored as a text attribute for each TimeSeries.
+        doc: '[DEPRECATED] Use IntracellularElectrode.filtering instead. Description
+          of filtering used. Includes filtering type and parameters, frequency fall-off,
+          etc. If this changes between TimeSeries, filter description should be stored
+          as a text attribute for each TimeSeries.'
         quantity: '?'
       groups:
       - neurodata_type_inc: IntracellularElectrode
@@ -343,7 +320,49 @@ groups:
         quantity: '*'
       - name: sweep_table
         neurodata_type_inc: SweepTable
-        doc: The table which groups different PatchClampSeries together.
+        doc: '[DEPRECATED] Table used to group different PatchClampSeries. SweepTable
+              is being replaced by IntracellularRecordingsTable and SimultaneousRecordingsTable
+              tables. Additional SequentialRecordingsTable, RepetitionsTable and
+              ExperimentalConditions tables provide enhanced support for experiment metadata.'
+        quantity: '?'
+      - name: intracellular_recordings
+        neurodata_type_inc: IntracellularRecordingsTable
+        doc: A table to group together a stimulus and response from a single electrode
+          and a single simultaneous recording. Each row in the table represents a
+          single recording consisting typically of a stimulus and a corresponding
+          response. In some cases, however, only a stimulus or a response are recorded
+          as as part of an experiment. In this case both, the stimulus and response
+          will point to the same TimeSeries while the idx_start and count of the invalid
+          column will be set to -1, thus, indicating that no values have been recorded
+          for the stimulus or response, respectively. Note, a recording MUST contain
+          at least a stimulus or a response. Typically the stimulus and response are
+          PatchClampSeries. However, the use of AD/DA channels that are not associated
+          to an electrode is also common in intracellular electrophysiology, in which
+          case other TimeSeries may be used.
+        quantity: '?'
+      - name: simultaneous_recordings
+        neurodata_type_inc: SimultaneousRecordingsTable
+        doc: A table for grouping different intracellular recordings from the IntracellularRecordingsTable
+          table together that were recorded simultaneously from different electrodes
+        quantity: '?'
+      - name: sequential_recordings
+        neurodata_type_inc: SequentialRecordingsTable
+        doc: A table for grouping different sequential recordings from the SimultaneousRecordingsTable
+          table together. This is typically used to group together sequential recordings
+          where the a sequence of stimuli of the same type with varying parameters
+          have been presented in a sequence.
+        quantity: '?'
+      - name: repetitions
+        neurodata_type_inc: RepetitionsTable
+        doc: A table for grouping different sequential intracellular recordings together.
+          With each SequentialRecording typically representing a particular type of
+          stimulus, the RepetitionsTable table is typically used to group sets of
+          stimuli applied in sequence.
+        quantity: '?'
+      - name: experimental_conditions
+        neurodata_type_inc: ExperimentalConditionsTable
+        doc: A table for grouping different intracellular recording repetitions together
+          that belong to the same experimental experimental_conditions.
         quantity: '?'
     - name: optogenetics
       doc: Metadata describing optogenetic stimuluation.
@@ -398,6 +417,13 @@ groups:
     dtype: text
     doc: Age of subject. Can be supplied instead of 'date_of_birth'.
     quantity: '?'
+    attributes:
+      - name: reference
+        doc: "Age is with reference to this event. Can be 'birth' or
+          'gestational'. If reference is omitted, 'birth' is implied."
+        dtype: text
+        required: false
+        default_value: birth
   - name: date_of_birth
     dtype: isodatetime
     doc: Date of birth of subject. Can be supplied instead of 'age'.
@@ -418,6 +444,10 @@ groups:
   - name: species
     dtype: text
     doc: Species of subject.
+    quantity: '?'
+  - name: strain
+    dtype: text
+    doc: Strain of subject.
     quantity: '?'
   - name: subject_id
     dtype: text

@@ -5,6 +5,15 @@ groups:
     The data field is an int or float array storing data in volts. The first
     dimension should always represent time. The second dimension, if present,
     should represent channels.
+  attributes:
+  - name: filtering
+    dtype: text
+    doc: Filtering applied to all channels of the data. For example, if this ElectricalSeries represents
+      high-pass-filtered data (also known as AP Band), then this value could be "High-pass 4-pole Bessel filter
+      at 500 Hz". If this ElectricalSeries represents low-pass-filtered LFP data and the type of filter is unknown,
+      then this value could be "Low-pass filter at 300 Hz". If a non-standard filter type is used, provide as much
+      detail about the filter properties as possible.
+    required: false
   datasets:
   - name: data
     dtype: numeric
@@ -29,8 +38,8 @@ groups:
       value: volts
       doc: Base unit of measurement for working with the data. This value is fixed to
         'volts'. Actual stored values are not necessarily stored in these units. To
-        access the data in these units, multiply 'data' by 'conversion' and
-        'channel_conversion' (if present).
+        access the data in these units, multiply 'data' by 'conversion', followed by
+        'channel_conversion' (if present), and then add 'offset'.
   - name: electrodes
     neurodata_type_inc: DynamicTableRegion
     doc: DynamicTableRegion pointer to the electrodes that this time series was generated from.
@@ -60,9 +69,8 @@ groups:
   neurodata_type_inc: ElectricalSeries
   doc: "Stores snapshots/snippets of recorded spike events (i.e., threshold crossings). This
     may also be raw data, as reported by ephys hardware. If so, the TimeSeries::description
-    field should describe how events were detected. All SpikeEventSeries should
-    reside in a module (under EventWaveform interface) even if the spikes were reported
-    and stored by hardware. All events span the same recording channels and store
+    field should describe how events were detected. All events span the same recording
+    channels and store
     snapshots of equal duration. TimeSeries::data array structure: [num events]
     [num channels] [num samples] (or [num events] [num samples] for single electrode)."
   datasets:
@@ -96,6 +104,7 @@ groups:
       common experiment master-clock stored in NWBFile.timestamps_reference_time.
       Timestamps are required for the events. Unlike for TimeSeries, timestamps are
       required for SpikeEventSeries and are thus re-specified here.
+    quantity: 1
     attributes:
     - name: interval
       dtype: int32
@@ -153,12 +162,16 @@ groups:
   - name: source_idx
     dtype: int32
     dims:
-    - num_events
+    - - num_events
+    - - num_events
+      - time_index, channel_index
     shape:
-    - null
-    doc: Indices (zero-based) into source ElectricalSeries::data array corresponding
-      to time of event. ''description'' should define what is meant by time of
-      event (e.g., .25 ms before action potential peak, zero-crossing time, etc).
+    - - null
+    - - null
+      - 2
+    doc: Indices (zero-based) into the linked source ElectricalSeries::data array corresponding
+      to time of event or time and channel of event. ''description'' should define what is meant
+      by time of event (e.g., .25 ms before action potential peak, zero-crossing time, etc).
       The index points to each event from the raw data.
   - name: times
     dtype: float64
@@ -166,12 +179,13 @@ groups:
     - num_events
     shape:
     - null
-    doc: Timestamps of events, in seconds.
+    doc: DEPRECATED. Timestamps of events, in seconds.
     attributes:
     - name: unit
       dtype: text
       value: seconds
       doc: Unit of measurement for event times, which is fixed to 'seconds'.
+    quantity: '?'
   links:
   - name: source_electricalseries
     target_type: ElectricalSeries
@@ -182,13 +196,13 @@ groups:
 - neurodata_type_def: EventWaveform
   neurodata_type_inc: NWBDataInterface
   default_name: EventWaveform
-  doc: Represents either the waveforms of detected events, as extracted from a raw
+  doc: DEPRECATED. Represents either the waveforms of detected events, as extracted from a raw
     data trace in /acquisition, or the event waveforms that were stored during experiment
     acquisition.
   groups:
   - neurodata_type_inc: SpikeEventSeries
     doc: SpikeEventSeries object(s) containing detected spike event waveforms.
-    quantity: '*'
+    quantity: '+'
 
 - neurodata_type_def: FilteredEphys
   neurodata_type_inc: NWBDataInterface
@@ -202,7 +216,7 @@ groups:
     field. There is no assumed 1::1 correspondence between filtered ephys signals
     and electrodes, as a single signal can apply to many nearby electrodes, and one
     electrode may have different filtered (e.g., theta and/or gamma) signals represented.
-    Filter properties should be noted in the ElectricalSeries.
+    Filter properties should be noted in the ElectricalSeries 'filtering' attribute.
   groups:
   - neurodata_type_inc: ElectricalSeries
     doc: ElectricalSeries object(s) containing filtered electrophysiology data.
@@ -213,7 +227,7 @@ groups:
   default_name: LFP
   doc: LFP data from one or more channels. The electrode map in each published ElectricalSeries
     will identify which channels are providing LFP data. Filter properties should
-    be noted in the ElectricalSeries description or comments field.
+    be noted in the ElectricalSeries 'filtering' attribute.
   groups:
   - neurodata_type_inc: ElectricalSeries
     doc: ElectricalSeries object(s) containing LFP data for one or more channels.
@@ -248,6 +262,75 @@ groups:
   - name: device
     target_type: Device
     doc: Link to the device that was used to record from this electrode group.
+
+- neurodata_type_def: ElectrodesTable
+  neurodata_type_inc: DynamicTable
+  doc: A table of all electrodes (i.e. channels) used for recording. Introduced in NWB 2.8.0. Replaces the "electrodes"
+    table (neurodata_type_inc DynamicTable, no neurodata_type_def) that is part of NWBFile.
+  datasets:
+  - name: location
+    neurodata_type_inc: VectorData
+    dtype: text
+    doc: Location of the electrode (channel). Specify the area, layer, comments
+      on estimation of area/layer, stereotaxic coordinates if in vivo, etc. Use
+      standard atlas names for anatomical regions when possible.
+  - name: group
+    neurodata_type_inc: VectorData
+    dtype:
+      target_type: ElectrodeGroup
+      reftype: object
+    doc: Reference to the ElectrodeGroup this electrode is a part of.
+  - name: group_name
+    neurodata_type_inc: VectorData
+    dtype: text
+    doc: Name of the ElectrodeGroup this electrode is a part of.
+    quantity: '?'
+  - name: x
+    neurodata_type_inc: VectorData
+    dtype: float32
+    doc: x coordinate of the channel location in the brain (+x is posterior).
+    quantity: '?'
+  - name: y
+    neurodata_type_inc: VectorData
+    dtype: float32
+    doc: y coordinate of the channel location in the brain (+y is inferior).
+    quantity: '?'
+  - name: z
+    neurodata_type_inc: VectorData
+    dtype: float32
+    doc: z coordinate of the channel location in the brain (+z is right).
+    quantity: '?'
+  - name: imp
+    neurodata_type_inc: VectorData
+    dtype: float32
+    doc: Impedance of the channel, in ohms.
+    quantity: '?'
+  - name: filtering
+    neurodata_type_inc: VectorData
+    dtype: text
+    doc: Description of hardware filtering, including the filter name and frequency cutoffs.
+    quantity: '?'
+  - name: rel_x
+    neurodata_type_inc: VectorData
+    dtype: float32
+    doc: x coordinate in electrode group
+    quantity: '?'
+  - name: rel_y
+    neurodata_type_inc: VectorData
+    dtype: float32
+    doc: y coordinate in electrode group
+    quantity: '?'
+  - name: rel_z
+    neurodata_type_inc: VectorData
+    dtype: float32
+    doc: z coordinate in electrode group
+    quantity: '?'
+  - name: reference
+    neurodata_type_inc: VectorData
+    dtype: text
+    doc: Description of the reference electrode and/or reference scheme used for this electrode, e.g.,
+      "stainless steel skull screw" or "online common average referencing".
+    quantity: '?'
 
 # The types below have been deprecated
 - neurodata_type_def: ClusterWaveforms
