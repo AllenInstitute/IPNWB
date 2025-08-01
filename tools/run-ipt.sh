@@ -25,6 +25,8 @@ fi
 
 echo "[lint]" > config.toml
 
+echo "exclude=CodeStyleFallthroughCaseRequireComment" >> config.toml
+echo "exclude=BugproneMissingSwitchDefaultCase" >> config.toml
 echo "noreturn-func=FATAL_ERROR|SFH_FATAL_ERROR|FAIL" >> config.toml
 
 while read -r line; do
