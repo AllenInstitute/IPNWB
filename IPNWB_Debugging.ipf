@@ -89,7 +89,7 @@ End
 /// @brief Abort execution with the given message
 threadsafe Function FATAL_ERROR(string errorMsg)
 
-	ASSERT_TS(0, errorMsg)
+	FATAL_ERROR(errorMsg)
 End
 
 #if defined(DEBUGGING_ENABLED)
@@ -198,7 +198,7 @@ threadsafe Function DEBUGPRINT(string msg, [variable var, string str, string for
 	elseif(numSuppliedOptParams == 2)
 		ASSERT_TS(!ParamIsDefault(format), "You can't supply \"var\" and \"str\" at the same time")
 	else
-		ASSERT_TS(0, "Invalid parameter combination")
+		FATAL_ERROR("Invalid parameter combination")
 	endif
 
 	if(!ParamIsDefault(var))

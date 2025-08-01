@@ -192,7 +192,7 @@ threadsafe Function GetChannelTypeFromNeurodataType(string neurodata_type)
 		case "TimeSeries": // unassociated channel data
 			return IPNWB_CHANNEL_TYPE_OTHER
 		default:
-			ASSERT_TS(0, "Unknown neurodata_type: " + neurodata_type)
+			FATAL_ERROR("Unknown neurodata_type: " + neurodata_type)
 			break
 	endswitch
 
@@ -217,7 +217,7 @@ threadsafe Function GetClampModeFromNeurodataType(string neurodata_type)
 		case "TimeSeries": // unassociated channel data
 			return NaN
 		default:
-			ASSERT_TS(0, "Unknown data type: " + neurodata_type)
+			FATAL_ERROR("Unknown data type: " + neurodata_type)
 			break
 	endswitch
 End
@@ -355,7 +355,7 @@ Function/S LoadSpecification(string specLoc, string specName)
 		Close/A
 		err = GetRTError(1)
 		sprintf msg, "Could not read file at %s. Error %d\r", fileName, err
-		ASSERT_TS(0, msg)
+		FATAL_ERROR(msg)
 	endtry
 
 	return str
@@ -544,7 +544,7 @@ threadsafe Function/S CompressionModeToString(variable mode)
 		case SINGLE_CHUNK_COMPRESSION:
 			return "single chunk"
 		default:
-			ASSERT_TS(0, "Invalid mode: " + num2str(mode))
+			FATAL_ERROR("Invalid mode: " + num2str(mode))
 	endswitch
 End
 
@@ -596,6 +596,6 @@ Function/S GetHistoryAndLogFileDatasetName(variable version)
 	elseif(version == 2)
 		return "data_collection"
 	else
-		ASSERT_TS(0, "Invalid nwb version")
+		FATAL_ERROR("Invalid nwb version")
 	endif
 End

@@ -287,7 +287,7 @@ threadsafe Function DataFolderExistsDFR(DFREF dfr)
 		case 3: // free data folders always exist
 			return 1
 		default:
-			ASSERT_TS(0, "DataFolderExistsDFR: unknown status")
+			FATAL_ERROR("DataFolderExistsDFR: unknown status")
 			return 0
 	endswitch
 End
@@ -393,7 +393,7 @@ threadsafe Function ParseISO8601TimeStamp(string timestamp)
 		elseif(!cmpstr(tzOffsetSign, "-"))
 			secondsSinceEpoch += timeOffset
 		else
-			ASSERT_TS(0, "Invalid case")
+			FATAL_ERROR("Invalid case")
 		endif
 	endif
 
@@ -736,7 +736,7 @@ threadsafe Function/S NormalizeToEOL(string str, string eol)
 	elseif(!cmpstr(eol, "\n"))
 		str = ReplaceString("\r", str, eol)
 	else
-		ASSERT_TS(0, "unsupported EOL character")
+		FATAL_ERROR("unsupported EOL character")
 	endif
 
 	return str
