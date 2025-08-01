@@ -617,6 +617,7 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	InitVectorIndex(tags_vector_index, tags_vector)
 	WriteNeuroDataType(groupID, "tags_index", "VectorIndex")
 	H5_WriteTextAttribute(groupID, "target", "tags_index", str = ("D:" + tags_vector_index.target.path), refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "description", "tags_index", str = tags_vector_index.description)
 
 	STRUCT VectorData timeseries_vector
 	InitVectorData(timeseries_vector)
@@ -629,6 +630,7 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	InitVectorIndex(timeseries_vector_index, timeseries_vector)
 	WriteNeuroDataType(groupID, "timeseries_index", "VectorIndex")
 	H5_WriteTextAttribute(groupID, "target", "timeseries_index", str = ("D:" + timeseries_vector_index.target.path), refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "description", "timeseries_index", str = timeseries_vector_index.description)
 
 	STRUCT VectorData treelevel_vector
 	InitVectorData(treelevel_vector)
@@ -721,6 +723,7 @@ threadsafe static Function AppendToSweepTable(variable locationID, string refere
 	InitVectorIndex(series_index, series)
 	WriteNeuroDataType(groupID, "series_index", series_index.data_type)
 	H5_WriteTextAttribute(groupID, "target", "series_index", str = "D:" + series_index.target.path, refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "description", "series_index", str = series_index.description)
 
 	STRUCT VectorData sweep_number
 	InitVectorData(sweep_number)
