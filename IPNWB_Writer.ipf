@@ -815,9 +815,9 @@ threadsafe Function/S DetermineDataTypeRefTree(string ancestry)
 	string neurodata_type = StringFromList(0, ancestry)
 
 	strswitch(neurodata_type)
-		case "VoltageClampSeries":
-		case "VoltageClampStimulusSeries":
-		case "CurrentClampSeries":
+		case "VoltageClampSeries": // fallthrough
+		case "VoltageClampStimulusSeries": // fallthrough
+		case "CurrentClampSeries": // fallthrough
 		case "CurrentClampStimulusSeries":
 			return DetermineDataTypeRefTree(AddListItem("PatchClampSeries", ancestry))
 		case "IZeroClampSeries":
@@ -828,7 +828,7 @@ threadsafe Function/S DetermineDataTypeRefTree(string ancestry)
 			return AddListItem("index", ancestry)
 		case "SweepTable":
 			return AddListItem("DynamicTable", ancestry)
-		case "TimeSeries":
+		case "TimeSeries": // fallthrough
 		default:
 			return ancestry
 	endswitch
