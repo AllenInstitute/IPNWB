@@ -16,7 +16,7 @@ static StrConstant NWB_PATCHCLAMPSERIES_V1 = "/acquisition/timeseries"
 static StrConstant NWB_PATCHCLAMPSERIES_V2 = "/acquisition"
 
 static StrConstant NWB_VERSION_V1 = "NWB-1.0.5"
-static StrConstant NWB_VERSION_V2 = "2.2.4"
+static StrConstant NWB_VERSION_V2 = "2.9.0"
 
 /// @brief Determine the namespace of the given neurodata type.
 ///
