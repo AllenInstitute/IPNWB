@@ -1,7 +1,7 @@
-#pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3 // Use modern global access method and strict wave access.
-#pragma rtFunctionErrors=1
-#pragma version=0.18
+#pragma TextEncoding     = "UTF-8"
+#pragma rtGlobals        = 3 // Use modern global access method and strict wave access.
+#pragma rtFunctionErrors = 1
+#pragma version          = 0.18
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -9,8 +9,8 @@
 /// @brief NWB utility functions
 
 #ifdef IPNWB_DEFINE_IM
-#pragma IndependentModule=IPNWB
-#endif
+#pragma IndependentModule = IPNWB
+#endif // IPNWB_DEFINE_IM
 
 static StrConstant NWB_PATCHCLAMPSERIES_V1 = "/acquisition/timeseries"
 static StrConstant NWB_PATCHCLAMPSERIES_V2 = "/acquisition"
@@ -22,128 +22,127 @@ static StrConstant NWB_VERSION_V2 = "2.2.4"
 ///
 /// Note: - core specification "2.2.0"
 ///       - hdmf-common "1.1.0"
-threadsafe Function/S DetermineNamespace(neurodata_type)
-	string neurodata_type
+threadsafe Function/S DetermineNamespace(string neurodata_type)
 
-	Make/T/FREE nwb_spec = { \
-		"AbstractFeatureSeries", \
-		"AnnotationSeries", \
-		"AxisMap", \
-		"BehavioralEpochs", \
-		"BehavioralEvents", \
-		"BehavioralTimeSeries", \
-		"Clustering", \
-		"ClusterWaveforms", \
-		"CompassDirection", \
-		"CorrectedImageStack", \
-		"CurrentClampSeries", \
-		"CurrentClampStimulusSeries", \
-		"DecompositionSeries", \
-		"Device", \
-		"DfOverF", \
-		"ElectricalSeries", \
-		"ElectrodeGroup", \
-		"EventDetection", \
-		"EventWaveform", \
-		"EyeTracking", \
-		"FeatureExtraction", \
-		"FilteredEphys", \
-		"Fluorescence", \
-		"GrayscaleImage", \
-		"Image", \
-		"ImageMaskSeries", \
-		"Images", \
-		"ImageSegmentation", \
-		"ImageSeries", \
-		"ImagingPlane", \
-		"ImagingRetinotopy", \
-		"IndexSeries", \
-		"IntervalSeries", \
-		"IntracellularElectrode", \
-		"IZeroClampSeries", \
-		"LabMetaData", \
-		"LFP", \
-		"MotionCorrection", \
-		"NWBContainer", \
-		"NWBData", \
-		"NWBDataInterface", \
-		"NWBFile", \
-		"OpticalChannel", \
-		"OpticalSeries", \
-		"OptogeneticSeries", \
-		"OptogeneticStimulusSite", \
-		"PatchClampSeries", \
-		"PlaneSegmentation", \
-		"Position", \
-		"ProcessingModule", \
-		"PupilTracking", \
-		"RetinotopyImage", \
-		"RetinotopyMap", \
-		"RGBAImage", \
-		"RGBImage", \
-		"RoiResponseSeries", \
-		"ScratchData", \
-		"SpatialSeries", \
-		"SpikeEventSeries", \
-		"Subject", \
-		"SweepTable", \
-		"TimeIntervals", \
-		"TimeSeries", \
-		"TwoPhotonSeries", \
-		"Units", \
-		"VoltageClampSeries", \
-		"VoltageClampStimulusSeries" \
-		}
+	Make/T/FREE nwb_spec = {                              \
+	                        "AbstractFeatureSeries",      \
+	                        "AnnotationSeries",           \
+	                        "AxisMap",                    \
+	                        "BehavioralEpochs",           \
+	                        "BehavioralEvents",           \
+	                        "BehavioralTimeSeries",       \
+	                        "Clustering",                 \
+	                        "ClusterWaveforms",           \
+	                        "CompassDirection",           \
+	                        "CorrectedImageStack",        \
+	                        "CurrentClampSeries",         \
+	                        "CurrentClampStimulusSeries", \
+	                        "DecompositionSeries",        \
+	                        "Device",                     \
+	                        "DfOverF",                    \
+	                        "ElectricalSeries",           \
+	                        "ElectrodeGroup",             \
+	                        "EventDetection",             \
+	                        "EventWaveform",              \
+	                        "EyeTracking",                \
+	                        "FeatureExtraction",          \
+	                        "FilteredEphys",              \
+	                        "Fluorescence",               \
+	                        "GrayscaleImage",             \
+	                        "Image",                      \
+	                        "ImageMaskSeries",            \
+	                        "Images",                     \
+	                        "ImageSegmentation",          \
+	                        "ImageSeries",                \
+	                        "ImagingPlane",               \
+	                        "ImagingRetinotopy",          \
+	                        "IndexSeries",                \
+	                        "IntervalSeries",             \
+	                        "IntracellularElectrode",     \
+	                        "IZeroClampSeries",           \
+	                        "LabMetaData",                \
+	                        "LFP",                        \
+	                        "MotionCorrection",           \
+	                        "NWBContainer",               \
+	                        "NWBData",                    \
+	                        "NWBDataInterface",           \
+	                        "NWBFile",                    \
+	                        "OpticalChannel",             \
+	                        "OpticalSeries",              \
+	                        "OptogeneticSeries",          \
+	                        "OptogeneticStimulusSite",    \
+	                        "PatchClampSeries",           \
+	                        "PlaneSegmentation",          \
+	                        "Position",                   \
+	                        "ProcessingModule",           \
+	                        "PupilTracking",              \
+	                        "RetinotopyImage",            \
+	                        "RetinotopyMap",              \
+	                        "RGBAImage",                  \
+	                        "RGBImage",                   \
+	                        "RoiResponseSeries",          \
+	                        "ScratchData",                \
+	                        "SpatialSeries",              \
+	                        "SpikeEventSeries",           \
+	                        "Subject",                    \
+	                        "SweepTable",                 \
+	                        "TimeIntervals",              \
+	                        "TimeSeries",                 \
+	                        "TwoPhotonSeries",            \
+	                        "Units",                      \
+	                        "VoltageClampSeries",         \
+	                        "VoltageClampStimulusSeries"  \
+	                       }
 	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) nwb_spec
 	if(V_Value != -1)
 		return NWB_SPEC_NAME
 	endif
 
-	Make/T/FREE hdmf_spec = { \
-		"Container", \
-		"CSRMatrix", \
-		"Data", \
-		"DynamicTable", \
-		"DynamicTableRegion", \
-		"ElementIdentifiers", \
-		"Index", \
-		"VectorData", \
-		"VectorIndex" \
-		}
+	Make/T/FREE hdmf_spec = {                      \
+	                         "Container",          \
+	                         "CSRMatrix",          \
+	                         "Data",               \
+	                         "DynamicTable",       \
+	                         "DynamicTableRegion", \
+	                         "ElementIdentifiers", \
+	                         "Index",              \
+	                         "VectorData",         \
+	                         "VectorIndex"         \
+	                        }
 	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) hdmf_spec
 	if(V_Value != -1)
 		return HDMF_SPEC_NAME
 	endif
 
-	Make/T/FREE ndx_mies_spec = {              \
-        "MIESMetaData",                        \
-        "GeneratedBy",                         \
-        "UserComment",                         \
-        "UserCommentString",                   \
-        "UserCommentDevice",                   \
-        "Testpulse",                           \
-        "TestpulseDevice",                     \
-        "TestpulseMetadata",                   \
-        "TestpulseRawData",                    \
-        "LabNotebook",                         \
-        "LabNotebookDevice",                   \
-        "LabNotebookNumericalValues",          \
-        "LabNotebookNumericalKeys",            \
-        "LabNotebookTextualValues",            \
-        "LabNotebookTextualKeys",              \
-        "Results",                             \
-        "ResultsNumericalValues",              \
-        "ResultsNumericalKeys",                \
-        "ResultsTextualValues",                \
-        "ResultsTextualKeys",                  \
-        "StimulusSets",                        \
-        "StimulusSetWavebuilderParameter",     \
-        "StimulusSetWavebuilderParameterText", \
-        "StimulusSetWavebuilderSegmentTypes",  \
-        "StimulusSetReferencedWaveform",       \
-        "StimulusSetReferencedFolder",         \
-        "StimulusSetReferenced"                \
-		}
+	Make/T/FREE ndx_mies_spec = {                                       \
+	                             "MIESMetaData",                        \
+	                             "GeneratedBy",                         \
+	                             "UserComment",                         \
+	                             "UserCommentString",                   \
+	                             "UserCommentDevice",                   \
+	                             "Testpulse",                           \
+	                             "TestpulseDevice",                     \
+	                             "TestpulseMetadata",                   \
+	                             "TestpulseRawData",                    \
+	                             "LabNotebook",                         \
+	                             "LabNotebookDevice",                   \
+	                             "LabNotebookNumericalValues",          \
+	                             "LabNotebookNumericalKeys",            \
+	                             "LabNotebookTextualValues",            \
+	                             "LabNotebookTextualKeys",              \
+	                             "Results",                             \
+	                             "ResultsNumericalValues",              \
+	                             "ResultsNumericalKeys",                \
+	                             "ResultsTextualValues",                \
+	                             "ResultsTextualKeys",                  \
+	                             "StimulusSets",                        \
+	                             "StimulusSetWavebuilderParameter",     \
+	                             "StimulusSetWavebuilderParameterText", \
+	                             "StimulusSetWavebuilderSegmentTypes",  \
+	                             "StimulusSetReferencedWaveform",       \
+	                             "StimulusSetReferencedFolder",         \
+	                             "StimulusSetReferenced"                \
+	                            }
 	FindValue/TEXT=(neurodata_type)/TXOP=(0x01 | 0x04) ndx_mies_spec
 	if(V_Value != -1)
 		return NDX_MIES_SPEC_NAME
@@ -155,22 +154,21 @@ End
 /// @brief Return the initial values for the missing_fields attribute depending
 ///        on the channel type, one of @ref IPNWBChannelTypes, and the clamp
 ///        mode, one in @ref IPNWB_ClampModes.
-threadsafe Function/S GetTimeSeriesMissingFields(channelType, clampMode)
-	variable channelType, clampMode
+threadsafe Function/S GetTimeSeriesMissingFields(variable channelType, variable clampMode)
 
 	string neurodata_type = DetermineDataTypeFromProperties(channelType, clampMode)
 
 	strswitch(neurodata_type)
 		case "VoltageClampSeries":
 			return "gain;capacitance_fast;capacitance_slow;resistance_comp_bandwidth;resistance_comp_correction;resistance_comp_prediction;whole_cell_capacitance_comp;whole_cell_series_resistance_comp"
-		case "CurrentClampSeries":
+		case "CurrentClampSeries": // fallthrough
 		case "IZeroClampSeries":
 			return "gain;bias_current;bridge_balance;capacitance_compensation"
-		case "PatchClampSeries":
-		case "VoltageClampStimulusSeries":
+		case "PatchClampSeries": // fallthrough
+		case "VoltageClampStimulusSeries": // fallthrough
 		case "CurrentClampStimulusSeries":
 			return "gain"
-		case "TimeSeries": // unassociated channel data
+		case "TimeSeries": // fallthrough, unassociated channel data
 		default:
 			return ""
 	endswitch
@@ -181,21 +179,20 @@ End
 ///
 /// @param neurodata_type string with neurodata type specification defined in
 ///                       `nwb.icephys.json`_
-threadsafe Function GetChannelTypeFromNeurodataType(neurodata_type)
-	string neurodata_type
+threadsafe Function GetChannelTypeFromNeurodataType(string neurodata_type)
 
 	strswitch(neurodata_type)
-		case "VoltageClampSeries":
-		case "CurrentClampSeries":
+		case "VoltageClampSeries": // fallthrough
+		case "CurrentClampSeries": // fallthrough
 		case "IZeroClampSeries":
 			return IPNWB_CHANNEL_TYPE_ADC
-		case "VoltageClampStimulusSeries":
+		case "VoltageClampStimulusSeries": // fallthrough
 		case "CurrentClampStimulusSeries":
 			return IPNWB_CHANNEL_TYPE_DAC
 		case "TimeSeries": // unassociated channel data
 			return IPNWB_CHANNEL_TYPE_OTHER
 		default:
-			ASSERT_TS(0, "Unknown neurodata_type: " + neurodata_type)
+			FATAL_ERROR("Unknown neurodata_type: " + neurodata_type)
 			break
 	endswitch
 
@@ -206,14 +203,13 @@ End
 ///
 /// @param neurodata_type string with neurodata type specification defined in
 ///                       `nwb.icephys.json`_
-threadsafe Function GetClampModeFromNeurodataType(neurodata_type)
-	string neurodata_type
+threadsafe Function GetClampModeFromNeurodataType(string neurodata_type)
 
 	strswitch(neurodata_type)
-		case "VoltageClampSeries":
+		case "VoltageClampSeries": // fallthrough
 		case "VoltageClampStimulusSeries":
 			return V_CLAMP_MODE
-		case "CurrentClampSeries":
+		case "CurrentClampSeries": // fallthrough
 		case "CurrentClampStimulusSeries":
 			return I_CLAMP_MODE
 		case "IZeroClampSeries":
@@ -221,7 +217,7 @@ threadsafe Function GetClampModeFromNeurodataType(neurodata_type)
 		case "TimeSeries": // unassociated channel data
 			return NaN
 		default:
-			ASSERT_TS(0, "Unknown data type: " + neurodata_type)
+			FATAL_ERROR("Unknown data type: " + neurodata_type)
 			break
 	endswitch
 End
@@ -235,11 +231,10 @@ End
 ///
 /// @return neurodata_type string with neurodata type specification defined in
 ///         `nwb.icephys.json`_
-threadsafe Function/S DetermineDataTypeFromProperties(channelType, clampMode)
-	variable channelType, clampMode
+threadsafe Function/S DetermineDataTypeFromProperties(variable channelType, variable clampMode)
 
 	switch(channelType)
-		case IPNWB_CHANNEL_TYPE_ADC:
+		case IPNWB_CHANNEL_TYPE_ADC: // fallthrough
 			switch(clampMode)
 				case V_CLAMP_MODE:
 					return "VoltageClampSeries"
@@ -247,14 +242,23 @@ threadsafe Function/S DetermineDataTypeFromProperties(channelType, clampMode)
 					return "CurrentClampSeries"
 				case I_EQUAL_ZERO_MODE:
 					return "IZeroClampSeries"
+				default:
+					// unassociated channel
+					break
 			endswitch
-		case IPNWB_CHANNEL_TYPE_DAC:
+		case IPNWB_CHANNEL_TYPE_DAC: // fallthrough
 			switch(clampMode)
 				case V_CLAMP_MODE:
 					return "VoltageClampStimulusSeries"
 				case I_CLAMP_MODE:
 					return "CurrentClampStimulusSeries"
+				default:
+					// unassociated channel
+					break
 			endswitch
+		default:
+			// TTL
+			break
 	endswitch
 
 	return "TimeSeries"
@@ -264,20 +268,19 @@ End
 ///
 /// @param fileID id of open hdf5 file
 /// @returns major version e.g. 1 or 2
-threadsafe Function/S ReadNWBVersion(fileID)
-	variable fileID
+threadsafe Function/S ReadNWBVersion(variable fileID)
 
 	string version
 
 	if(!H5_AttributeExists(fileID, "/", "nwb_version"))
-		WAVE/T/Z nwbVersion = H5_LoadDataSet(fileID, "/nwb_version")
+		WAVE/Z/T nwbVersion = H5_LoadDataSet(fileID, "/nwb_version")
 
 		if(!WaveExists(nwbVersion))
 			// fallback to old naming before IPNWB/a99dba5d (IPNWB: Raise nwb version to 1.0.5, 2016-08-05)
-			WAVE/T/Z nwbVersion = H5_LoadDataSet(fileID, "/neurodata_version")
+			WAVE/Z/T nwbVersion = H5_LoadDataSet(fileID, "/neurodata_version")
 		endif
 	else
-		WAVE/T/Z nwbVersion = H5_LoadAttribute(fileID, "/", "nwb_version")
+		WAVE/Z/T nwbVersion = H5_LoadAttribute(fileID, "/", "nwb_version")
 	endif
 
 	if(!WaveExists(nwbVersion))
@@ -290,8 +293,7 @@ End
 /// @brief convert version string to major version
 ///
 /// @see GetNWBVersionString
-threadsafe Function GetNWBMajorVersion(version)
-	string version
+threadsafe Function GetNWBMajorVersion(string version)
 
 	variable majorVersion, version1, version2
 
@@ -310,9 +312,7 @@ End
 ///                      Version)
 /// @param[out] version2 numeric third part of the version string (sub Version)
 /// @returns analyzed numeric versions
-threadsafe Function AnalyzeNWBVersion(version, version0, version1, version2)
-	string version
-	variable &version0, &version1, &version2
+threadsafe Function AnalyzeNWBVersion(string version, variable &version0, variable &version1, variable &version2)
 
 	variable err
 	string strVersion0, strVersion1, strVersion2, msg
@@ -331,8 +331,7 @@ threadsafe Function AnalyzeNWBVersion(version, version0, version1, version2)
 	return version0
 End
 
-threadsafe Function EnsureValidNWBVersion(version)
-	variable version
+threadsafe Function EnsureValidNWBVersion(variable version)
 
 	ASSERT_TS(version == 1 || version == 2, "Invalid version: " + num2str(version))
 End
@@ -345,8 +344,7 @@ End
 /// @param specName specifications file identifier (without trailing *.json ending)
 ///
 /// @returns JSON string
-Function/S LoadSpecification(specLoc, specName)
-	string specLoc, specName
+Function/S LoadSpecification(string specLoc, string specName)
 
 	variable refNum, err
 	string msg, fileName
@@ -362,7 +360,7 @@ Function/S LoadSpecification(specLoc, specName)
 		Close/A
 		err = GetRTError(1)
 		sprintf msg, "Could not read file at %s. Error %d\r", fileName, err
-		ASSERT_TS(0, msg)
+		FATAL_ERROR(msg)
 	endtry
 
 	return str
@@ -373,6 +371,7 @@ End
 /// Note: This is typically located at the location of the IPNWB program ipf files.
 ///       @c FunctionPath is not threadsafe
 Function/S SpecificationsDiscLocation()
+
 	return GetFolder(FunctionPath(""))
 End
 
@@ -382,9 +381,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-threadsafe Function/S ReadTextAttributeAsList(locationID, path, name)
-	variable locationID
-	string path, name
+threadsafe Function/S ReadTextAttributeAsList(variable locationID, string path, string name)
 
 	return TextWaveToList(ReadTextAttribute(locationID, path, name), ";")
 End
@@ -396,11 +393,9 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-threadsafe Function/WAVE ReadTextAttribute(locationID, path, name)
-	variable locationID
-	string path, name
+threadsafe Function/WAVE ReadTextAttribute(variable locationID, string path, string name)
 
-	WAVE/T/Z wv = H5_LoadAttribute(locationID, path, name)
+	WAVE/Z/T wv = H5_LoadAttribute(locationID, path, name)
 
 	if(!WaveExists(wv))
 		Make/FREE/T/N=1 wv = PLACEHOLDER
@@ -418,11 +413,9 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-threadsafe Function/S ReadTextAttributeAsString(locationID, path, name)
-	variable locationID
-	string path, name
+threadsafe Function/S ReadTextAttributeAsString(variable locationID, string path, string name)
 
-	WAVE/T/Z wv = H5_LoadAttribute(locationID, path, name)
+	WAVE/Z/T wv = H5_LoadAttribute(locationID, path, name)
 
 	if(!WaveExists(wv))
 		return PLACEHOLDER
@@ -440,9 +433,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  name       Name of the attribute to load
-threadsafe Function ReadAttributeAsNumber(locationID, path, name)
-	variable locationID
-	string path, name
+threadsafe Function ReadAttributeAsNumber(variable locationID, string path, string name)
 
 	WAVE/Z wv = H5_LoadAttribute(locationID, path, name)
 
@@ -461,11 +452,9 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name    Name of the HDF5 dataset
-threadsafe Function/WAVE ReadTextDataSet(locationID, name)
-	variable locationID
-	string name
+threadsafe Function/WAVE ReadTextDataSet(variable locationID, string name)
 
-	WAVE/T/Z wv = H5_LoadDataset(locationID, name)
+	WAVE/Z/T wv = H5_LoadDataset(locationID, name)
 
 	if(!WaveExists(wv))
 		Make/FREE/T/N=1 wv = PLACEHOLDER
@@ -481,11 +470,9 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name       Name of the HDF5 dataset
-threadsafe Function/S ReadTextDataSetAsString(locationID, name)
-	variable locationID
-	string name
+threadsafe Function/S ReadTextDataSetAsString(variable locationID, string name)
 
-	WAVE/T/Z wv = H5_LoadDataset(locationID, name)
+	WAVE/Z/T wv = H5_LoadDataset(locationID, name)
 
 	if(!WaveExists(wv))
 		return PLACEHOLDER
@@ -501,9 +488,7 @@ End
 ///
 /// @param locationID HDF5 identifier, can be a file or group
 /// @param name       Name of the HDF5 dataset
-threadsafe Function ReadDataSetAsNumber(locationID, name)
-	variable locationID
-	string name
+threadsafe Function ReadDataSetAsNumber(variable locationID, string name)
 
 	WAVE/Z wv = H5_LoadDataset(locationID, name)
 
@@ -522,10 +507,7 @@ End
 /// @param name                                                     Name of the HDF5 dataset
 /// @param str                                                      Contents to write into the dataset
 /// @param compressionMode [optional, defaults to #NO_COMPRESSION]  Type of compression to use, one of @ref CompressionMode
-threadsafe Function WriteTextDatasetIfSet(locationID, name, str, [compressionMode])
-	variable locationID
-	string name, str
-	variable compressionMode
+threadsafe Function WriteTextDatasetIfSet(variable locationID, string name, string str, [variable compressionMode])
 
 	if(ParamIsDefault(compressionMode))
 		compressionMode = NO_COMPRESSION
@@ -535,7 +517,7 @@ threadsafe Function WriteTextDatasetIfSet(locationID, name, str, [compressionMod
 		return NaN
 	endif
 
-	H5_WriteTextDataset(locationID, name, str=str, compressionMode=compressionMode)
+	H5_WriteTextDataset(locationID, name, str = str, compressionMode = compressionMode)
 End
 
 /// @brief Convenience getters
@@ -543,14 +525,17 @@ End
 /// Igor Pro does not allow cross IM access to constants
 /// @{
 threadsafe Function GetNoCompression()
+
 	return NO_COMPRESSION
 End
 
 threadsafe Function GetChunkedCompression()
+
 	return CHUNKED_COMPRESSION
 End
 
 threadsafe Function GetSingleChunkCompression()
+
 	return SINGLE_CHUNK_COMPRESSION
 End
 
@@ -564,7 +549,7 @@ threadsafe Function/S CompressionModeToString(variable mode)
 		case SINGLE_CHUNK_COMPRESSION:
 			return "single chunk"
 		default:
-			ASSERT_TS(0, "Invalid mode: " + num2str(mode))
+			FATAL_ERROR("Invalid mode: " + num2str(mode))
 	endswitch
 End
 
@@ -574,8 +559,7 @@ End
 ///
 /// @param version  target NWB version
 /// @returns        full path to patchclampseries group
-threadsafe Function/S GetNWBgroupPatchClampSeries(version)
-	variable version
+threadsafe Function/S GetNWBgroupPatchClampSeries(variable version)
 
 	if(version == 1)
 		return NWB_PATCHCLAMPSERIES_V1
@@ -590,8 +574,7 @@ End
 ///
 /// @param version  maior NWB version e.g. 2
 /// @returns        full version string in the format `(?:NWB-)?[1,2]\.[0-9](?:\.[0-9])?[b]?`
-threadsafe Function/S GetNWBVersionString(version)
-	variable version
+threadsafe Function/S GetNWBVersionString(variable version)
 
 	switch(version)
 		case 1:
@@ -606,6 +589,7 @@ End
 /// @brief get latest supported NWB version
 /// @returns maior version
 threadsafe Function GetNWBVersion()
+
 	return NWB_VERSION_LATEST
 End
 
@@ -617,6 +601,6 @@ Function/S GetHistoryAndLogFileDatasetName(variable version)
 	elseif(version == 2)
 		return "data_collection"
 	else
-		ASSERT_TS(0, "Invalid nwb version")
+		FATAL_ERROR("Invalid nwb version")
 	endif
 End

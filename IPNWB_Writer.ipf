@@ -1,11 +1,11 @@
-#pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3 // Use modern global access method and strict wave access.
-#pragma rtFunctionErrors=1
-#pragma version=0.18
+#pragma TextEncoding     = "UTF-8"
+#pragma rtGlobals        = 3 // Use modern global access method and strict wave access.
+#pragma rtFunctionErrors = 1
+#pragma version          = 0.18
 
 #ifdef IPNWB_DEFINE_IM
-#pragma IndependentModule=IPNWB
-#endif
+#pragma IndependentModule = IPNWB
+#endif // IPNWB_DEFINE_IM
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -17,17 +17,13 @@
 /// @param toplevelInfo [optional, see ToplevelInfo() for defaults] datasets directly below `/`
 /// @param generalInfo [optional, see GeneralInfo() for defaults]   datasets directly below `/general`
 /// @param subjectInfo [optional, see SubjectInfo() for defaults]   datasets below `/general/subject`
-threadsafe Function CreateCommonGroups(locationID, toplevelInfo, [generalInfo, subjectInfo])
-	variable locationID
-	STRUCT ToplevelInfo &toplevelInfo
-	STRUCT GeneralInfo &generalInfo
-	STRUCT SubjectInfo &subjectInfo
+threadsafe Function CreateCommonGroups(variable locationID, STRUCT ToplevelInfo &toplevelInfo, [STRUCT GeneralInfo &generalInfo, STRUCT SubjectInfo &subjectInfo])
 
 	variable groupID, version
 	string session_start_time_ts
 
-	STRUCT GeneralInfo gi
-	STRUCT SubjectInfo si
+	STRUCT GeneralInfo  gi
+	STRUCT SubjectInfo  si
 	STRUCT TopLevelInfo ti
 
 	ti = toplevelInfo
@@ -47,38 +43,38 @@ threadsafe Function CreateCommonGroups(locationID, toplevelInfo, [generalInfo, s
 	version = GetNWBmajorVersion(ti.nwb_version)
 	EnsureValidNWBVersion(version)
 	if(version == 1)
-		H5_WriteTextDataset(locationID, "nwb_version", str=ti.nwb_version)
+		H5_WriteTextDataset(locationID, "nwb_version", str = ti.nwb_version)
 	elseif(version == NWB_VERSION_LATEST)
-		H5_WriteTextAttribute(locationID, "nwb_version", NWB_ROOT, str=ti.nwb_version)
+		H5_WriteTextAttribute(locationID, "nwb_version", NWB_ROOT, str = ti.nwb_version)
 		WriteNeuroDataType(locationID, NWB_ROOT, "NWBFile")
 	endif
 
-	session_start_time_ts = GetISO8601TimeStamp(secondsSinceIgorEpoch=ti.session_start_time, numFracSecondsDigits = 3)
+	session_start_time_ts = GetISO8601TimeStamp(secondsSinceIgorEpoch = ti.session_start_time, numFracSecondsDigits = 3)
 
-	H5_WriteTextDataset(locationID, "identifier", str=ti.identifier)
+	H5_WriteTextDataset(locationID, "identifier", str = ti.identifier)
 	// file_create_date needs to be appendable for the modified timestamps, and that is equivalent to having chunked layout
-	H5_WriteTextDataset(locationID, "file_create_date", wvText=ti.file_create_date, compressionMode=CHUNKED_COMPRESSION)
-	H5_WriteTextDataset(locationID, "session_start_time", str=session_start_time_ts)
-	H5_WriteTextDataset(locationID, "session_description", str=ti.session_description)
-	H5_WriteTextDataset(locationID, "timestamps_reference_time", str=session_start_time_ts)
+	H5_WriteTextDataset(locationID, "file_create_date", wvText = ti.file_create_date, compressionMode = CHUNKED_COMPRESSION)
+	H5_WriteTextDataset(locationID, "session_start_time", str = session_start_time_ts)
+	H5_WriteTextDataset(locationID, "session_description", str = ti.session_description)
+	H5_WriteTextDataset(locationID, "timestamps_reference_time", str = session_start_time_ts)
 
 	H5_CreateGroupsRecursively(locationID, NWB_GENERAL)
 	groupID = H5_OpenGroup(locationID, NWB_GENERAL)
 
-	WriteTextDatasetIfSet(groupID, "session_id"            , gi.session_id)
-	WriteTextDatasetIfSet(groupID, "experimenter"          , gi.experimenter)
-	WriteTextDatasetIfSet(groupID, "institution"           , gi.institution)
-	WriteTextDatasetIfSet(groupID, "lab"                   , gi.lab)
-	WriteTextDatasetIfSet(groupID, "related_publications"  , gi.related_publications)
-	WriteTextDatasetIfSet(groupID, "notes"                 , gi.notes)
+	WriteTextDatasetIfSet(groupID, "session_id", gi.session_id)
+	WriteTextDatasetIfSet(groupID, "experimenter", gi.experimenter)
+	WriteTextDatasetIfSet(groupID, "institution", gi.institution)
+	WriteTextDatasetIfSet(groupID, "lab", gi.lab)
+	WriteTextDatasetIfSet(groupID, "related_publications", gi.related_publications)
+	WriteTextDatasetIfSet(groupID, "notes", gi.notes)
 	WriteTextDatasetIfSet(groupID, "experiment_description", gi.experiment_description)
-	WriteTextDatasetIfSet(groupID, "data_collection"       , gi.data_collection)
-	WriteTextDatasetIfSet(groupID, "stimulus"              , gi.stimulus)
-	WriteTextDatasetIfSet(groupID, "pharmacology"          , gi.pharmacology)
-	WriteTextDatasetIfSet(groupID, "surgery"               , gi.surgery)
-	WriteTextDatasetIfSet(groupID, "protocol"              , gi.protocol)
-	WriteTextDatasetIfSet(groupID, "virus"                 , gi.virus)
-	WriteTextDatasetIfSet(groupID, "slices"                , gi.slices)
+	WriteTextDatasetIfSet(groupID, "data_collection", gi.data_collection)
+	WriteTextDatasetIfSet(groupID, "stimulus", gi.stimulus)
+	WriteTextDatasetIfSet(groupID, "pharmacology", gi.pharmacology)
+	WriteTextDatasetIfSet(groupID, "surgery", gi.surgery)
+	WriteTextDatasetIfSet(groupID, "protocol", gi.protocol)
+	WriteTextDatasetIfSet(groupID, "virus", gi.virus)
+	WriteTextDatasetIfSet(groupID, "slices", gi.slices)
 
 	HDF5CloseGroup/Z groupID
 
@@ -88,14 +84,14 @@ threadsafe Function CreateCommonGroups(locationID, toplevelInfo, [generalInfo, s
 		WriteNeuroDataType(locationID, NWB_SUBJECT, "Subject")
 	endif
 
-	WriteTextDatasetIfSet(groupID, "age"          , si.age)
+	WriteTextDatasetIfSet(groupID, "age", si.age)
 	WriteTextDatasetIfSet(groupID, "date_of_birth", si.date_of_birth)
-	WriteTextDatasetIfSet(groupID, "description"  , si.description)
-	WriteTextDatasetIfSet(groupID, "genotype"     , si.genotype)
-	WriteTextDatasetIfSet(groupID, "sex"          , si.sex)
-	WriteTextDatasetIfSet(groupID, "species"      , si.species)
-	WriteTextDatasetIfSet(groupID, "subject_id"   , si.subject_id)
-	WriteTextDatasetIfSet(groupID, "weight"       , si.weight)
+	WriteTextDatasetIfSet(groupID, "description", si.description)
+	WriteTextDatasetIfSet(groupID, "genotype", si.genotype)
+	WriteTextDatasetIfSet(groupID, "sex", si.sex)
+	WriteTextDatasetIfSet(groupID, "species", si.species)
+	WriteTextDatasetIfSet(groupID, "subject_id", si.subject_id)
+	WriteTextDatasetIfSet(groupID, "weight", si.weight)
 
 	HDF5CloseGroup/Z groupID
 
@@ -106,7 +102,7 @@ threadsafe Function CreateCommonGroups(locationID, toplevelInfo, [generalInfo, s
 
 	if(version == 1)
 		H5_CreateGroupsRecursively(locationID, NWB_EPOCHS)
-		H5_WriteTextAttribute(locationID, "tags", NWB_EPOCHS, list="")
+		H5_WriteTextAttribute(locationID, "tags", NWB_EPOCHS, list = "")
 	endif
 
 	H5_CreateGroupsRecursively(locationID, NWB_PROCESSING)
@@ -121,9 +117,7 @@ End
 ///
 /// @param locationID                                    HDF5 identifier
 /// @param filtering [optional, defaults to PLACEHOLDER] filtering information
-threadsafe Function CreateIntraCellularEphys(locationID, [filtering])
-	variable locationID
-	string filtering
+threadsafe Function CreateIntraCellularEphys(variable locationID, [string filtering])
 
 	variable groupID
 
@@ -133,7 +127,7 @@ threadsafe Function CreateIntraCellularEphys(locationID, [filtering])
 
 	H5_CreateGroupsRecursively(locationID, NWB_INTRACELLULAR_EPHYS)
 	groupID = H5_OpenGroup(locationID, NWB_INTRACELLULAR_EPHYS)
-	H5_WriteTextDataset(groupID, "filtering" , str=filtering, overwrite=1)
+	H5_WriteTextDataset(groupID, "filtering", str = filtering, overwrite = 1)
 	HDF5CloseGroup groupID
 End
 
@@ -144,13 +138,10 @@ End
 /// @param version      major NWB version
 /// @param description  a string describing the created device
 /// @returns 1 if a new device was created and 0 if it already existed
-threadsafe Function AddDevice(locationID, name, version, description)
-	variable locationID
-	string name, description
-	variable version
+threadsafe Function AddDevice(variable locationID, string name, variable version, string description)
 
 	variable groupID
-	string path
+	string   path
 
 	EnsureValidNWBVersion(version)
 
@@ -159,23 +150,21 @@ threadsafe Function AddDevice(locationID, name, version, description)
 	if(version == 1)
 		H5_CreateGroupsRecursively(locationID, NWB_DEVICES)
 		groupID = H5_OpenGroup(locationID, NWB_DEVICES)
-		H5_WriteTextDataset(groupID, path, str=description, skipIfExists=1)
+		H5_WriteTextDataset(groupID, path, str = description, skipIfExists = 1)
 	elseif(version == NWB_VERSION_LATEST)
 		H5_CreateGroupsRecursively(locationID, path)
 		groupID = H5_OpenGroup(locationID, path)
 		WriteNeuroDataType(groupID, path, "Device")
-		H5_WriteTextAttribute(groupID, "description", path, str=description, overwrite=1)
+		H5_WriteTextAttribute(groupID, "description", path, str = description, overwrite = 1)
 	endif
 
 	HDF5CloseGroup/Z groupID
 End
 
 /// @brief Add an entry for the electrode `name` with contents `data`
-threadsafe Function AddElectrode(locationID, name, version, data, device)
-	variable locationID, version
-	string name, data, device
+threadsafe Function AddElectrode(variable locationID, string name, variable version, string data, string device)
 
-	string path
+	string   path
 	variable groupID
 
 	EnsureValidNWBVersion(version)
@@ -193,10 +182,10 @@ threadsafe Function AddElectrode(locationID, name, version, data, device)
 		WriteNeuroDataType(groupID, path, "IntracellularElectrode")
 	endif
 
-	H5_WriteTextDataset(groupID, "description", str=data)
+	H5_WriteTextDataset(groupID, "description", str = data)
 
 	if(version == 1)
-		H5_WriteTextDataset(groupID, "device", str=device)
+		H5_WriteTextDataset(groupID, "device", str = device)
 	elseif(version == NWB_VERSION_LATEST)
 		sprintf path, "%s/device_%s", NWB_DEVICES, device
 		H5_CreateSoftLink(groupID, "device", path)
@@ -206,8 +195,7 @@ threadsafe Function AddElectrode(locationID, name, version, data, device)
 End
 
 /// @brief Add a modification timestamp to the NWB file
-threadsafe Function AddModificationTimeEntry(locationID, version)
-	variable locationID, version
+threadsafe Function AddModificationTimeEntry(variable locationID, variable version)
 
 	EnsureValidNWBVersion(version)
 
@@ -217,7 +205,7 @@ threadsafe Function AddModificationTimeEntry(locationID, version)
 	if(V_flag)
 		HDF5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "AddModificationTimeEntry: Could not append to the HDF5 dataset")
+		FATAL_ERROR("AddModificationTimeEntry: Could not append to the HDF5 dataset")
 	endif
 End
 
@@ -228,9 +216,7 @@ End
 ///
 /// @param locationID HDF5 identifier
 /// @param name       dataset or group name
-threadsafe Function MarkAsCustomEntry(locationID, name)
-	variable locationID
-	string name
+threadsafe Function MarkAsCustomEntry(variable locationID, string name)
 
 	WriteNeuroDataType(locationID, name, "Custom")
 End
@@ -242,10 +228,7 @@ End
 /// @param unitWithPrefix                                        unit with optional prefix of the data in the TimeSeries, @see ParseUnit
 /// @param resolution [optional, defaults to `NaN` for unknown]  experimental resolution
 /// @param overwrite [optional, defaults to false] 				 should existing attributes be overwritten
-threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPrefix, [resolution, overwrite])
-	variable locationID
-	string fullAbsPath, unitWithPrefix
-	variable resolution, overwrite
+threadsafe Function AddTimeSeriesUnitAndRes(variable locationID, string fullAbsPath, string unitWithPrefix, [variable resolution, variable overwrite])
 
 	string prefix, unit
 	variable numPrefix, version
@@ -266,7 +249,7 @@ threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPre
 	endif
 
 	if(version == 1)
-		H5_WriteTextAttribute(locationID, "unit", fullAbsPath, str=unit)
+		H5_WriteTextAttribute(locationID, "unit", fullAbsPath, str = unit)
 	elseif(version == NWB_VERSION_LATEST)
 		// standardize to default units for common ones
 		if(!cmpstr(unit, "A"))
@@ -275,7 +258,7 @@ threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPre
 			unit = "volts"
 		endif
 
-		H5_WriteTextAttribute(locationID, "unit", fullAbsPath, str=unit)
+		H5_WriteTextAttribute(locationID, "unit", fullAbsPath, str = unit)
 	endif
 
 	H5_WriteAttribute(locationID, "conversion", fullAbsPath, numPrefix, IGOR_TYPE_32BIT_FLOAT)
@@ -283,17 +266,13 @@ threadsafe Function AddTimeSeriesUnitAndRes(locationID, fullAbsPath, unitWithPre
 End
 
 /// @brief Add a TimeSeries property to the @p tsp structure
-threadsafe Function AddProperty(tsp, nwbProp, value, [unit])
-	STRUCT TimeSeriesProperties &tsp
-	string nwbProp
-	variable value
-	string unit
+threadsafe Function AddProperty(STRUCT TimeSeriesProperties &tsp, string nwbProp, variable value, [string unit])
 
 	ASSERT_TS(FindListItem(nwbProp, tsp.missing_fields) != -1, "AddProperty: incorrect missing_fields for property " + nwbProp + " in type " + tsp.neurodata_type)
 	tsp.missing_fields = RemoveFromList(nwbProp, tsp.missing_fields)
 
 	WAVE/T propNames = tsp.names
-	WAVE propData    = tsp.data
+	WAVE   propData  = tsp.data
 	WAVE/T propUnit  = tsp.unit
 
 	FindValue/TEXT=""/TXOP=(4) propNames
@@ -310,14 +289,11 @@ End
 /// @brief Add a custom TimeSeries property to the `names` and `data` waves
 ///
 /// @see MarkAsCustomEntry
-threadsafe Function AddCustomProperty(tsp, nwbProp, value)
-	STRUCT TimeSeriesProperties &tsp
-	string nwbProp
-	variable value
+threadsafe Function AddCustomProperty(STRUCT TimeSeriesProperties &tsp, string nwbProp, variable value)
 
 	WAVE/T propNames = tsp.names
-	WAVE propData    = tsp.data
-	WAVE isCustom    = tsp.isCustom
+	WAVE   propData  = tsp.data
+	WAVE   isCustom  = tsp.isCustom
 
 	FindValue/TEXT=""/TXOP=(4) propNames
 	ASSERT_TS(V_Value != -1, "AddCustomProperty: Could not find space for new entry")
@@ -329,9 +305,7 @@ threadsafe Function AddCustomProperty(tsp, nwbProp, value)
 End
 
 /// @brief Return the next free group index of the format `data_$NUM`
-threadsafe Function GetNextFreeGroupIndex(locationID, path)
-	variable locationID
-	string path
+threadsafe Function GetNextFreeGroupIndex(variable locationID, string path)
 
 	string str, list
 	variable idx
@@ -344,7 +318,7 @@ threadsafe Function GetNextFreeGroupIndex(locationID, path)
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "GetNextFreeGroupIndex: Could not get list of objects at path:" + path)
+		FATAL_ERROR("GetNextFreeGroupIndex: Could not get list of objects at path:" + path)
 	endif
 
 	list = S_HDF5ListGroup
@@ -375,14 +349,7 @@ End
 /// @param nwbFilePath         [optional, required only for epoch writing] disc location of the NWB file
 ///
 /// @return locationID, this is different from the parameter if epoch information was written
-threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compressionMode, nwbFilePath])
-	variable locationID
-	string path
-	variable version
-	STRUCT WriteChannelParams &p
-	STRUCT TimeSeriesProperties &tsp
-	variable compressionMode
-	string nwbFilePath
+threadsafe Function WriteSingleChannel(variable locationID, string path, variable version, STRUCT WriteChannelParams &p, STRUCT TimeSeriesProperties &tsp, [variable compressionMode, string nwbFilePath])
 
 	variable groupID, numPlaces, numEntries, i
 	string neurodata_type, source, helpText, channelTypeStr, electrodeName, group, comment, electrodePath
@@ -420,7 +387,7 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 
 	H5_CreateGroupsRecursively(locationID, group)
 	groupID = H5_OpenGroup(locationID, group)
-	H5_WriteTextAttribute(groupID, "description", group, str=PLACEHOLDER, overwrite=1)
+	H5_WriteTextAttribute(groupID, "description", group, str = PLACEHOLDER, overwrite = 1)
 
 	// write source attribute
 	if(version == 1)
@@ -435,9 +402,9 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 			ASSERT_TS(strsearch(p.channelSuffixDesc, "=", 0) == -1, "WriteSingleChannel: channelSuffixDesc must not contain an equals (=) symbol")
 			source += ";" + p.channelSuffixDesc + "=" + p.channelSuffix
 		endif
-		H5_WriteTextAttribute(groupID, "source", group, str=source, overwrite=1)
+		H5_WriteTextAttribute(groupID, "source", group, str = source, overwrite = 1)
 	elseif(version == NWB_VERSION_LATEST)
-		H5_WriteAttribute(groupID, "sweep_number", group, p.sweep, IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, overwrite=1)
+		H5_WriteAttribute(groupID, "sweep_number", group, p.sweep, IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, overwrite = 1)
 		AppendToSweepTable(locationID, group, p.sweep)
 	endif
 
@@ -445,9 +412,9 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 	if(p.channelType != IPNWB_CHANNEL_TYPE_OTHER)
 		comment = note(p.data)
 		if(version == 1)
-			H5_WriteTextAttribute(groupID, "comment", group, str=comment, overwrite=1)
+			H5_WriteTextAttribute(groupID, "comment", group, str = comment, overwrite = 1)
 		elseif(version == NWB_VERSION_LATEST)
-			H5_WriteTextAttribute(groupID, "comments", group, str=NormalizeToEOL(comment, "\n"), overwrite=1)
+			H5_WriteTextAttribute(groupID, "comments", group, str = NormalizeToEOL(comment, "\n"), overwrite = 1)
 		endif
 	endif
 
@@ -455,7 +422,7 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 	if(IsFinite(p.electrodeNumber) && (p.channelType == IPNWB_CHANNEL_TYPE_DAC || p.channelType == IPNWB_CHANNEL_TYPE_ADC))
 		sprintf electrodeName, "electrode_%s", p.electrodeName
 		if(version == 1)
-			H5_WriteTextDataset(groupID, "electrode_name", str=(electrodeName), overwrite=1)
+			H5_WriteTextDataset(groupID, "electrode_name", str = (electrodeName), overwrite = 1)
 		elseif(version == NWB_VERSION_LATEST)
 			sprintf electrodePath, "%s/%s", NWB_INTRACELLULAR_EPHYS, electrodeName
 			H5_CreateSoftLink(groupID, "electrode", electrodePath)
@@ -472,7 +439,7 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 			break
 		endif
 
-		H5_WriteDataset(groupID, tsp.names[i], var=tsp.data[i], varType=IGOR_TYPE_32BIT_FLOAT, overwrite=1)
+		H5_WriteDataset(groupID, tsp.names[i], var = tsp.data[i], varType = IGOR_TYPE_32BIT_FLOAT, overwrite = 1)
 
 		if(version == 1 && tsp.isCustom[i])
 			MarkAsCustomEntry(groupID, tsp.names[i])
@@ -480,34 +447,34 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 
 		if(version == 2 && cmpstr(tsp.unit[i], "") && WhichListItem(tsp.unit[i], "bridge_balance;bias_current;capacitance_compensation") == -1)
 			// Some CurrentClampSeries properties miss the unit attribute
-			H5_WriteTextAttribute(groupID, "unit", group + "/" + tsp.names[i], str=tsp.unit[i], overwrite=1)
+			H5_WriteTextAttribute(groupID, "unit", group + "/" + tsp.names[i], str = tsp.unit[i], overwrite = 1)
 		endif
 	endfor
 	if(version == 1 && cmpstr(tsp.missing_fields, ""))
-		H5_WriteTextAttribute(groupID, "missing_fields", group, list=tsp.missing_fields, overwrite=1)
+		H5_WriteTextAttribute(groupID, "missing_fields", group, list = tsp.missing_fields, overwrite = 1)
 	endif
 
-	H5_WriteDataset(groupID, "data", wv=p.data, compressionMode=compressionMode, overwrite=1, writeIgorAttr=1)
+	H5_WriteDataset(groupID, "data", wv = p.data, compressionMode = compressionMode, overwrite = 1, writeIgorAttr = 1)
 
 	// TimeSeries: datasets and attributes
 	// no timestamps, control, control_description and sync
-	AddTimeSeriesUnitAndRes(groupID, group + "/data", WaveUnits(p.data, -1), overwrite=1)
+	AddTimeSeriesUnitAndRes(groupID, group + "/data", WaveUnits(p.data, -1), overwrite = 1)
 	if(version == 1)
-		H5_WriteDataset(groupID, "num_samples", var=DimSize(p.data, ROWS), varType=IGOR_TYPE_32BIT_INT, overwrite=1)
+		H5_WriteDataset(groupID, "num_samples", var = DimSize(p.data, ROWS), varType = IGOR_TYPE_32BIT_INT, overwrite = 1)
 	endif
 
 	if(p.channelType != IPNWB_CHANNEL_TYPE_OTHER)
-		H5_WriteDataset(groupID, "starting_time", var=p.startingTime, varType=IGOR_TYPE_64BIT_FLOAT, overwrite=1)
-		H5_WriteAttribute(groupID, "rate", group + "/starting_time", p.samplingRate, IGOR_TYPE_32BIT_FLOAT, overwrite=1)
-		H5_WriteTextAttribute(groupID, "unit", group + "/starting_time", str="Seconds", overwrite=1)
+		H5_WriteDataset(groupID, "starting_time", var = p.startingTime, varType = IGOR_TYPE_64BIT_FLOAT, overwrite = 1)
+		H5_WriteAttribute(groupID, "rate", group + "/starting_time", p.samplingRate, IGOR_TYPE_32BIT_FLOAT, overwrite = 1)
+		H5_WriteTextAttribute(groupID, "unit", group + "/starting_time", str = "Seconds", overwrite = 1)
 	endif
 
 	if(version == 1)
-		H5_WriteTextDataset(groupID, "stimulus_description", str=p.stimSet, overwrite=1)
+		H5_WriteTextDataset(groupID, "stimulus_description", str = p.stimSet, overwrite = 1)
 		MarkAsCustomEntry(groupID, "stimulus_description")
 	elseif(version == NWB_VERSION_LATEST)
 		// mandatory attribute for PatchClampSeries
-		H5_WriteTextAttribute(groupID, "stimulus_description", group, str=p.stimSet, overwrite=1)
+		H5_WriteTextAttribute(groupID, "stimulus_description", group, str = p.stimSet, overwrite = 1)
 	endif
 
 	HDF5CloseGroup groupID
@@ -522,6 +489,7 @@ threadsafe Function WriteSingleChannel(locationID, path, version, p, tsp, [compr
 End
 
 threadsafe static Function WriteEpochs(string nwbFilePath, WAVE/T epochs, string timeseries, variable startingTime, variable samplingRate)
+
 	variable i, numEntries, startTime, stopTime, treeLevel
 
 	numEntries = DimSize(epochs, ROWS)
@@ -531,7 +499,7 @@ threadsafe static Function WriteEpochs(string nwbFilePath, WAVE/T epochs, string
 		WAVE/T tags = ListToTextWave(epochs[i][%Tags], ";")
 		treeLevel = str2num(epochs[i][%TreeLevel])
 
-//		printf "ts %s, range [%g, %g], tags = %s, treeLevel = %g\r", timeseries, startTime, stopTime, TextWaveToList(tags, ";"), treeLevel
+		//		printf "ts %s, range [%g, %g], tags = %s, treeLevel = %g\r", timeseries, startTime, stopTime, TextWaveToList(tags, ";"), treeLevel
 
 		AppendToEpochTable(nwbFilePath, startTime, stopTime, tags, {timeseries}, {startingTime}, {samplingRate}, treeLevel)
 	endfor
@@ -550,23 +518,25 @@ End
 /// @param rate          timeseries rate in Hz according to NWBv2 spec
 /// @param treelevel     Tree level of the epoch
 threadsafe static Function AppendToEpochTable(string nwbFilePath, variable startTime, variable stopTime, WAVE/T tags, WAVE/T timeseries, WAVE startingTime, WAVE rate, variable treelevel)
+
 	variable groupID, err, numReadback, numTimeseries, locationID
-	variable appendMode = ROWS, compressionMode = NO_COMPRESSION
+	variable appendMode      = ROWS
+	variable compressionMode = NO_COMPRESSION
 
 	ASSERT_TS(EqualWaves(timeseries, startingTime, 512) == 1 && EqualWaves(timeseries, rate, 512) == 1, "Non matching wave sizes")
 
-	locationID = H5_OpenFile(nwbFilePath, write = 1)
+	locationID  = H5_OpenFile(nwbFilePath, write = 1)
 	nwbFilePath = GetWindowsPath(nwbFilePath)
 
 	if(!H5_GroupExists(locationID, NWB_TIME_INTERVALS_EPOCHS))
 		STRUCT DynamicTable dt
 		InitDynamicTable(dt)
 		dt.description = "experimental epochs"
-		dt.colnames = "start_time;stop_time;tags;timeseries;treelevel"
-		dt.data_type = "TimeIntervals"
+		dt.colnames    = "start_time;stop_time;tags;timeseries;treelevel"
+		dt.data_type   = "TimeIntervals"
 
 		CreateDynamicTable(locationID, NWB_TIME_INTERVALS_EPOCHS, dt)
-		appendMode = -1
+		appendMode      = -1
 		compressionMode = CHUNKED_COMPRESSION
 	endif
 	groupID = H5_OpenGroup(locationID, NWB_TIME_INTERVALS_EPOCHS)
@@ -604,10 +574,10 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 		IPNWB_WriteCompound/S=offsets/C=sizes/REF=timeseries/LOC=(NWB_TIME_INTERVALS_TIMESERIES_EPOCHS) nwbFilePath; AbortOnRTE
 	catch
 		err = ClearRTError()
-		ASSERT_TS(0, "Could not write compound epoch data to NWB file.")
+		FATAL_ERROR("Could not write compound epoch data to NWB file.")
 	endtry
 #else
-	ASSERT_TS(0, "Operation IPNWB_WriteCompound not present.")
+	FATAL_ERROR("Operation IPNWB_WriteCompound not present.")
 #endif
 
 	if(appendMode == ROWS)
@@ -615,7 +585,7 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	endif
 
 	locationID = H5_OpenFile(nwbFilePath, write = 1)
-	groupID = H5_OpenGroup(locationID, NWB_TIME_INTERVALS_EPOCHS)
+	groupID    = H5_OpenGroup(locationID, NWB_TIME_INTERVALS_EPOCHS)
 	ASSERT_TS(!IsNaN(groupID), "Could not open group at " + NWB_TIME_INTERVALS_EPOCHS)
 
 	STRUCT ElementIdentifiers id
@@ -625,21 +595,21 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	STRUCT VectorData start_time_vector
 	InitVectorData(start_time_vector)
 	start_time_vector.description = "Start time of epoch, in seconds"
-	start_time_vector.path = NWB_TIME_INTERVALS_EPOCHS + "/start_time"
+	start_time_vector.path        = NWB_TIME_INTERVALS_EPOCHS + "/start_time"
 	WriteNeuroDataType(groupID, "start_time", start_time_vector.data_type)
 	H5_WriteTextAttribute(groupID, "description", "start_time", str = start_time_vector.description)
 
 	STRUCT VectorData stop_time_vector
 	InitVectorData(stop_time_vector)
 	stop_time_vector.description = "Stop time of epoch, in seconds"
-	stop_time_vector.path = NWB_TIME_INTERVALS_EPOCHS + "/stop_time"
+	stop_time_vector.path        = NWB_TIME_INTERVALS_EPOCHS + "/stop_time"
 	WriteNeuroDataType(groupID, "stop_time", stop_time_vector.data_type)
 	H5_WriteTextAttribute(groupID, "description", "stop_time", str = stop_time_vector.description)
 
 	STRUCT VectorData tags_vector
 	InitVectorData(tags_vector)
 	tags_vector.description = "user-defined tags"
-	tags_vector.path = NWB_TIME_INTERVALS_EPOCHS + "/tags"
+	tags_vector.path        = NWB_TIME_INTERVALS_EPOCHS + "/tags"
 	WriteNeuroDataType(groupID, "tags", tags_vector.data_type)
 	H5_WriteTextAttribute(groupID, "description", "tags", str = tags_vector.description)
 
@@ -651,7 +621,7 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	STRUCT VectorData timeseries_vector
 	InitVectorData(timeseries_vector)
 	timeseries_vector.description = "index into a TimeSeries object"
-	timeseries_vector.path = NWB_TIME_INTERVALS_TIMESERIES_EPOCHS
+	timeseries_vector.path        = NWB_TIME_INTERVALS_TIMESERIES_EPOCHS
 	WriteNeuroDataType(groupID, "timeseries", timeseries_vector.data_type)
 	H5_WriteTextAttribute(groupID, "description", "timeseries", str = timeseries_vector.description)
 
@@ -663,7 +633,7 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	STRUCT VectorData treelevel_vector
 	InitVectorData(treelevel_vector)
 	treelevel_vector.description = "Tree Level"
-	treelevel_vector.path = NWB_TIME_INTERVALS_EPOCHS + "/treelevel"
+	treelevel_vector.path        = NWB_TIME_INTERVALS_EPOCHS + "/treelevel"
 	WriteNeuroDataType(groupID, "treelevel", treelevel_vector.data_type)
 	H5_WriteTextAttribute(groupID, "description", "treelevel", str = treelevel_vector.description)
 
@@ -676,10 +646,7 @@ End
 /// Note: A dynamic table needs at least an @c id and a @c vectorData column
 ///
 /// @return NaN if the group already exists, 1 otherwise
-threadsafe static Function CreateDynamicTable(locationID, path, dt)
-	variable locationID
-	string path
-	STRUCT DynamicTable &dt
+threadsafe static Function CreateDynamicTable(variable locationID, string path, STRUCT DynamicTable &dt)
 
 	variable groupID
 
@@ -704,13 +671,11 @@ End
 /// @param locationID   HDF5 identifier
 /// @param reference    path to dataset where sweep is stored
 /// @param sweepNumber  sweep number
-threadsafe static Function AppendToSweepTable(locationID, reference, sweepNumber)
-	variable locationID
-	string reference
-	variable sweepNumber
+threadsafe static Function AppendToSweepTable(variable locationID, string reference, variable sweepNumber)
 
 	variable groupID, err, numIds
-	variable appendMode = ROWS, compressionMode = NO_COMPRESSION
+	variable appendMode      = ROWS
+	variable compressionMode = NO_COMPRESSION
 	string path
 
 	sprintf path, "%s/sweep_table", NWB_INTRACELLULAR_EPHYS
@@ -718,12 +683,12 @@ threadsafe static Function AppendToSweepTable(locationID, reference, sweepNumber
 		STRUCT DynamicTable dt
 		InitDynamicTable(dt)
 		dt.description = "The table which groups different PatchClampSeries together."
-		dt.colnames = "series;sweep_number"
+		dt.colnames    = "series;sweep_number"
 		dt.description = "A sweep table groups different PatchClampSeries together."
-		dt.data_type = "SweepTable"
+		dt.data_type   = "SweepTable"
 
 		CreateDynamicTable(locationID, path, dt)
-		appendMode = -1
+		appendMode      = -1
 		compressionMode = CHUNKED_COMPRESSION
 	endif
 	groupID = H5_OpenGroup(locationID, path)
@@ -738,7 +703,7 @@ threadsafe static Function AppendToSweepTable(locationID, reference, sweepNumber
 
 	if(appendMode == ROWS)
 		HDF5CloseGroup groupID
-		return Nan
+		return NaN
 	endif
 
 	STRUCT ElementIdentifiers id
@@ -748,7 +713,7 @@ threadsafe static Function AppendToSweepTable(locationID, reference, sweepNumber
 	STRUCT VectorData series
 	InitVectorData(series)
 	series.description = "The PatchClampSeries with the sweep number in that row."
-	series.path = path + "/series"
+	series.path        = path + "/series"
 	WriteNeuroDataType(groupID, "series", series.data_type)
 	H5_WriteTextAttribute(groupID, "description", "series", str = series.description)
 
@@ -772,8 +737,7 @@ End
 /// Note: non threadsafe due to limitations in @c LoadSpecification
 ///
 /// @param locationID  open HDF5 file identifier
-Function WriteSpecifications(locationID)
-	variable locationID
+Function WriteSpecifications(variable locationID)
 
 	WriteSpecification(locationID, NWB_SPEC_NAME, NWB_SPEC_VERSION, NWB_SPEC_LOCATION, NWB_SPEC_START, NWB_SPEC_INCLUDE)
 	WriteSpecification(locationID, HDMF_SPEC_NAME, HDMF_SPEC_VERSION, HDMF_SPEC_LOCATION, HDMF_SPEC_START, HDMF_SPEC_INCLUDE)
@@ -791,9 +755,7 @@ End
 /// @param spec_start     namespace.json declaration file
 /// @param spec_include   ";" separated list of include files for defining
 ///                       extensions within the namespace
-Function WriteSpecification(locationID, spec_name, spec_version, spec_location, spec_start, spec_include)
-	variable locationID
-	string spec_name, spec_version, spec_location, spec_start, spec_include
+Function WriteSpecification(variable locationID, string spec_name, string spec_version, string spec_location, string spec_start, string spec_include)
 
 	variable groupID, i, numSpecs
 	string path, specName, specDefinition
@@ -801,17 +763,17 @@ Function WriteSpecification(locationID, spec_name, spec_version, spec_location, 
 	sprintf path, "%s/%s/%s", NWB_SPECIFICATIONS, spec_name, spec_version
 	H5_CreateGroupsRecursively(locationID, path)
 	groupID = H5_OpenGroup(locationID, path)
-	H5_WriteTextDataset(groupID, "namespace", str=LoadSpecification(spec_location, spec_start))
+	H5_WriteTextDataset(groupID, "namespace", str = LoadSpecification(spec_location, spec_start))
 	numSpecs = ItemsInList(spec_include)
 	for(i = 0; i < numSpecs; i += 1)
-		specName = StringFromList(i, spec_include)
+		specName       = StringFromList(i, spec_include)
 		specDefinition = LoadSpecification(spec_location, specName)
-		H5_WriteTextDataset(groupID, specName, str=specDefinition)
+		H5_WriteTextDataset(groupID, specName, str = specDefinition)
 	endfor
 	HDF5CloseGroup groupID
 
 	sprintf path, "G:%s", NWB_SPECIFICATIONS
-	H5_WriteTextAttribute(locationID, ".specloc", NWB_ROOT, str=path, refMode = OBJECT_REFERENCE, overwrite = 1)
+	H5_WriteTextAttribute(locationID, ".specloc", NWB_ROOT, str = path, refMode = OBJECT_REFERENCE, overwrite = 1)
 End
 
 /// @brief Write a NeuroDataType
@@ -822,12 +784,10 @@ End
 /// @param path           Path to element who's DataType is queried
 /// @param neurodata_type String version of the data type that should get
 ///                       written
-threadsafe Function WriteNeuroDataType(locationID, path, neurodata_type)
-	variable locationID
-	string path, neurodata_type
+threadsafe Function WriteNeuroDataType(variable locationID, string path, string neurodata_type)
 
 	variable version
-	string ancestry
+	string   ancestry
 
 	version = GetNWBmajorVersion(ReadNWBVersion(locationID))
 	EnsureValidNWBVersion(version)
@@ -836,8 +796,8 @@ threadsafe Function WriteNeuroDataType(locationID, path, neurodata_type)
 		ancestry = DetermineDataTypeRefTree(neurodata_type)
 		// neurodata_type defaults to super class in NWBv1
 		neurodata_type = StringFromList(0, ancestry)
-		H5_WriteTextAttribute(locationID, "ancestry", path, list=ancestry, overwrite=1)
-		H5_WriteTextAttribute(locationID, "neurodata_type", path, str=neurodata_type, overwrite=1)
+		H5_WriteTextAttribute(locationID, "ancestry", path, list = ancestry, overwrite = 1)
+		H5_WriteTextAttribute(locationID, "neurodata_type", path, str = neurodata_type, overwrite = 1)
 		// no data_link and timestamp_link attribute as we keep all data in one file
 	elseif(version == 2)
 		H5_WriteTextAttribute(locationID, "namespace", path, str = DetermineNamespace(neurodata_type), overwrite = 1)
@@ -850,15 +810,14 @@ End
 ///
 /// @param ancestry A list of all previously ancester dataTypes
 /// @return a specified neurodata type definition string json
-threadsafe Function/S DetermineDataTypeRefTree(ancestry)
-	string ancestry
+threadsafe Function/S DetermineDataTypeRefTree(string ancestry)
 
 	string neurodata_type = StringFromList(0, ancestry)
 
 	strswitch(neurodata_type)
-		case "VoltageClampSeries":
-		case "VoltageClampStimulusSeries":
-		case "CurrentClampSeries":
+		case "VoltageClampSeries": // fallthrough
+		case "VoltageClampStimulusSeries": // fallthrough
+		case "CurrentClampSeries": // fallthrough
 		case "CurrentClampStimulusSeries":
 			return DetermineDataTypeRefTree(AddListItem("PatchClampSeries", ancestry))
 		case "IZeroClampSeries":
@@ -869,7 +828,7 @@ threadsafe Function/S DetermineDataTypeRefTree(ancestry)
 			return AddListItem("index", ancestry)
 		case "SweepTable":
 			return AddListItem("DynamicTable", ancestry)
-		case "TimeSeries":
+		case "TimeSeries": // fallthrough
 		default:
 			return ancestry
 	endswitch

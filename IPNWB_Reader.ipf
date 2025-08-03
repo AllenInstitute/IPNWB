@@ -1,10 +1,11 @@
-#pragma rtGlobals=3 // Use modern global access method and strict wave access.
-#pragma rtFunctionErrors=1
-#pragma version=0.18
+#pragma TextEncoding     = "UTF-8"
+#pragma rtGlobals        = 3 // Use modern global access method and strict wave access.
+#pragma rtFunctionErrors = 1
+#pragma version          = 0.18
 
 #ifdef IPNWB_DEFINE_IM
-#pragma IndependentModule=IPNWB
-#endif
+#pragma IndependentModule = IPNWB
+#endif // IPNWB_DEFINE_IM
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -16,8 +17,7 @@
 /// @param fileID  identifier of open HDF5 file
 /// @param version major NWB version
 /// @return        comma separated list of devices
-threadsafe Function/S ReadDevices(fileID, version)
-	variable fileID, version
+threadsafe Function/S ReadDevices(variable fileID, variable version)
 
 	string devices, path
 	variable i, numDevices
@@ -27,7 +27,7 @@ threadsafe Function/S ReadDevices(fileID, version)
 	if(version == 1)
 		devices = H5_ListGroupMembers(fileID, NWB_DEVICES)
 	elseif(version == NWB_VERSION_LATEST)
-		devices = H5_ListGroups(fileID, NWB_DEVICES)
+		devices    = H5_ListGroups(fileID, NWB_DEVICES)
 		numDevices = ItemsInList(devices)
 		for(i = numDevices - 1; i >= 0; i -= 1)
 			sprintf path, "%s/%s", NWB_DEVICES, StringFromList(i, devices)
@@ -48,12 +48,10 @@ End
 /// @param seriesPath   Full Path inside HDF5 structure to TimeSeries group
 /// @param version      major NWB version
 /// @return the name of the electrode or "" for unassociated channels
-threadsafe Function/S ReadElectrodeName(discLocation, seriesPath, version)
-	string discLocation, seriesPath
-	variable version
+threadsafe Function/S ReadElectrodeName(string discLocation, string seriesPath, variable version)
 
 	string h5path, link, regExp, electrode, electrodeName
-	variable locationID
+	variable                 locationID
 	STRUCT ReadChannelParams p
 
 	EnsureValidNWBVersion(version)
@@ -62,9 +60,9 @@ threadsafe Function/S ReadElectrodeName(discLocation, seriesPath, version)
 	sprintf h5path, "%s/electrode", seriesPath
 
 	if(version == 1)
-		h5path += "_name"
+		h5path    += "_name"
 		locationID = H5_OpenFile(discLocation)
-		electrode = ReadTextDataSetAsString(locationID, h5path)
+		electrode  = ReadTextDataSetAsString(locationID, h5path)
 		H5_CloseFile(locationID)
 	elseif(version == NWB_VERSION_LATEST)
 		link = H5_GetLinkTarget(discLocation, h5path)
@@ -84,8 +82,7 @@ End
 ///
 /// @param  fileID identifier of open HDF5 file
 /// @return        list with name of all groups inside /general/labnotebook/*
-threadsafe Function/S ReadLabNoteBooks(fileID)
-	variable fileID
+threadsafe Function/S ReadLabNoteBooks(variable fileID)
 
 	string result = ""
 
@@ -101,8 +98,7 @@ End
 /// @param  fileID  identifier of open HDF5 file
 /// @param  version NWB major version
 /// @return         comma separated list of channels
-threadsafe Function/S ReadAcquisition(fileID, version)
-	variable fileID, version
+threadsafe Function/S ReadAcquisition(variable fileID, variable version)
 
 	string group
 
@@ -117,8 +113,7 @@ End
 ///
 /// @param  fileID identifier of open HDF5 file
 /// @return        comma separated list of channels
-threadsafe Function/S ReadStimulus(fileID)
-	variable fileID
+threadsafe Function/S ReadStimulus(variable fileID)
 
 	return AddPrefixToEachListItem(NWB_STIMULUS_PRESENTATION + "/", H5_ListGroups(fileID, NWB_STIMULUS_PRESENTATION))
 End
@@ -127,8 +122,7 @@ End
 ///
 /// @param  fileID identifier of open HDF5 file
 /// @return        comma separated list of contents of the stimset group
-threadsafe Function/S ReadStimsets(fileID)
-	variable fileID
+threadsafe Function/S ReadStimsets(variable fileID)
 
 	ASSERT_TS(H5_IsFileOpen(fileID), "ReadStimsets: given HDF5 file identifier is not valid")
 
@@ -143,9 +137,7 @@ End
 ///
 /// @param[in]  channel  Input channel name in form data_00000_TTL1_3
 /// @param[out] p        ReadChannelParams structure to get filled
-threadsafe Function AnalyseChannelName(channel, p)
-	string channel
-	STRUCT ReadChannelParams &p
+threadsafe Function AnalyseChannelName(string channel, STRUCT ReadChannelParams &p)
 
 	string groupIndex, channelTypeStr, channelNumber, channelID
 
@@ -153,7 +145,7 @@ threadsafe Function AnalyseChannelName(channel, p)
 
 	SplitString/E="^(?i)data_([A-Z0-9]+)_([A-Z]+)([0-9]+)(?:_([A-Z0-9]+)){0,1}" channel, groupIndex, channelID, channelNumber, p.channelSuffix
 	p.groupIndex = str2num(groupIndex)
-	p.ttlBit = str2num(p.channelSuffix)
+	p.ttlBit     = str2num(p.channelSuffix)
 	strswitch(channelID)
 		case "AD":
 			p.channelType = IPNWB_CHANNEL_TYPE_ADC
@@ -166,6 +158,7 @@ threadsafe Function AnalyseChannelName(channel, p)
 			break
 		default:
 			p.channelType = IPNWB_CHANNEL_TYPE_OTHER
+			break
 	endswitch
 	p.channelNumber = str2num(channelNumber)
 End
@@ -177,15 +170,12 @@ End
 /// @param[in]  locationID   HDF5 group specified channel is a member of
 /// @param[in]  channel      channel to load
 /// @param[out] p            ReadChannelParams structure to get filled
-threadsafe Function LoadSourceAttribute(locationID, channel, p)
-	variable locationID
-	string channel
-	STRUCT ReadChannelParams &p
+threadsafe Function LoadSourceAttribute(variable locationID, string channel, STRUCT ReadChannelParams &p)
 
 	string attribute, property, value
 	variable numStrings, i, error
 
-	WAVE/T/Z wv = H5_LoadAttribute(locationID, channel, "source")
+	WAVE/Z/T wv = H5_LoadAttribute(locationID, channel, "source")
 	ASSERT_TS(WaveExists(wv) && IsTextWave(wv), "Could not find the source attribute")
 
 	numStrings = DimSize(wv, ROWS)
@@ -213,15 +203,15 @@ threadsafe Function LoadSourceAttribute(locationID, channel, p)
 				p.electrodeNumber = str2num(value)
 				break
 			case "AD":
-				p.channelType = IPNWB_CHANNEL_TYPE_ADC
+				p.channelType   = IPNWB_CHANNEL_TYPE_ADC
 				p.channelNumber = str2num(value)
 				break
 			case "DA":
-				p.channelType = IPNWB_CHANNEL_TYPE_DAC
+				p.channelType   = IPNWB_CHANNEL_TYPE_DAC
 				p.channelNumber = str2num(value)
 				break
 			case "TTL":
-				p.channelType = IPNWB_CHANNEL_TYPE_TTL
+				p.channelType   = IPNWB_CHANNEL_TYPE_TTL
 				p.channelNumber = str2num(value)
 				break
 			case "TTLBit":
@@ -231,6 +221,8 @@ threadsafe Function LoadSourceAttribute(locationID, channel, p)
 				p.samplingRate = str2num(value)
 				break
 			default:
+				// ignore unknown entries from future versions
+				break
 		endswitch
 	endfor
 End
@@ -241,10 +233,7 @@ End
 /// @param channel      name of channel for which sweep number is loaded
 /// @param version      NWB maior version
 /// @return             sweep number
-threadsafe Function LoadSweepNumber(locationID, channel, version)
-	variable locationID
-	string channel
-	variable version
+threadsafe Function LoadSweepNumber(variable locationID, string channel, variable version)
 
 	STRUCT ReadChannelParams params
 
@@ -265,9 +254,7 @@ End
 /// @param channel      name of channel for which data attribute is loaded
 /// @param path         use path to specify group inside hdf5 file where ./channel/data is located.
 /// @return             reference to free wave containing loaded data
-threadsafe Function/Wave LoadDataWave(locationID, channel, [path])
-	variable locationID
-	string channel, path
+threadsafe Function/WAVE LoadDataWave(variable locationID, string channel, [string path])
 
 	if(ParamIsDefault(path))
 		path = "."
@@ -286,10 +273,7 @@ End
 /// @param path         name or path of TimeSeries for which data is loaded
 /// @param version      NWB major version
 /// @return             reference to wave containing loaded data
-threadsafe Function/Wave LoadTimeseries(locationID, path, version)
-	variable locationID
-	string path
-	variable version
+threadsafe Function/WAVE LoadTimeseries(variable locationID, string path, variable version)
 
 	EnsureValidNWBVersion(version)
 
@@ -303,9 +287,7 @@ End
 /// @param locationID   id of an open hdf5 group or file
 /// @param path         name or path of TimeSeries for which data is loaded
 /// @return             reference to wave containing loaded data
-threadsafe Function/Wave LoadStimulus(locationID, path)
-	variable locationID
-	string path
+threadsafe Function/WAVE LoadStimulus(variable locationID, string path)
 
 	WAVE data = LoadDataWave(locationID, GetBaseName(path, sep = "/"), path = NWB_STIMULUS_PRESENTATION)
 
@@ -318,9 +300,7 @@ End
 /// @param version NWB major version
 ///
 /// @return id of hdf5 group
-threadsafe Function OpenAcquisition(fileID, version)
-	variable fileID
-	variable version
+threadsafe Function OpenAcquisition(variable fileID, variable version)
 
 	EnsureValidNWBVersion(version)
 
@@ -332,8 +312,7 @@ End
 /// @param fileID id of an open hdf5 group or file
 ///
 /// @return id of hdf5 group
-threadsafe Function OpenStimulus(fileID)
-	variable fileID
+threadsafe Function OpenStimulus(variable fileID)
 
 	return H5_OpenGroup(fileID, NWB_STIMULUS_PRESENTATION)
 End
@@ -343,8 +322,7 @@ End
 /// @param fileID id of an open hdf5 group or file
 ///
 /// @return id of hdf5 group
-threadsafe Function OpenStimset(fileID)
-	variable fileID
+threadsafe Function OpenStimset(variable fileID)
 
 	ASSERT_TS(StimsetPathExists(fileID), "OpenStimset: Path is not in nwb file")
 
@@ -352,34 +330,29 @@ threadsafe Function OpenStimset(fileID)
 End
 
 /// @brief Check if the path to the stimsets exist in the NWB file.
-threadsafe Function StimsetPathExists(fileID)
-	variable fileID
+threadsafe Function StimsetPathExists(variable fileID)
 
 	return H5_GroupExists(fileID, NWB_STIMULUS)
 End
 
 /// @brief Read in all NWB datasets from the root group ('/')
-threadsafe Function ReadTopLevelInfo(fileID, toplevelInfo)
-	variable fileID
-	STRUCT ToplevelInfo &toplevelInfo
+threadsafe Function ReadTopLevelInfo(variable fileID, STRUCT ToplevelInfo &toplevelInfo)
 
 	variable groupID
 
 	groupID = H5_OpenGroup(fileID, "/")
 
-	toplevelInfo.session_description     = ReadTextDataSetAsString(groupID, "session_description")
-	toplevelInfo.nwb_version             = ReadTextDataSetAsString(groupID, "nwb_version")
-	toplevelInfo.identifier              = ReadTextDataSetAsString(groupID, "identifier")
-	toplevelInfo.session_start_time      = ParseISO8601TimeStamp(ReadTextDataSetAsString(groupID, "session_start_time"))
+	toplevelInfo.session_description = ReadTextDataSetAsString(groupID, "session_description")
+	toplevelInfo.nwb_version         = ReadTextDataSetAsString(groupID, "nwb_version")
+	toplevelInfo.identifier          = ReadTextDataSetAsString(groupID, "identifier")
+	toplevelInfo.session_start_time  = ParseISO8601TimeStamp(ReadTextDataSetAsString(groupID, "session_start_time"))
 	WAVE/T toplevelInfo.file_create_date = ReadTextDataSet(groupID, "file_create_date")
 
 	HDF5CloseGroup/Z groupID
 End
 
 /// @brief Read in all standard NWB datasets from the group '/general'
-threadsafe Function ReadGeneralInfo(fileID, generalinfo)
-	variable fileID
-	STRUCT GeneralInfo &generalinfo
+threadsafe Function ReadGeneralInfo(variable fileID, STRUCT GeneralInfo &generalinfo)
 
 	variable groupID
 
@@ -404,9 +377,7 @@ threadsafe Function ReadGeneralInfo(fileID, generalinfo)
 End
 
 /// @brief Read in all NWB datasets from the root group '/general/subject'
-threadsafe Function ReadSubjectInfo(fileID, subjectInfo)
-	variable fileID
-	STRUCT SubjectInfo &subjectInfo
+threadsafe Function ReadSubjectInfo(variable fileID, STRUCT SubjectInfo &subjectInfo)
 
 	variable groupID
 
@@ -429,23 +400,20 @@ End
 /// @param[in]  locationID TimeSeries group ID
 /// @param[in]  channel    TimeSeries group name
 /// @param[out] tsp        TimeSeriesProperties structure
-threadsafe Function ReadTimeSeriesProperties(locationID, channel, tsp)
-	variable locationID
-	string channel
-	STRUCT TimeSeriesProperties &tsp
+threadsafe Function ReadTimeSeriesProperties(variable locationID, string channel, STRUCT TimeSeriesProperties &tsp)
 
 	variable clampMode, i, numEntries, value, channelType, groupID, idx
 	string neurodata_type, entry, list
 
 	neurodata_type = ReadNeuroDataType(locationID, channel)
-	clampMode = GetClampModeFromNeurodataType(neurodata_type)
-	channelType = GetChannelTypeFromNeurodataType(neurodata_type)
+	clampMode      = GetClampModeFromNeurodataType(neurodata_type)
+	channelType    = GetChannelTypeFromNeurodataType(neurodata_type)
 
 	InitTimeSeriesProperties(tsp, channelType, clampMode)
 
 	groupID = H5_OpenGroup(locationID, channel)
 
-	list = ""
+	list       = ""
 	numEntries = ItemsInList(tsp.missing_fields)
 	for(i = 0; i < numEntries; i += 1)
 		entry = StringFromList(i, tsp.missing_fields)
@@ -455,13 +423,13 @@ threadsafe Function ReadTimeSeriesProperties(locationID, channel, tsp)
 			continue
 		endif
 
-		tsp.names[idx] = entry
-		tsp.data[idx] = value
+		tsp.names[idx]    = entry
+		tsp.data[idx]     = value
 		tsp.isCustom[idx] = 0
 
 		idx += 1
 
-		list = AddListItem(entry, list, ";", inf)
+		list = AddListItem(entry, list, ";", Inf)
 	endfor
 
 	HDF5CloseGroup/Z groupID
@@ -484,19 +452,17 @@ End
 /// @param name    Path to element who's DataType is queried
 ///
 /// @return string with data type (e.g. uint, DynamicTable, SweepTable)
-threadsafe Function/S ReadNeuroDataType(fileID, name)
-	variable fileID
-	string name
+threadsafe Function/S ReadNeuroDataType(variable fileID, string name)
 
 	variable version0
-	string ancestry
+	string   ancestry
 	string neurodata_type = ""
 
 	version0 = GetNWBmajorVersion(ReadNWBVersion(fileID))
 	EnsureValidNWBVersion(version0)
 
 	if(version0 == 1)
-		ancestry = ReadTextAttributeAsList(fileID, name, "ancestry")
+		ancestry       = ReadTextAttributeAsList(fileID, name, "ancestry")
 		neurodata_type = StringFromList(ItemsInList(ancestry) - 1, ancestry)
 	elseif(version0 == 2)
 		neurodata_type = ReadTextAttributeAsString(fileID, name, "neurodata_type")
@@ -516,7 +482,7 @@ End
 /// @return sweep_number and path to TimeSeries as waves
 Function [WAVE/Z sweep_number, WAVE/Z/T series] LoadSweepTable(variable locationID, variable version)
 
-	string path
+	string   path
 	variable groupID
 
 	ASSERT_TS(version == 2, "SweepTable is only available for NWB version 2")
@@ -524,9 +490,9 @@ Function [WAVE/Z sweep_number, WAVE/Z/T series] LoadSweepTable(variable location
 
 	groupID = H5_OpenGroup(locationID, path)
 	if(!IsNaN(groupID))
-		WAVE sweep_number = H5_LoadDataset(groupID, "sweep_number")
-		WAVE/T series = H5_LoadDataset(groupID, "series")
-		series[] = (series[p])[2,inf] // Remove leading group linker "G:"
+		WAVE   sweep_number = H5_LoadDataset(groupID, "sweep_number")
+		WAVE/T series       = H5_LoadDataset(groupID, "series")
+		series[] = (series[p])[2, Inf] // Remove leading group linker "G:"
 		HDF5CloseGroup/Z groupID
 		return [sweep_number, series]
 	endif
@@ -545,7 +511,7 @@ Function/WAVE LoadEpochTable(string nwbFilePath)
 	variable offset_startTime, size_endTime
 
 	nwbFilePath = GetWindowsPath(nwbFilePath)
-	locationID = H5_OpenFile(nwbFilePath)
+	locationID  = H5_OpenFile(nwbFilePath)
 
 	if(!H5_GroupExists(locationID, NWB_TIME_INTERVALS_EPOCHS))
 		return $""
@@ -555,11 +521,11 @@ Function/WAVE LoadEpochTable(string nwbFilePath)
 	ASSERT_TS(!IsNaN(groupID), "Could not open group at " + NWB_TIME_INTERVALS_EPOCHS)
 
 	WAVE startTime = H5_LoadDataset(groupID, "start_time")
-	WAVE stopTime = H5_LoadDataset(groupID, "stop_time")
+	WAVE stopTime  = H5_LoadDataset(groupID, "stop_time")
 	WAVE treelevel = H5_LoadDataset(groupID, "treelevel")
 
 	WAVE tags_rugged = H5_LoadDataset(groupID, "tags")
-	WAVE tags_index = H5_LoadDataset(groupID, "tags_index")
+	WAVE tags_index  = H5_LoadDataset(groupID, "tags_index")
 
 	WAVE/T tags = ExpandRuggedVector(tags_rugged, tags_index, ";")
 	WaveClear tags_rugged, tags_index
@@ -582,24 +548,24 @@ Function/WAVE LoadEpochTable(string nwbFilePath)
 #endif
 
 	WAVE/T timeseries = ExpandRuggedVector(timeseries_rugged, timeseries_index, ";")
-	WAVE offsets = ExpandRuggedVector(offsets_rugged, timeseries_index, ";")
-	WAVE sizes = ExpandRuggedVector(sizes_rugged, timeseries_index, ";")
+	WAVE   offsets    = ExpandRuggedVector(offsets_rugged, timeseries_index, ";")
+	WAVE   sizes      = ExpandRuggedVector(sizes_rugged, timeseries_index, ";")
 
-	ASSERT(EqualWaves(timeseries, offsets, 512) == 1      \
-	          && EqualWaves(timeseries, sizes, 512) == 1     \
-	          && EqualWaves(timeseries, startTime, 512) == 1 \
-	          && EqualWaves(timeseries, stopTime, 512) == 1  \
-	          && EqualWaves(timeseries, treelevel, 512) == 1 \
-	          && EqualWaves(timeseries, tags, 512) == 1, "Non-matching wave sizes")
+	ASSERT(EqualWaves(timeseries, offsets, 512) == 1                           \
+	       && EqualWaves(timeseries, sizes, 512) == 1                          \
+	       && EqualWaves(timeseries, startTime, 512) == 1                      \
+	       && EqualWaves(timeseries, stopTime, 512) == 1                       \
+	       && EqualWaves(timeseries, treelevel, 512) == 1                      \
+	       && EqualWaves(timeseries, tags, 512) == 1, "Non-matching wave sizes")
 
 	locationID = H5_OpenFile(nwbFilePath)
 
 	groupID = H5_OpenGroup(locationID, NWB_TIME_INTERVALS_EPOCHS)
 	ASSERT_TS(!IsNaN(groupID), "Could not open group at " + NWB_TIME_INTERVALS_EPOCHS)
 
-	WAVE startingTimes = GetTimeseriesProperties(locationID, timeseries, "starting_time")
-	WAVE rates = GetTimeseriesProperties(locationID, timeseries, "starting_time", attrName = "rate")
-	WAVE/WAVE epochsAll = GetEpochsWaveInternal(timeseries)
+	WAVE      startingTimes = GetTimeseriesProperties(locationID, timeseries, "starting_time")
+	WAVE      rates         = GetTimeseriesProperties(locationID, timeseries, "starting_time", attrName = "rate")
+	WAVE/WAVE epochsAll     = GetEpochsWaveInternal(timeseries)
 
 	numEntries = DimSize(timeseries, ROWS)
 	for(i = 0; i < numEntries; i += 1)
@@ -612,16 +578,16 @@ Function/WAVE LoadEpochTable(string nwbFilePath)
 		epochs[idx][%Tags]      = tags[i]
 		epochs[idx][%TreeLevel] = SelectString(IsInteger(treelevel[i]), num2StrHighPrec(treelevel[i], precision = EPOCHTIME_PRECISION), num2istr(treelevel[i]))
 
-		rate = rates[%$timeseries[i]]
+		rate              = rates[%$timeseries[i]]
 		onePointInSeconds = 1 / rate
 
-		offset = (offsets[i] / rate)
-		size   = offset + (sizes[i] / rate)
+		offset           = (offsets[i] / rate)
+		size             = offset + (sizes[i] / rate)
 		offset_startTime = str2num(epochs[idx][%StartTime])
-		size_endTime = str2num(epochs[idx][%EndTime])
+		size_endTime     = str2num(epochs[idx][%EndTime])
 
-		ASSERT(abs(offset - offset_startTime) <= 1.01 * onePointInSeconds, "BUG: Invalid start_time vs offset")
-		ASSERT(abs(size - size_endTime) <= 1.01 * onePointInSeconds, "BUG: Invalid size vs size_endTime")
+		ASSERT(abs(offset - offset_startTime) <= (1.01 * onePointInSeconds), "BUG: Invalid start_time vs offset")
+		ASSERT(abs(size - size_endTime) <= (1.01 * onePointInSeconds), "BUG: Invalid size vs size_endTime")
 
 		SetNumberInWaveNote(epochs, NOTE_INDEX, ++idx)
 	endfor
@@ -679,6 +645,7 @@ End
 ///
 /// @sa GetEpochsWave()
 static Function/WAVE GetEpochsWaveInternal(WAVE/T timeseries)
+
 	variable numEntries, i
 
 	WAVE/T uniqueTimeseries = GetUniqueEntries(timeseries)

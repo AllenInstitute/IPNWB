@@ -1,6 +1,9 @@
-#pragma TextEncoding = "UTF-8"
+#pragma rtGlobals        = 3
+#pragma rtFunctionErrors = 1
+#pragma TextEncoding     = "UTF-8"
 
 #define IPNWB_DEFINE_IM
+
 #include "IPNWB_include"
 
 Function NWBWriterExample()
@@ -14,16 +17,16 @@ Function NWBWriterExample()
 
 	// fill gi/ti/si with appropriate data for your lab and experiment
 	// if you don't care about that info just pass the initialized structures
-	STRUCT IPNWB#GeneralInfo gi
+	STRUCT IPNWB#GeneralInfo  gi
 	STRUCT IPNWB#ToplevelInfo ti
-	STRUCT IPNWB#SubjectInfo si
+	STRUCT IPNWB#SubjectInfo  si
 
 	// takes care of initializing
 	IPNWB#InitToplevelInfo(ti, version)
 	IPNWB#InitGeneralInfo(gi)
 	IPNWB#InitSubjectInfo(si)
 
-	IPNWB#CreateCommonGroups(fileID, toplevelInfo=ti, generalInfo=gi, subjectInfo=si)
+	IPNWB#CreateCommonGroups(fileID, toplevelInfo = ti, generalInfo = gi, subjectInfo = si)
 
 	// If you open an existing NWB file to append to, use the following command
 	// to add an modification time entry, is implicitly called in IPNWB#CreateCommonGroups
@@ -31,7 +34,7 @@ Function NWBWriterExample()
 
 	// 1D waves from your measurement program
 	// we use fake data here
-	Make/FREE/N=1000 AD = (sin(p) + cos(p/10)) * enoise(0.1)
+	Make/FREE/N=1000 AD = (sin(p) + cos(p / 10)) * enoise(0.1)
 	SetScale/P x, 0, 5e-6, "s"
 
 	// write AD data to the file
@@ -46,7 +49,7 @@ Function NWBWriterExample()
 	params.electrodeName   = "Nose of the mouse"
 	params.stimset         = "My fancy sine curve"
 	params.channelType     = 0 // @see IPNWBChannelTypes
-	WAVE params.data       = AD
+	WAVE params.data = AD
 
 	device = "My selfbuilt DAC"
 

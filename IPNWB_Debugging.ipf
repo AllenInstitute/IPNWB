@@ -1,11 +1,11 @@
-#pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3 // Use modern global access method and strict wave access.
-#pragma rtFunctionErrors=1
-#pragma version=0.18
+#pragma TextEncoding     = "UTF-8"
+#pragma rtGlobals        = 3 // Use modern global access method and strict wave access.
+#pragma rtFunctionErrors = 1
+#pragma version          = 0.18
 
 #ifdef IPNWB_DEFINE_IM
-#pragma IndependentModule=IPNWB
-#endif
+#pragma IndependentModule = IPNWB
+#endif // IPNWB_DEFINE_IM
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -32,18 +32,16 @@
 ///
 /// @hidecallgraph
 /// @hidecallergraph
-threadsafe Function ASSERT_TS(var, errorMsg)
-	variable var
-	string errorMsg
+threadsafe Function ASSERT_TS(variable var, string errorMsg)
 
 	string stacktrace
 
 	try
-		AbortOnValue var==0, 1
+		AbortOnValue var == 0, 1
 	catch
 #if IgorVersion() >= 9.0
 		// Recursion detection, if ASSERT_TS appears multiple times in StackTrace
-		if (ItemsInList(ListMatch(GetRTStackInfo(0), GetRTStackInfo(1))) > 1)
+		if(ItemsInList(ListMatch(GetRTStackInfo(0), GetRTStackInfo(1))) > 1)
 
 			print "Double threadsafe assertion Fail encountered !"
 
@@ -59,7 +57,7 @@ threadsafe Function ASSERT_TS(var, errorMsg)
 		print "Please provide the following information if you contact the MIES developers:"
 		print "################################"
 		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-#endif // AUTOMATED_TESTING
+#endif // !AUTOMATED_TESTING
 
 #if !defined(AUTOMATED_TESTING) || defined(AUTOMATED_TESTING_DEBUGGING)
 
@@ -82,10 +80,16 @@ threadsafe Function ASSERT_TS(var, errorMsg)
 
 		printf "Assertion FAILED with message %s\r", errorMsg
 
-#endif // AUTOMATED_TESTING
+#endif // !AUTOMATED_TESTING
 
 		AbortOnValue 1, 1
 	endtry
+End
+
+/// @brief Abort execution with the given message
+threadsafe Function FATAL_ERROR(string errorMsg)
+
+	FATAL_ERROR(errorMsg)
 End
 
 #if defined(DEBUGGING_ENABLED)
@@ -112,14 +116,12 @@ static StrConstant functionReturnMessage = "return value"
 ///
 ///@param var     numerical argument for debug output
 ///@param format  optional format string to override the default of "%g"
-threadsafe Function DEBUGPRINTv(var, [format])
-	variable var
-	string format
+threadsafe Function DEBUGPRINTv(variable var, [string format])
 
 	if(ParamIsDefault(format))
-		DEBUGPRINT(functionReturnMessage, var=var)
+		DEBUGPRINT(functionReturnMessage, var = var)
 	else
-		DEBUGPRINT(functionReturnMessage, var=var, format=format)
+		DEBUGPRINT(functionReturnMessage, var = var, format = format)
 	endif
 
 	return var
@@ -145,13 +147,12 @@ End
 ///
 ///@param str     string argument for debug output
 ///@param format  optional format string to override the default of "%s"
-threadsafe Function/s DEBUGPRINTs(str, [format])
-	string str, format
+threadsafe Function/S DEBUGPRINTs(string str, [string format])
 
 	if(ParamIsDefault(format))
-		DEBUGPRINT(functionReturnMessage, str=str)
+		DEBUGPRINT(functionReturnMessage, str = str)
 	else
-		DEBUGPRINT(functionReturnMessage, str=str, format=format)
+		DEBUGPRINT(functionReturnMessage, str = str, format = format)
 	endif
 
 	return str
@@ -176,10 +177,7 @@ End
 /// @param var    variable
 /// @param str    string
 /// @param format format string overrides the default of "%g" for variables and "%s" for strings
-threadsafe Function DEBUGPRINT(msg, [var, str, format])
-	string msg
-	variable var
-	string str, format
+threadsafe Function DEBUGPRINT(string msg, [variable var, string str, string format])
 
 	string formatted = ""
 	variable numSuppliedOptParams
@@ -200,7 +198,7 @@ threadsafe Function DEBUGPRINT(msg, [var, str, format])
 	elseif(numSuppliedOptParams == 2)
 		ASSERT_TS(!ParamIsDefault(format), "You can't supply \"var\" and \"str\" at the same time")
 	else
-		ASSERT_TS(0, "Invalid parameter combination")
+		FATAL_ERROR("Invalid parameter combination")
 	endif
 
 	if(!ParamIsDefault(var))
@@ -235,35 +233,28 @@ End
 
 /// @brief Print the elapsed time for performance measurements
 /// @see DEBUG_TIMER_START()
-threadsafe Function DEBUGPRINT_ELAPSED(referenceTime)
-	variable referenceTime
+threadsafe Function DEBUGPRINT_ELAPSED(variable referenceTime)
 
-	DEBUGPRINT("timestamp: ", var=(stopmstimer(-2) - referenceTime) / 1e6)
+	DEBUGPRINT("timestamp: ", var = (stopmstimer(-2) - referenceTime) / 1e6)
 End
 
 #else
 
-threadsafe Function DEBUGPRINTv(var, [format])
-	variable var
-	string format
+threadsafe Function DEBUGPRINTv(variable var, [string format])
 
 	// do nothing
 
 	return var
 End
 
-threadsafe Function/s DEBUGPRINTs(str, [format])
-	string str, format
+threadsafe Function/S DEBUGPRINTs(string str, [string format])
 
 	// do nothing
 
 	return str
 End
 
-threadsafe Function DEBUGPRINT(msg, [var, str, format])
-	string msg
-	variable var
-	string str, format
+threadsafe Function DEBUGPRINT(string msg, [variable var, string str, string format])
 
 	// do nothing
 End
@@ -272,34 +263,37 @@ threadsafe Function DEBUG_TIMER_START()
 
 End
 
-threadsafe Function DEBUGPRINT_ELAPSED(referenceTime)
-	variable referenceTime
+threadsafe Function DEBUGPRINT_ELAPSED(variable referenceTime)
+
 End
 
 #endif
 
 ///@brief Enable debug mode
 Function EnableDebugMode()
+
 	Execute/P/Q "SetIgorOption poundDefine=DEBUGGING_ENABLED"
 	Execute/P/Q "COMPILEPROCEDURES "
 End
 
 ///@brief Disable debug mode
 Function DisableDebugMode()
+
 	Execute/P/Q "SetIgorOption poundUnDefine=DEBUGGING_ENABLED"
 	Execute/P/Q "COMPILEPROCEDURES "
 End
 
 // injected via script functionprofiling.sh
 Function DEBUG_STOREFUNCTION()
-	string funcName = GetRTStackInfo(2)
+
+	string funcName  = GetRTStackInfo(2)
 	string callchain = GetRTStackInfo(0)
-	string caller = StringFromList(0, callchain)
+	string caller    = StringFromList(0, callchain)
 
 	WAVE/Z wv = root:IPNWB_functionids
 	if(!WaveExists(wv))
 		WAVE/T functionids = ListToTextWave(FunctionList("*", ";", "KIND:18,WIN:[IPNWB]"), ";")
-		Duplicate functionids root:IPNWB_functionids/WAVE=wv
+		Duplicate functionids, root:IPNWB_functionids/WAVE=wv
 	endif
 	WAVE/Z count = root:IPNWB_functioncount
 	if(!WaveExists(count))

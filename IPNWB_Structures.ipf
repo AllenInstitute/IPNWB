@@ -1,67 +1,65 @@
-#pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3 // Use modern global access method and strict wave access.
-#pragma rtFunctionErrors=1
-#pragma version=0.18
+#pragma TextEncoding     = "UTF-8"
+#pragma rtGlobals        = 3 // Use modern global access method and strict wave access.
+#pragma rtFunctionErrors = 1
+#pragma version          = 0.18
 
 #ifdef IPNWB_DEFINE_IM
-#pragma IndependentModule=IPNWB
-#endif
+#pragma IndependentModule = IPNWB
+#endif // IPNWB_DEFINE_IM
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
 /// @brief Helper structure for WriteSingleChannel()
 Structure WriteChannelParams
-	string device            ///< name of the measure device, e.g. "ITC18USB_Dev_0"
-	string stimSet           ///< name of the template simulus set
-	string channelSuffix     ///< custom channel suffix, in case the channel number is ambiguous
+	string device ///< name of the measure device, e.g. "ITC18USB_Dev_0"
+	string stimSet ///< name of the template simulus set
+	string channelSuffix ///< custom channel suffix, in case the channel number is ambiguous
 	string channelSuffixDesc ///< description of the channel suffix, will be added to the `source` attribute
-	variable samplingRate    ///< sampling rate in Hz
-	variable startingTime    ///< timestamp since Igor Pro epoch in UTC of the start of this measurement
-	variable sweep           ///< running number for each measurement
-	variable channelType     ///< channel type, one of @ref IPNWBChannelTypes
-	variable channelNumber   ///< running number of the channel
+	variable samplingRate ///< sampling rate in Hz
+	variable startingTime ///< timestamp since Igor Pro epoch in UTC of the start of this measurement
+	variable sweep ///< running number for each measurement
+	variable channelType ///< channel type, one of @ref IPNWBChannelTypes
+	variable channelNumber ///< running number of the channel
 	variable electrodeNumber ///< electrode identifier the channel was acquired with
-	string electrodeName     ///< electrode identifier the channel was acquired with (string version)
-	variable clampMode       ///< clamp mode, one of @ref IPNWB_ClampModes
-	variable groupIndex      ///< Should be filled with the result of GetNextFreeGroupIndex(locationID, path) before
-	                         ///  the first call and must stay constant for all channels for this measurement.
-	                         ///  If `NaN` an automatic solution is provided.
-	WAVE data                ///< channel data
-	WAVE/T epochs            ///< epoch information (optional)
-	                         ///  Expected format:
-	                         ///  size nx4
-	                         ///   Columns:
-	                         ///   - Start time [s] in stimset coordinates
-	                         ///   - End time [s] in stimset coordinates
-	                         ///   - key value pair lists using "=" and ";" separators
-	                         ///   - Tree level (convertible to double)
+	string electrodeName ///< electrode identifier the channel was acquired with (string version)
+	variable clampMode ///< clamp mode, one of @ref IPNWB_ClampModes
+	variable groupIndex ///< Should be filled with the result of GetNextFreeGroupIndex(locationID, path) before
+	///  the first call and must stay constant for all channels for this measurement.
+	///  If `NaN` an automatic solution is provided.
+	WAVE data ///< channel data
+	WAVE/T epochs ///< epoch information (optional)
+	///  Expected format:
+	///  size nx4
+	///   Columns:
+	///   - Start time [s] in stimset coordinates
+	///   - End time [s] in stimset coordinates
+	///   - key value pair lists using "=" and ";" separators
+	///   - Tree level (convertible to double)
 EndStructure
 
 /// @brief Initialize WriteChannelParams structure
-threadsafe Function InitWriteChannelParams(p)
-	STRUCT WriteChannelParams &p
+threadsafe Function InitWriteChannelParams(STRUCT WriteChannelParams &p)
 
 	p.groupIndex = NaN
 
-	WAVE/T/Z p.epochs = $""
+	WAVE/Z/T p.epochs = $""
 End
 
 /// @brief Loader structure analog to WriteChannelParams
 Structure ReadChannelParams
-	string   device           ///< name of the measure device, e.g. "ITC18USB_Dev_0"
-	string   channelSuffix    ///< custom channel suffix, in case the channel number is ambiguous
-	variable sweep            ///< running number for each measurement
-	variable channelType      ///< channel type, one of @ref IPNWBChannelTypes
-	variable channelNumber    ///< running number of the hardware channel
-	variable electrodeNumber  ///< electrode identifier the channel was acquired with
-	variable groupIndex       ///< constant for all channels in this measurement.
-	variable ttlBit           ///< additional information to make the channel number unambigous, in the range 2^0, ..., 2^3
-	variable samplingRate     ///< sampling rate in Hz
+	string device ///< name of the measure device, e.g. "ITC18USB_Dev_0"
+	string channelSuffix ///< custom channel suffix, in case the channel number is ambiguous
+	variable sweep ///< running number for each measurement
+	variable channelType ///< channel type, one of @ref IPNWBChannelTypes
+	variable channelNumber ///< running number of the hardware channel
+	variable electrodeNumber ///< electrode identifier the channel was acquired with
+	variable groupIndex ///< constant for all channels in this measurement.
+	variable ttlBit ///< additional information to make the channel number unambigous, in the range 2^0, ..., 2^3
+	variable samplingRate ///< sampling rate in Hz
 EndStructure
 
 /// @brief Initialization routine for InitReadChannelParams
-threadsafe Function InitReadChannelParams(p)
-	STRUCT ReadChannelParams &p
+threadsafe Function InitReadChannelParams(STRUCT ReadChannelParams &p)
 
 	p.device          = ""
 	p.channelSuffix   = ""
@@ -93,8 +91,7 @@ Structure GeneralInfo
 EndStructure
 
 /// @brief Initialization routine for GeneralInfo
-threadsafe Function InitGeneralInfo(gi)
-	STRUCT GeneralInfo &gi
+threadsafe Function InitGeneralInfo(STRUCT GeneralInfo &gi)
 
 	gi.session_id             = PLACEHOLDER
 	gi.experimenter           = PLACEHOLDER
@@ -125,8 +122,7 @@ Structure SubjectInfo
 EndStructure
 
 /// @brief Initialization routine for SubjectInfo
-threadsafe Function InitSubjectInfo(si)
-	STRUCT SubjectInfo &si
+threadsafe Function InitSubjectInfo(STRUCT SubjectInfo &si)
 
 	si.age           = PLACEHOLDER
 	si.date_of_birth = PLACEHOLDER
@@ -152,9 +148,7 @@ EndStructure
 ///
 /// @param ti       TopLevelInfo Structure
 /// @param version  [optional] defaults to latest version specified in NWB_VERSION_LATEST
-threadsafe Function InitToplevelInfo(ti, version)
-	STRUCT ToplevelInfo &ti
-	variable version
+threadsafe Function InitToplevelInfo(STRUCT ToplevelInfo &ti, variable version)
 
 	ti.session_description = PLACEHOLDER
 	ti.session_start_time  = DateTimeInUTC()
@@ -189,9 +183,9 @@ End
 ///
 Structure TimeSeriesProperties
 	WAVE/T names
-	WAVE   data
+	WAVE data
 	WAVE/T unit
-	WAVE   isCustom ///< NWBv1: 1 if the entry should be marked as NWB custom
+	WAVE isCustom ///< NWBv1: 1 if the entry should be marked as NWB custom
 	string missing_fields ///< keep track of missing fields while reading
 	string neurodata_type // TimeSeries type
 EndStructure
@@ -201,10 +195,7 @@ EndStructure
 /// @param[out] tsp         structure to initialize
 /// @param[in]  channelType one of @ref IPNWBChannelTypes
 /// @param[in]  clampMode   one of @ref IPNWB_ClampModes
-threadsafe Function InitTimeSeriesProperties(tsp, channelType, clampMode)
-	STRUCT TimeSeriesProperties &tsp
-	variable channelType
-	variable clampMode
+threadsafe Function InitTimeSeriesProperties(STRUCT TimeSeriesProperties &tsp, variable channelType, variable clampMode)
 
 	Make/FREE/T names = ""
 	WAVE/T tsp.names = names
@@ -230,20 +221,18 @@ Structure DynamicTable
 	string data_type
 EndStructure
 
-threadsafe Function InitDynamicTable(dt)
-	STRUCT DynamicTable &dt
+threadsafe Function InitDynamicTable(STRUCT DynamicTable &dt)
 
-	dt.colnames = ""
+	dt.colnames    = ""
 	dt.description = "Description of what is in this dynamic table."
-	dt.data_type = "DynamicTable"
+	dt.data_type   = "DynamicTable"
 End
 
 Structure ElementIdentifiers
 	string data_type
 EndStructure
 
-threadsafe Function InitElementIdentifiers(eli)
-	STRUCT ElementIdentifiers &eli
+threadsafe Function InitElementIdentifiers(STRUCT ElementIdentifiers &eli)
 
 	eli.data_type = "ElementIdentifiers"
 End
@@ -254,12 +243,11 @@ Structure VectorData
 	string path
 EndStructure
 
-threadsafe Function InitVectorData(vd)
-	STRUCT VectorData &vd
+threadsafe Function InitVectorData(STRUCT VectorData &vd)
 
 	vd.description = "Description of what these vectors represent."
-	vd.data_type = "VectorData"
-	vd.path = ""
+	vd.data_type   = "VectorData"
+	vd.path        = ""
 End
 
 Structure VectorIndex
@@ -267,8 +255,7 @@ Structure VectorIndex
 	STRUCT VectorData target
 EndStructure
 
-threadsafe Function InitVectorIndex(vi)
-	STRUCT VectorIndex &vi
+threadsafe Function InitVectorIndex(STRUCT VectorIndex &vi)
 
 	vi.data_type = "VectorIndex"
 End

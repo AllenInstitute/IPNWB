@@ -1,11 +1,11 @@
-#pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3 // Use modern global access method and strict wave access.
-#pragma rtFunctionErrors=1
-#pragma version=0.18
+#pragma TextEncoding     = "UTF-8"
+#pragma rtGlobals        = 3 // Use modern global access method and strict wave access.
+#pragma rtFunctionErrors = 1
+#pragma version          = 0.18
 
 #ifdef IPNWB_DEFINE_IM
-#pragma IndependentModule=IPNWB
-#endif
+#pragma IndependentModule = IPNWB
+#endif // IPNWB_DEFINE_IM
 
 // This file is part of the `IPNWB` project and licensed under BSD-3-Clause.
 
@@ -30,23 +30,19 @@ static Constant H5_CHUNK_SIZE           = 8192 // 2^13, determined by trial-and-
 /// @param refMode [optional, defaults to NO_REFERENCE]             Set refMode, one in @ref ReferenceMode (DisplayHelpTopic "Saving Reference Data")
 ///
 /// Only one of `str` or `wvText` can be given.
-threadsafe Function H5_WriteTextDataset(locationID, name, [str, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode])
-	variable locationID
-	string name, str
-	Wave/Z/T wvText
-	variable overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode
+threadsafe Function H5_WriteTextDataset(variable locationID, string name, [string str, WAVE/Z/T wvText, variable overwrite, variable compressionMode, variable skipIfExists, variable writeIgorAttr, variable appendData, variable refMode])
 
 	if(ParamIsDefault(compressionMode))
 		compressionMode = NO_COMPRESSION
 	endif
 
-	overwrite     = ParamIsDefault(overwrite)     ?  0 : !!overwrite
-	skipIfExists  = ParamIsDefault(skipIfExists)  ?  0 : !!skipIfExists
-	writeIgorAttr = ParamIsDefault(writeIgorAttr) ?  0 : !!writeIgorAttr
-	appendData    = ParamIsDefault(appendData)    ? -1 : appendData
-	refMode       = ParamIsDefault(refMode)       ?  0 : refMode
+	overwrite     = ParamIsDefault(overwrite) ? 0 : !!overwrite
+	skipIfExists  = ParamIsDefault(skipIfExists) ? 0 : !!skipIfExists
+	writeIgorAttr = ParamIsDefault(writeIgorAttr) ? 0 : !!writeIgorAttr
+	appendData    = ParamIsDefault(appendData) ? -1 : appendData
+	refMode       = ParamIsDefault(refMode) ? 0 : refMode
 
-	ASSERT_TS(ParamIsDefault(str) + ParamIsDefault(wvText) == 1, "H5_WriteTextDataset: Need exactly one of str or wvText")
+	ASSERT_TS((ParamIsDefault(str) + ParamIsDefault(wvText)) == 1, "H5_WriteTextDataset: Need exactly one of str or wvText")
 
 	if(!ParamIsDefault(str))
 		Make/FREE/T/N=1 wvText = str
@@ -69,23 +65,18 @@ End
 /// @param appendData [optional, defaults to -1]                    Set the dimension to append to within the given dataset (requires compression)
 ///
 /// Only one of `var` or `wv` can be given.
-threadsafe Function H5_WriteDataset(locationID, name, [var, varType, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData])
-	variable locationID
-	string name
-	variable var, varType
-	Wave/Z wv
-	variable overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData
+threadsafe Function H5_WriteDataset(variable locationID, string name, [variable var, variable varType, WAVE/Z wv, variable overwrite, variable compressionMode, variable skipIfExists, variable writeIgorAttr, variable appendData])
 
 	if(ParamIsDefault(compressionMode))
 		compressionMode = NO_COMPRESSION
 	endif
 
-	overwrite     = ParamIsDefault(overwrite)     ?  0 : !!overwrite
-	skipIfExists  = ParamIsDefault(skipIfExists)  ?  0 : !!skipIfExists
-	writeIgorAttr = ParamIsDefault(writeIgorAttr) ?  0 : !!writeIgorAttr
-	appendData    = ParamIsDefault(appendData)    ? -1 : appendData
+	overwrite     = ParamIsDefault(overwrite) ? 0 : !!overwrite
+	skipIfExists  = ParamIsDefault(skipIfExists) ? 0 : !!skipIfExists
+	writeIgorAttr = ParamIsDefault(writeIgorAttr) ? 0 : !!writeIgorAttr
+	appendData    = ParamIsDefault(appendData) ? -1 : appendData
 
-	ASSERT_TS(ParamIsDefault(var) + ParamIsDefault(wv) == 1, "H5_WriteDataset: Need exactly one of var or wv")
+	ASSERT_TS((ParamIsDefault(var) + ParamIsDefault(wv)) == 1, "H5_WriteDataset: Need exactly one of var or wv")
 
 	if(!ParamIsDefault(var))
 		ASSERT_TS(!ParamIsDefault(varType), "H5_WriteDataset: var needs varType")
@@ -97,36 +88,30 @@ End
 
 /// @brief Return a wave for the valid chunk sizes of each dimension taking
 ///        into account the compression mode.
-threadsafe static Function/Wave H5_GetChunkSizes(wv, compressionMode)
-	WAVE wv
-	variable compressionMode
+threadsafe static Function/WAVE H5_GetChunkSizes(WAVE wv, variable compressionMode)
 
 	switch(compressionMode)
 		case NO_COMPRESSION:
 			return $""
 			break
 		case CHUNKED_COMPRESSION:
-			MAKE/FREE/N=(WaveDims(wv))/I/U chunkSizes = (DimSize(wv, p) > H5_CHUNK_SIZE ? H5_CHUNK_SIZE : 32)
+			MAKE/FREE/N=(WaveDims(wv))/I/U chunkSizes = ((DimSize(wv, p) > H5_CHUNK_SIZE) ? H5_CHUNK_SIZE : 32)
 			return chunkSizes
 		case SINGLE_CHUNK_COMPRESSION:
 			MAKE/FREE/N=(WaveDims(wv))/I/U chunkSizes = DimSize(wv, p)
 			return chunkSizes
 		default:
-			ASSERT_TS(0, "Invalid compression mode")
+			FATAL_ERROR("Invalid compression mode")
 			break
 	endswitch
 End
 
 /// @see H5_WriteTextDataset or H5_WriteDataset
-threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode)
-	variable locationID
-	string name
-	Wave wv
-	variable overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode
+threadsafe static Function H5_WriteDatasetLowLevel(variable locationID, string name, WAVE wv, variable overwrite, variable compressionMode, variable skipIfExists, variable writeIgorAttr, variable appendData, variable refMode)
 
 	variable numDims, attrFlag
 
-	ASSERT_TS(H5_IsValidIdentifier(GetFile(name, sep="/")), "H5_WriteDatasetLowLevel: name of saved dataset is not valid HDF5 format")
+	ASSERT_TS(H5_IsValidIdentifier(GetFile(name, sep = "/")), "H5_WriteDatasetLowLevel: name of saved dataset is not valid HDF5 format")
 
 	numDims = WaveDims(wv)
 
@@ -166,7 +151,7 @@ threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwri
 			elseif(numDims == 4)
 				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS], chunkSizes[CHUNKS]}/MAXD={-1, -1, -1, -1}/O/Z wv, locationID, name
 			else
-				ASSERT_TS(0, "H5_WriteDatasetLowLevel: unhandled numDims")
+				FATAL_ERROR("H5_WriteDatasetLowLevel: unhandled numDims")
 			endif
 		else
 			HDF5SaveData/IGOR=(attrFlag)/APND=(appendData)/REF=(refMode)/O/Z wv, locationID, name
@@ -182,7 +167,7 @@ threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwri
 			elseif(numDims == 4)
 				HDF5SaveData/IGOR=(attrFlag)/GZIP={3, 1}/APND=(appendData)/REF=(refMode)/LAYO={2, chunkSizes[ROWS], chunkSizes[COLS], chunkSizes[LAYERS], chunkSizes[CHUNKS]}/MAXD={-1, -1, -1, -1}/Z wv, locationID, name
 			else
-				ASSERT_TS(0, "H5_WriteDatasetLowLevel: unhandled numDims")
+				FATAL_ERROR("H5_WriteDatasetLowLevel: unhandled numDims")
 			endif
 		else
 			HDF5SaveData/IGOR=(attrFlag)/APND=(appendData)/REF=(refMode)/Z wv, locationID, name
@@ -192,7 +177,7 @@ threadsafe static Function H5_WriteDatasetLowLevel(locationID, name, wv, overwri
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "H5_WriteDatasetLowLevel: Could not store HDF5 dataset to file")
+		FATAL_ERROR("H5_WriteDatasetLowLevel: Could not store HDF5 dataset to file")
 	endif
 End
 
@@ -208,21 +193,17 @@ End
 /// @param refMode [optional, defaults to 0]       Set refMode, one in @ref ReferenceMode (DisplayHelpTopic "Saving Reference Data")
 ///
 /// Only one of `str ` or `list` can be given.
-threadsafe Function H5_WriteTextAttribute(locationID, attrName, path, [list, str, overwrite, refMode])
-	variable locationID
-	string attrName, path
-	string list, str
-	variable overwrite, refMode
+threadsafe Function H5_WriteTextAttribute(variable locationID, string attrName, string path, [string list, string str, variable overwrite, variable refMode])
 
 	variable forceSimpleDataSpace
-	string msg
+	string   msg
 
-	ASSERT_TS(ParamIsDefault(str) + ParamIsDefault(list) == 1, "H5_WriteTextAttribute: Need exactly one of str or list")
+	ASSERT_TS((ParamIsDefault(str) + ParamIsDefault(list)) == 1, "H5_WriteTextAttribute: Need exactly one of str or list")
 	if(ParamIsDefault(refMode))
 		refMode = NO_REFERENCE
 	endif
 	if(refMode == OBJECT_REFERENCE && ParamIsDefault(str))
-		ASSERT_TS(0, "H5_WriteTextAttribute: refMode 1 needs a string")
+		FATAL_ERROR("H5_WriteTextAttribute: refMode 1 needs a string")
 	endif
 
 	if(!ParamIsDefault(str))
@@ -244,7 +225,7 @@ threadsafe Function H5_WriteTextAttribute(locationID, attrName, path, [list, str
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
 		sprintf msg, "Could not write HDF5 attribute %s of %s to file.", attrName, path
-		ASSERT_TS(0, "H5_WriteTextAttribute: " + msg )
+		FATAL_ERROR("H5_WriteTextAttribute: " + msg)
 	endif
 End
 
@@ -257,11 +238,7 @@ End
 /// @param var                                     Contents to write into the attribute
 /// @param varType                                 Type of the attribute, see @ref IgorTypes
 /// @param overwrite [optional, defaults to false] Should existing attributes be overwritten
-threadsafe Function H5_WriteAttribute(locationID, attrName, path, var, varType, [overwrite])
-	variable locationID
-	string attrName, path
-	variable var, varType
-	variable overwrite
+threadsafe Function H5_WriteAttribute(variable locationID, string attrName, string path, variable var, variable varType, [variable overwrite])
 
 	Make/FREE/Y=(varType)/N=1 data = var
 
@@ -276,7 +253,7 @@ threadsafe Function H5_WriteAttribute(locationID, attrName, path, var, varType, 
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "H5_WriteAttribute: Could not write HDF5 attribute to file")
+		FATAL_ERROR("H5_WriteAttribute: Could not write HDF5 attribute to file")
 	endif
 End
 
@@ -285,16 +262,14 @@ End
 /// @param locationID  HDF5 identifier, can be a file, group or dataset
 /// @param path        Name of the link
 /// @param target      The linked destination
-threadsafe Function H5_CreateSoftLink(locationID, path, target)
-	variable locationID
-	string path, target
+threadsafe Function H5_CreateSoftLink(variable locationID, string path, string target)
 
 	HDF5CreateLink/HARD=0 0, target, locationID, path
 
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "H5_CreateSoftLink: Could not create HDF5 link")
+		FATAL_ERROR("H5_CreateSoftLink: Could not create HDF5 link")
 	endif
 End
 
@@ -303,9 +278,8 @@ End
 /// @param discLocation  full path to nwb file
 /// @param write         open file for writing. default is readonly.
 /// @return              ID for referencing open hdf5 file
-threadsafe Function H5_OpenFile(discLocation, [write])
-	string discLocation
-	variable write
+threadsafe Function H5_OpenFile(string discLocation, [variable write])
+
 	if(ParamIsDefault(write))
 		write = 0
 	endif
@@ -320,7 +294,7 @@ threadsafe Function H5_OpenFile(discLocation, [write])
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "H5_OpenFile: Could not open HDF5 file.")
+		FATAL_ERROR("H5_OpenFile: Could not open HDF5 file.")
 	endif
 
 	return fileID
@@ -330,8 +304,7 @@ End
 ///
 /// @param fileID  ID of open hdf5 file
 /// @return        open state as true/false
-threadsafe Function H5_CloseFile(fileID)
-	variable fileID
+threadsafe Function H5_CloseFile(variable fileID)
 
 	if(H5_IsFileOpen(fileID))
 		// try to close the file (once)
@@ -345,8 +318,7 @@ End
 /// @brief Return 1 if the given HDF5 file is already open, 0 otherwise.
 ///
 /// @param fileID HDF5 locationID from `HDF5OpenFile`.
-threadsafe Function H5_IsFileOpen(fileID)
-	variable fileID
+threadsafe Function H5_IsFileOpen(variable fileID)
 
 	// group "/" does exist, therefore the fileID refers to an open file
 	return H5_GroupExists(fileID, "/")
@@ -360,42 +332,41 @@ End
 #ifdef IPNWB_DEFINE_IM
 
 // Constants for HDF5DataInfo dataspace_type field
-Constant H5S_NO_CLASS = -1			// Error
-Constant H5S_SCALAR = 0				// Scalar variable
-Constant H5S_SIMPLE = 1				// Constant simple data space
-Constant H5S_NULL = 2				// Constant null data space
+Constant H5S_NO_CLASS = -1 // Error
+Constant H5S_SCALAR   = 0  // Scalar variable
+Constant H5S_SIMPLE   = 1  // Constant simple data space
+Constant H5S_NULL     = 2  // Constant null data space
 
-#endif
+#endif // IPNWB_DEFINE_IM
 
 #if IgorVersion() < 9
 
-static Constant kHDF5DataInfoVersion = 1000		// 1000 means 1.000.
-static Constant H5S_MAX_RANK = 32
+static Constant kHDF5DataInfoVersion = 1000 // 1000 means 1.000.
+static Constant H5S_MAX_RANK         = 32
 
-threadsafe static Function InitHDF5DataInfo(di)				// Sets input fields.
-	STRUCT HDF5DataInfo &di
+threadsafe static Function InitHDF5DataInfo(STRUCT HDF5DataInfo &di) // Sets input fields.
 
 	// HDF5XOP uses these fields to make sure the structure passed in to it is compatible.
-	di.version = kHDF5DataInfoVersion
+	di.version    = kHDF5DataInfoVersion
 	di.structName = "HDF5DataInfo"
 End
 
-static Structure HDF5DataInfo					// Use with HDF5DatasetInfo and HDF5AttributeInfo functions
+static Structure HDF5DataInfo // Use with HDF5DatasetInfo and HDF5AttributeInfo functions
 	// Input fields (inputs to HDF5 XOP)
-	uint32 version							// Must be set to kHDF5DataInfoVersion
-	char structName[16]						// Must be "HDF5DataInfo".
+	uint32 version // Must be set to kHDF5DataInfoVersion
+	char structName[16] // Must be "HDF5DataInfo".
 
 	// Output fields (outputs from HDF5 XOP)
-	double datatype_class;				// e.g., H5T_INTEGER, H5T_FLOAT.
-	char datatype_class_str[32];			// String with class spelled out. e.g., "H5T_INTEGER", "H5T_FLOAT".
-	double datatype_size;					// Size in bytes of one element.
-	double datatype_sign;					// H5T_SGN_NONE (unsigned), H5T_SGN_2 (signed), H5T_SGN_ERROR (this type does not have a sign, i.e., it is not an integer type).
-	double datatype_order;				// H5T_ORDER_LE, H5T_ORDER_BE, H5T_ORDER_VAX
-	char datatype_str[64];				// Human-readable string, e.g., "16-bit unsigned integer"
-	double dataspace_type;				// H5S_NO_CLASS, H5S_SCALAR, H5S_SIMPLE
-	double ndims;							// Zero for H5S_SCALAR. Number of dimensions in the dataset for H5S_SIMPLE.
-	double dims[H5S_MAX_RANK];			// Size of each dimension.
-	double maxdims[H5S_MAX_RANK];		// Maximum size of each dimension.
+	double datatype_class // e.g., H5T_INTEGER, H5T_FLOAT.
+	char datatype_class_str[32] // String with class spelled out. e.g., "H5T_INTEGER", "H5T_FLOAT".
+	double datatype_size // Size in bytes of one element.
+	double datatype_sign // H5T_SGN_NONE (unsigned), H5T_SGN_2 (signed), H5T_SGN_ERROR (this type does not have a sign, i.e., it is not an integer type).
+	double datatype_order // H5T_ORDER_LE, H5T_ORDER_BE, H5T_ORDER_VAX
+	char datatype_str[64] // Human-readable string, e.g., "16-bit unsigned integer"
+	double dataspace_type // H5S_NO_CLASS, H5S_SCALAR, H5S_SIMPLE
+	double ndims // Zero for H5S_SCALAR. Number of dimensions in the dataset for H5S_SIMPLE.
+	double dims[H5S_MAX_RANK] // Size of each dimension.
+	double maxdims[H5S_MAX_RANK] // Maximum size of each dimension.
 EndStructure
 
 #endif
@@ -407,9 +378,7 @@ EndStructure
 /// @param[in] locationID           HDF5 identifier, can be a file or group
 /// @param[in] name                 Additional path on top of `locationID` which identifies
 ///                                 the dataset
-threadsafe Function H5_DatasetExists(locationID, name)
-	variable locationID
-	string name
+threadsafe Function H5_DatasetExists(variable locationID, string name)
 
 	STRUCT HDF5DataInfo di
 	InitHDF5DataInfo(di)
@@ -423,16 +392,14 @@ End
 /// @param[in] name       path on top of `locationID` which identifies the dataset
 ///
 /// @return               reference to wave containing loaded data
-threadsafe Function/WAVE H5_LoadDataset(locationID, name)
-	variable locationID
-	string name
+threadsafe Function/WAVE H5_LoadDataset(variable locationID, string name)
 
 	if(!H5_DatasetExists(locationID, name))
 		return $""
 	endif
 
 	DFREF saveDFR = GetDataFolderDFR()
-	DFREF dfr = NewFreeDataFolder()
+	DFREF dfr     = NewFreeDataFolder()
 
 	SetDataFolder dfr
 	HDF5LoadData/Q/IGOR=(-1) locationID, name
@@ -441,7 +408,7 @@ threadsafe Function/WAVE H5_LoadDataset(locationID, name)
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "H5_LoadDataset: Could not read HDF5 dataset " + name)
+		FATAL_ERROR("H5_LoadDataset: Could not read HDF5 dataset " + name)
 	endif
 
 	ASSERT_TS(ItemsInList(S_waveNames) == 1, "H5_LoadDataset: unspecified data format")
@@ -459,6 +426,7 @@ End
 ///
 /// @return wave with the dimension sizes or an invalid wave reference
 threadsafe Function/WAVE H5_GetDatasetSize(variable locationID, string dataset)
+
 	variable ret, rank
 
 	STRUCT HDF5DataInfo di
@@ -491,10 +459,7 @@ End
 /// @param[in]  attribute             Name of the attribute
 /// @param[out] objectType [optional] Return the type of the element to which the
 ///                                   attribute is attached to. Can be used for subsequent HDF5LoadData calls.
-threadsafe Function H5_AttributeExists(locationID, path, attribute, [objectType])
-	variable locationID
-	string path, attribute
-	variable &objectType
+threadsafe Function H5_AttributeExists(variable locationID, string path, string attribute, [variable &objectType])
 
 	variable objectTypeVar, datasetExists, groupExists
 
@@ -502,11 +467,13 @@ threadsafe Function H5_AttributeExists(locationID, path, attribute, [objectType]
 	InitHDF5DataInfo(di)
 
 	datasetExists = H5_DatasetExists(locationID, path)
-	groupExists = H5_GroupExists(locationID, path)
+	groupExists   = H5_GroupExists(locationID, path)
 
 	if(datasetExists && groupExists)
-		ASSERT_TS(0, "Could not handle attribute when both a group and a dataset exist with the same name.")
-	elseif(groupExists)
+		FATAL_ERROR("Could not handle attribute when both a group and a dataset exist with the same name.")
+	endif
+
+	if(groupExists)
 		objectTypeVar = 1
 	elseif(datasetExists)
 		objectTypeVar = 2
@@ -525,9 +492,7 @@ End
 /// @param[in]  path       Additional path on top of `locationID` which identifies
 ///                        the group or dataset
 /// @param[in]  attribute  Name of the attribute to load
-threadsafe Function/WAVE H5_LoadAttribute(locationID, path, attribute)
-	variable locationID
-	string path, attribute
+threadsafe Function/WAVE H5_LoadAttribute(variable locationID, string path, string attribute)
 
 	variable objectType
 
@@ -536,7 +501,7 @@ threadsafe Function/WAVE H5_LoadAttribute(locationID, path, attribute)
 	endif
 
 	DFREF saveDFR = GetDataFolderDFR()
-	DFREF dfr = NewFreeDataFolder()
+	DFREF dfr     = NewFreeDataFolder()
 
 	SetDataFolder dfr
 	HDF5LoadData/A=(attribute)/TYPE=(objectType)/Q/Z locationID, path
@@ -545,7 +510,7 @@ threadsafe Function/WAVE H5_LoadAttribute(locationID, path, attribute)
 	if(V_Flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "Could not load the HDF5 attribute '" + attribute + "' from '" + path + "'\rError No: " + num2str(V_Flag))
+		FATAL_ERROR("Could not load the HDF5 attribute '" + attribute + "' from '" + path + "'\rError No: " + num2str(V_Flag))
 	endif
 
 	ASSERT_TS(ItemsInList(S_waveNames) == 1, "unspecified data format")
@@ -561,9 +526,7 @@ End
 /// @param locationID  HDF5 identifier, can be a file or group
 /// @param path        Additional path on top of `locationID` which identifies
 ///                    the group.
-threadsafe Function H5_GroupExists(locationID, path)
-	variable locationID
-	string path
+threadsafe Function H5_GroupExists(variable locationID, string path)
 
 	variable ret, groupID
 
@@ -589,9 +552,7 @@ End
 /// @param locationID  HDF5 identifier, can be a file or group
 /// @param fullPath    Additional path on top of `locationID` which identifies
 ///                    the group
-threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath)
-	variable locationID
-	string fullPath
+threadsafe Function H5_CreateGroupsRecursively(variable locationID, string fullPath)
 
 	variable id, i, numElements, start
 	string path, group
@@ -601,10 +562,10 @@ threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath)
 
 		if(!cmpstr(fullPath[0], "/"))
 			start = 1
-			path   = "/"
+			path  = "/"
 		else
 			start = 0
-			path   = ""
+			path  = ""
 		endif
 
 		for(i = start; i < numElements; i += 1)
@@ -617,7 +578,7 @@ threadsafe Function H5_CreateGroupsRecursively(locationID, fullPath)
 			if(V_flag)
 				HDf5DumpErrors/CLR=1
 				HDF5DumpState
-				ASSERT_TS(0, "H5_CreateGroupsRecursively: Could not create HDF5 group: " + fullPath)
+				FATAL_ERROR("H5_CreateGroupsRecursively: Could not create HDF5 group: " + fullPath)
 			endif
 			HDF5CloseGroup/Z id
 
@@ -630,8 +591,7 @@ End
 ///
 /// This is more restrictive than the actual HDF5 library checks.
 /// See the BNF Grammar [here](https://support.hdfgroup.org/HDF5/doc/UG/HDF5_Users_Guide-Responsive%20HTML5/index.html#t=HDF5_Users_Guide%2FGroups%2FHDF5_Groups.htm%23TOC_4_2_3_HDF5_Path_Namesbc-5&rhtocid=4.1.0_3).
-threadsafe Function H5_IsValidIdentifier(name)
-	string name
+threadsafe Function H5_IsValidIdentifier(string name)
 
 	return GrepString(name, "^(?:[A-Za-z0-9_ -]+[\.]*)+$")
 End
@@ -641,15 +601,13 @@ End
 /// @param[in] locationID          HDF5 identifier, can be a file or group
 /// @param[in] path                Additional path on top of `locationID` which identifies
 ///                                the group
-threadsafe Function/S H5_ListGroupMembers(locationID, path)
-	variable locationID
-	string path
+threadsafe Function/S H5_ListGroupMembers(variable locationID, string path)
 
 	HDF5ListGroup/Z locationID, path
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "H5_ListGroupMembers: returned error " + num2str(V_flag))
+		FATAL_ERROR("H5_ListGroupMembers: returned error " + num2str(V_flag))
 	endif
 
 	return S_HDF5ListGroup
@@ -659,15 +617,13 @@ End
 ///
 /// @param[in]  fileID        HDF5 file identifier
 /// @param[in]  path          Full path to the group inside fileID
-threadsafe Function/S H5_ListGroups(fileID, path)
-	variable fileID
-	string path
+threadsafe Function/S H5_ListGroups(variable fileID, string path)
 
 	HDF5ListGroup/TYPE=1/Z fileID, path
 	if(V_flag)
 		HDf5DumpErrors/CLR=1
 		HDF5DumpState
-		ASSERT_TS(0, "H5_ListGroups: returned error " + num2str(V_flag))
+		FATAL_ERROR("H5_ListGroups: returned error " + num2str(V_flag))
 	endif
 
 	return S_HDF5ListGroup
@@ -680,9 +636,7 @@ End
 ///                    the group
 /// @return the groupID of the opened group. Return NaN if the group did not
 ///         exist.
-threadsafe Function H5_OpenGroup(locationID, path)
-	variable locationID
-	string path
+threadsafe Function H5_OpenGroup(variable locationID, string path)
 
 	variable groupID
 
@@ -708,13 +662,13 @@ End
 ///
 /// @param fileID HDF5 file identifier
 threadsafe Function H5_FlushFile(variable fileID)
+
 	HDF5FlushFile fileID
 End
 
 /// @todo Needs HDF5 XOP support for reading link targets
 /// use HDF5LinkInfo
-threadsafe Function/S H5_GetLinkTarget(discLocation, path)
-	string discLocation, path
+threadsafe Function/S H5_GetLinkTarget(string discLocation, string path)
 
 	string str, msg, regExp
 

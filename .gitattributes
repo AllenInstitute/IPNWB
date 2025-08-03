@@ -1,2 +1,4 @@
 *.json eol=lf text
 *.yaml eol=lf text
+
+*.ipf ipt
