@@ -531,8 +531,7 @@ EndStructure
 
 /// @brief Generate a version 4 UUID according to https://tools.ietf.org/html/rfc4122
 ///
-/// \rst
-/// .. code-block:: text
+/// @verbatim
 ///
 ///     4.4.  Algorithms for Creating a UUID from Truly Random or
 ///           Pseudo-Random Numbers
@@ -611,7 +610,7 @@ EndStructure
 ///        The version is more accurately a sub-type; again, we retain the term
 ///        for compatibility.
 ///
-/// \endrst
+/// @endverbatim
 ///
 /// See also https://www.rfc-editor.org/errata/eid3546 and https://www.rfc-editor.org/errata/eid1957
 /// for some clarifications.
