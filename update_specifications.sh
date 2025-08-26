@@ -21,19 +21,6 @@ set -e
 # - doc/schema.diff is generated to emphasize the deviations to the official
 #   specifications. The diff is generated from the yaml files.
 
-# Requires:
-# - url: https://stedolan.github.io/jq/
-#   cmd:
-#   - ▶ wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O ~/.local/bin/jq
-#   - ▶ apt install jq
-#   version: >=1.6
-# - url: https://github.com/kislyuk/yq
-#   cmd: ▶ pip3 install --user yq
-#   version: 2.10.0
-# - url: https://github.com/drbild/json2yaml
-#   cmd: ▶ pip3 install --user json2yaml
-#   version: 1.1.1
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 mkdir -p ${DIR}/doc
 mkdir -p ${DIR}/namespace/{core,hdmf-common,ndx-mies}/{json,yaml}
