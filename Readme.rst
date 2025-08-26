@@ -84,6 +84,17 @@ supported but deprecated.
    doc/nwb1.rst
    doc/nwb2.rst
 
+NWB schema upgrade
+~~~~~~~~~~~~~~~~~~
+
+- python -m venv ~/.venvs/ipnwb
+- pip install -r requirements.txt
+- ./update_specifications.sh
+- # The last command should not change anything in the repo, if yes investigate why and commit the changes
+- Choose a new nwb-schema version
+- Update the `specifcations` submodule to that version
+- ./update_specifications.sh
+- Commit the changes, update versions in README.rst and check if MIES works with this new IPNWB version
 
 Online Resources
 ~~~~~~~~~~~~~~~~
