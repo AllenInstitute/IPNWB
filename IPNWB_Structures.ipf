@@ -253,9 +253,12 @@ End
 Structure VectorIndex
 	string data_type
 	STRUCT VectorData target
+	string description
 EndStructure
 
-threadsafe Function InitVectorIndex(STRUCT VectorIndex &vi)
+threadsafe Function InitVectorIndex(STRUCT VectorIndex &vi, STRUCT VectorData &vd)
 
-	vi.data_type = "VectorIndex"
+	vi.target      = vd
+	vi.data_type   = "VectorIndex"
+	vi.description = "Index for VectorData '" + GetFile(vi.target.path, sep = "/") + "'"
 End

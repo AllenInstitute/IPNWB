@@ -1,4 +1,39 @@
 groups:
+- neurodata_type_def: OnePhotonSeries
+  neurodata_type_inc: ImageSeries
+  doc: Image stack recorded over time from 1-photon microscope.
+  attributes:
+  - name: pmt_gain
+    dtype: float32
+    doc: Photomultiplier gain.
+    required: false
+  - name: scan_line_rate
+    dtype: float32
+    doc: Lines imaged per second. This is also stored in /general/optophysiology but
+      is kept here as it is useful information for analysis, and so good to be stored
+      w/ the actual data.
+    required: false
+  - name: exposure_time
+    dtype: float32
+    doc: Exposure time of the sample; often the inverse of the frequency.
+    required: false
+  - name: binning
+    dtype: uint8
+    doc: Amount of pixels combined into 'bins'; could be 1, 2, 4, 8, etc.
+    required: false
+  - name: power
+    dtype: float32
+    doc: Power of the excitation in mW, if known.
+    required: false
+  - name: intensity
+    dtype: float32
+    doc: Intensity of the excitation in mW/mm^2, if known.
+    required: false
+  links:
+  - name: imaging_plane
+    target_type: ImagingPlane
+    doc: Link to ImagingPlane object from which this TimeSeries data was generated.
+
 - neurodata_type_def: TwoPhotonSeries
   neurodata_type_inc: ImageSeries
   doc: Image stack recorded over time from 2-photon microscope.
@@ -17,8 +52,8 @@ groups:
   - name: field_of_view
     dtype: float32
     dims:
-    - width|height
-    - width|height|depth
+    - - width|height
+    - - width|height|depth
     shape:
     - - 2
     - - 3
@@ -90,6 +125,7 @@ groups:
 - neurodata_type_def: PlaneSegmentation
   neurodata_type_inc: DynamicTable
   doc: Results from image segmentation of a specific imaging plane.
+    At least one of `image_mask`, `pixel_mask`, or `voxel_mask` is required.
   datasets:
   - name: image_mask
     neurodata_type_inc: VectorData
@@ -111,6 +147,7 @@ groups:
       - null
     doc: ROI masks for each ROI. Each image mask is the size of the original imaging
       plane (or volume) and members of the ROI are finite non-zero.
+      At least one of `image_mask`, `pixel_mask`, or `voxel_mask` is required.
     quantity: '?'
   - name: pixel_mask_index
     neurodata_type_inc: VectorIndex
@@ -129,7 +166,8 @@ groups:
       dtype: float32
       doc: Weight of the pixel.
     doc: 'Pixel masks for each ROI: a list of indices and weights for the ROI. Pixel
-      masks are concatenated and parsing of this dataset is maintained by the PlaneSegmentation'
+      masks are concatenated and parsing of this dataset is maintained by the PlaneSegmentation.
+      At least one of `image_mask`, `pixel_mask`, or `voxel_mask` is required.'
     quantity: '?'
   - name: voxel_mask_index
     neurodata_type_inc: VectorIndex
@@ -151,7 +189,8 @@ groups:
       dtype: float32
       doc: Weight of the voxel.
     doc: 'Voxel masks for each ROI: a list of indices and weights for the ROI. Voxel
-      masks are concatenated and parsing of this dataset is maintained by the PlaneSegmentation'
+      masks are concatenated and parsing of this dataset is maintained by the PlaneSegmentation.
+      At least one of `image_mask`, `pixel_mask`, or `voxel_mask` is required.'
     quantity: '?'
   groups:
   - name: reference_images
@@ -169,7 +208,6 @@ groups:
 - neurodata_type_def: ImagingPlane
   neurodata_type_inc: NWBContainer
   doc: An imaging plane and its metadata.
-  quantity: '*'
   datasets:
   - name: description
     dtype: text
@@ -232,11 +270,11 @@ groups:
   - name: origin_coords
     dtype: float32
     dims:
-    - x, y
-    - x, y, z
+    - - x, y
+    - - x, y, z
     shape:
-    - 2
-    - 3
+    - - 2
+    - - 3
     doc: Physical location of the first element of the imaging plane (0, 0) for 2-D data or (0, 0, 0) for 3-D data.
       See also reference_frame for what the physical location is relative to (e.g., bregma).
     quantity: '?'
@@ -248,11 +286,11 @@ groups:
   - name: grid_spacing
     dtype: float32
     dims:
-    - x, y
-    - x, y, z
+    - - x, y
+    - - x, y, z
     shape:
-    - 2
-    - 3
+    - - 2
+    - - 3
     doc: Space between pixels in (x, y) or voxels in (x, y, z) directions, in the specified unit.
       Assumes imaging plane is a regular grid. See also reference_frame to interpret the grid.
     quantity: '?'
@@ -306,12 +344,12 @@ groups:
     each point in time is assumed to be 2-D (has only x & y dimensions).'
   groups:
   - neurodata_type_inc: CorrectedImageStack
-    doc: Reuslts from motion correction of an image stack.
+    doc: Results from motion correction of an image stack.
     quantity: '+'
 
 - neurodata_type_def: CorrectedImageStack
   neurodata_type_inc: NWBDataInterface
-  doc: Reuslts from motion correction of an image stack.
+  doc: Results from motion correction of an image stack.
   groups:
   - name: corrected
     neurodata_type_inc: ImageSeries

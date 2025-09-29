@@ -21,19 +21,6 @@ set -e
 # - doc/schema.diff is generated to emphasize the deviations to the official
 #   specifications. The diff is generated from the yaml files.
 
-# Requires:
-# - url: https://stedolan.github.io/jq/
-#   cmd:
-#   - ▶ wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O ~/.local/bin/jq
-#   - ▶ apt install jq
-#   version: >=1.6
-# - url: https://github.com/kislyuk/yq
-#   cmd: ▶ pip3 install --user yq
-#   version: 2.10.0
-# - url: https://github.com/drbild/json2yaml
-#   cmd: ▶ pip3 install --user json2yaml
-#   version: 1.1.1
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 mkdir -p ${DIR}/doc
 mkdir -p ${DIR}/namespace/{core,hdmf-common,ndx-mies}/{json,yaml}
@@ -49,9 +36,9 @@ cp ${DIR}/ndx-mies/spec/*.extensions.yaml ${DIR}/namespace/ndx-mies/yaml
 #
 # jqfilter to remove ".yaml" from namespace specifications:
 jqfilter="walk(if type == \"object\" and has(\"source\") then .[] |= rtrimstr(\".yaml\") else . end)"
-yq --tojson r specifications/core/nwb.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/core/yaml/nwb.namespace.yaml
-yq --tojson r specifications/hdmf-common-schema/common/namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/hdmf-common/yaml/namespace.yaml
-yq --tojson r ndx-mies/spec/ndx-mies.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/ndx-mies/yaml/namespace.yaml
+yq --output-format json '.' specifications/core/nwb.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/core/yaml/nwb.namespace.yaml
+yq  --output-format json '.' specifications/hdmf-common-schema/common/namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/hdmf-common/yaml/namespace.yaml
+yq  --output-format json '.' ndx-mies/spec/ndx-mies.namespace.yaml | jq "$jqfilter" | json2yaml | d2u > namespace/ndx-mies/yaml/namespace.yaml
 
 # jqfilter to get only required objects:
 # ▶ jqfilter='walk(if type == "object" and has("required") then select(.required != false) else . end)'
@@ -78,7 +65,7 @@ do
 	echo "# diff namespace $namespace upstream vs IPNWB specifications for $specification" | tee --append $logfile
 	diff "${DIR}/${upstream_path}/${specification}.yaml" "$file" | tee --append $logfile
 
-	yq --tojson r "$file" | jq $jqargs . > ${DIR}/namespace/${namespace}/json/${specification}.json
+	yq --output-format json '.' "$file" | jq $jqargs . > ${DIR}/namespace/${namespace}/json/${specification}.json
 done
 
 d2u ${DIR}/namespace/*/json/*.json

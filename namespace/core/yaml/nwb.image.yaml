@@ -63,8 +63,8 @@ groups:
       - null
       - null
       - null
-    doc: Binary data representing images across frames.
-    quantity: '?'
+    doc: Binary data representing images across frames. If data are stored in an external
+      file, this should be an empty 3D array.
   - name: dimension
     dtype: int32
     dims:
@@ -93,7 +93,7 @@ groups:
       - null
       doc: Each external image may contain one or more consecutive frames of the full
         ImageSeries. This attribute serves as an index to indicate which frames each file
-        contains, to faciliate random access. The 'starting_frame' attribute, hence,
+        contains, to facilitate random access. The 'starting_frame' attribute, hence,
         contains a list of frame numbers within the full ImageSeries of the first frame
         of each file listed in the parent 'external_file' dataset. Zero-based indexing is
         used (hence, the first element will always be zero). For example, if the
@@ -110,10 +110,15 @@ groups:
       (single-channel) binary data is stored in the 'data' dataset. If this attribute
       is not present, then the default format='raw' case is assumed.
     quantity: '?'
+  links:
+  - name: device
+    target_type: Device
+    doc: Link to the Device object that was used to capture these images.
+    quantity: '?'
 
 - neurodata_type_def: ImageMaskSeries
   neurodata_type_inc: ImageSeries
-  doc: An alpha mask that is applied to a presented visual stimulus. The 'data' array
+  doc: DEPRECATED. An alpha mask that is applied to a presented visual stimulus. The 'data' array
     contains an array of mask values that are applied to the displayed image. Mask
     values are stored as RGBA. Mask can vary with time. The timestamps array indicates
     the starting time of a mask, and that mask pattern continues until it's explicitly
@@ -172,21 +177,53 @@ groups:
 
 - neurodata_type_def: IndexSeries
   neurodata_type_inc: TimeSeries
-  doc: Stores indices to image frames stored in an ImageSeries. The purpose of the
-    ImageIndexSeries is to allow a static image stack to be stored somewhere, and
-    the images in the stack to be referenced out-of-order. This can be for the display
-    of individual images, or of movie segments (as a movie is simply a series of images).
-    The data field stores the index of the frame in the referenced ImageSeries, and
-    the timestamps array indicates when that image was displayed.
+  doc: Stores indices that reference images defined in other containers. The primary purpose
+    of the IndexSeries is to allow images stored in an Images container to be referenced in a
+    specific sequence through the 'indexed_images' link. This approach avoids duplicating image data
+    when the same image needs to be presented multiple times or when images need to be shown in a
+    different order than they are stored. Since images in an Images container do not have an inherent
+    order, the Images container needs to include an 'order_of_images' dataset (of type
+    ImageReferences) when being referenced by an IndexSeries. This dataset establishes the ordered
+    sequence that the indices in IndexSeries refer to. The 'data' field stores the index into this
+    ordered sequence, and the 'timestamps' array indicates the precise presentation time of each
+    indexed image during an experiment. This can be used for displaying individual images or creating
+    movie segments by referencing a sequence of images with the appropriate timestamps. While
+    IndexSeries can also reference frames from an ImageSeries through the 'indexed_timeseries' link,
+    this usage is discouraged and will be deprecated in favor of using Images containers with
+    'order_of_images'.
   datasets:
   - name: data
-    dtype: int32
+    dtype: uint32
     dims:
     - num_times
     shape:
     - null
-    doc: Index of the frame in the referenced ImageSeries.
+    doc: Index of the image (using zero-indexing) in the linked Images object.
+    attributes:
+    - name: conversion
+      dtype: float32
+      doc: This field is unused by IndexSeries.
+      required: false
+    - name: resolution
+      dtype: float32
+      doc: This field is unused by IndexSeries.
+      required: false
+    - name: offset
+      dtype: float32
+      doc: This field is unused by IndexSeries.
+      required: false
+    - name: unit
+      dtype: text
+      value: N/A
+      doc: This field is unused by IndexSeries and has the value N/A.
   links:
   - name: indexed_timeseries
     target_type: ImageSeries
-    doc: Link to ImageSeries object containing images that are indexed.
+    doc: Link to ImageSeries object containing images that are indexed. Use of this link
+      is discouraged and will be deprecated. Link to an Images type instead.
+    quantity: '?'
+  - name: indexed_images
+    target_type: Images
+    doc: Link to Images object containing an ordered set of images that are indexed. The Images object
+      must contain a 'ordered_images' dataset specifying the order of the images in the Images type.
+    quantity: '?'

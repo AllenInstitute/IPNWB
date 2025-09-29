@@ -115,20 +115,10 @@ End
 
 /// @brief Create the HDF5 group for intracellular ephys
 ///
-/// @param locationID                                    HDF5 identifier
-/// @param filtering [optional, defaults to PLACEHOLDER] filtering information
-threadsafe Function CreateIntraCellularEphys(variable locationID, [string filtering])
-
-	variable groupID
-
-	if(ParamIsDefault(filtering))
-		filtering = PLACEHOLDER
-	endif
+/// @param locationID HDF5 identifier
+threadsafe Function CreateIntraCellularEphys(variable locationID)
 
 	H5_CreateGroupsRecursively(locationID, NWB_INTRACELLULAR_EPHYS)
-	groupID = H5_OpenGroup(locationID, NWB_INTRACELLULAR_EPHYS)
-	H5_WriteTextDataset(groupID, "filtering", str = filtering, overwrite = 1)
-	HDF5CloseGroup groupID
 End
 
 /// @brief Add an entry for the device @p name in the nwb file specified by @p locationID
@@ -551,13 +541,13 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 
 	WAVE/Z tagsSize = H5_GetDatasetSize(groupID, "tags")
 	numReadback = WaveExists(tagsSize) ? tagsSize[ROWS] : 0
-	H5_WriteDataset(groupID, "tags_index", var = (numReadback + DimSize(tags, ROWS)), varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "tags_index", var = (numReadback + DimSize(tags, ROWS)), varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
 	H5_WriteTextDataset(groupID, "tags", wvText = tags, compressionMode = compressionMode, appendData = appendMode)
 
 	WAVE/Z timeseriesSize = H5_GetDatasetSize(groupID, "timeseries")
 	numReadback = WaveExists(timeseriesSize) ? timeseriesSize[ROWS] : 0
 
-	H5_WriteDataset(groupID, "timeseries_index", var = (numReadback + DimSize(timeseries, ROWS)), varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "timeseries_index", var = (numReadback + DimSize(timeseries, ROWS)), varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
 
 	HDF5CloseGroup groupID
 	groupID = NaN
@@ -614,9 +604,10 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	H5_WriteTextAttribute(groupID, "description", "tags", str = tags_vector.description)
 
 	STRUCT VectorIndex tags_vector_index
-	InitVectorIndex(tags_vector_index)
+	InitVectorIndex(tags_vector_index, tags_vector)
 	WriteNeuroDataType(groupID, "tags_index", "VectorIndex")
-	H5_WriteTextAttribute(groupID, "target", "tags_index", str = ("D:" + tags_vector.path), refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "target", "tags_index", str = ("D:" + tags_vector_index.target.path), refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "description", "tags_index", str = tags_vector_index.description)
 
 	STRUCT VectorData timeseries_vector
 	InitVectorData(timeseries_vector)
@@ -625,10 +616,11 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 	WriteNeuroDataType(groupID, "timeseries", timeseries_vector.data_type)
 	H5_WriteTextAttribute(groupID, "description", "timeseries", str = timeseries_vector.description)
 
-	STRUCT VectorIndex timeseries_index
-	InitVectorIndex(timeseries_index)
+	STRUCT VectorIndex timeseries_vector_index
+	InitVectorIndex(timeseries_vector_index, timeseries_vector)
 	WriteNeuroDataType(groupID, "timeseries_index", "VectorIndex")
-	H5_WriteTextAttribute(groupID, "target", "timeseries_index", str = ("D:" + timeseries_vector.path), refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "target", "timeseries_index", str = ("D:" + timeseries_vector_index.target.path), refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "description", "timeseries_index", str = timeseries_vector_index.description)
 
 	STRUCT VectorData treelevel_vector
 	InitVectorData(treelevel_vector)
@@ -698,7 +690,7 @@ threadsafe static Function AppendToSweepTable(variable locationID, string refere
 	numIds = WaveExists(ids) ? DimSize(ids, ROWS) : 0
 	H5_WriteDataset(groupID, "id", var = numIds, varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
 	H5_WriteTextDataset(groupID, "series", overwrite = 1, str = "G:" + reference, refMode = OBJECT_REFERENCE, compressionMode = compressionMode, appendData = appendMode)
-	H5_WriteDataset(groupID, "series_index", var = (numIds + 1), varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "series_index", var = (numIds + 1), varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
 	H5_WriteDataset(groupID, "sweep_number", var = sweepNumber, varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
 
 	if(appendMode == ROWS)
@@ -718,10 +710,10 @@ threadsafe static Function AppendToSweepTable(variable locationID, string refere
 	H5_WriteTextAttribute(groupID, "description", "series", str = series.description)
 
 	STRUCT VectorIndex series_index
-	InitVectorIndex(series_index)
-	series_index.target = series
+	InitVectorIndex(series_index, series)
 	WriteNeuroDataType(groupID, "series_index", series_index.data_type)
 	H5_WriteTextAttribute(groupID, "target", "series_index", str = "D:" + series_index.target.path, refMode = OBJECT_REFERENCE)
+	H5_WriteTextAttribute(groupID, "description", "series_index", str = series_index.description)
 
 	STRUCT VectorData sweep_number
 	InitVectorData(sweep_number)

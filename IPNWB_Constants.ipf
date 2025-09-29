@@ -118,15 +118,15 @@ Constant REGION_REFERENCE = 0x2
 /// @name Constants for NWB version 2 specifications and base classes
 /// @{
 StrConstant NWB_SPEC_NAME          = "core"
-StrConstant NWB_SPEC_VERSION       = "2.2.4"
+StrConstant NWB_SPEC_VERSION       = "2.9.0"
 StrConstant NWB_SPEC_LOCATION      = "namespace:core:json:"
 StrConstant NWB_SPEC_START         = "nwb.namespace"
 StrConstant NWB_SPEC_INCLUDE       = "nwb.base;nwb.behavior;nwb.device;nwb.ecephys;nwb.epoch;nwb.file;nwb.icephys;nwb.image;nwb.misc;nwb.ogen;nwb.ophys;nwb.retinotopy;"
 StrConstant HDMF_SPEC_NAME         = "hdmf-common"
-StrConstant HDMF_SPEC_VERSION      = "1.1.3"
+StrConstant HDMF_SPEC_VERSION      = "1.8.0"
 StrConstant HDMF_SPEC_LOCATION     = "namespace:hdmf-common:json:"
 StrConstant HDMF_SPEC_START        = "namespace"
-StrConstant HDMF_SPEC_INCLUDE      = "table;sparse;"
+StrConstant HDMF_SPEC_INCLUDE      = "base;experimental;resources;table;sparse;"
 StrConstant NDX_MIES_SPEC_NAME     = "ndx-mies"
 StrConstant NDX_MIES_SPEC_VERSION  = "0.1.0"
 StrConstant NDX_MIES_SPEC_LOCATION = "namespace:ndx-mies:json:"

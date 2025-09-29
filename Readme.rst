@@ -13,7 +13,7 @@ Main features
 * Read and write NWB compliant files
 
   - `specification version 1.0.5, Aug 8 2016 <https://github.com/NeurodataWithoutBorders/specification/raw/master/version_1.0.5_beta/nwb_file_format_specification_1.0.5_beta.pdf>`__
-  - `specification version 2.2.0 <NWB2HTML>`__, January 2020
+  - `specification version 2.9.0 <NWB2HTML>`__, June 2025
 
 * Compatible with Igor Pro 7 or later on Windows/MacOSX
 * Requires the stock HDF5 XOP only
@@ -29,7 +29,8 @@ Installation
 * Install the HDF5 XOP and the HDF5 Browser as described in ``DisplayHelpTopic
   "Installing The HDF5 Package"``
 * Create the following shortcut in
-  ``C:\Users\$username\Documents\WaveMetrics\Igor Pro [78] User Files``
+  ``C:\Users\$username\Documents\WaveMetrics\Igor Pro XXX User Files``
+  where XXX is your major Igor Pro version
 
   * In "Igor Procedures" a shortcut pointing to the basefolder of the IPNWB
     package
@@ -83,6 +84,17 @@ supported but deprecated.
    doc/nwb1.rst
    doc/nwb2.rst
 
+NWB schema upgrade
+~~~~~~~~~~~~~~~~~~
+
+- python -m venv ~/.venvs/ipnwb
+- pip install -r requirements.txt
+- ./update_specifications.sh
+- # The last command should not change anything in the repo, if yes investigate why and commit the changes
+- Choose a new nwb-schema version
+- Update the `specifcations` submodule to that version
+- ./update_specifications.sh
+- Commit the changes, update versions in README.rst and check if MIES works with this new IPNWB version
 
 Online Resources
 ~~~~~~~~~~~~~~~~
