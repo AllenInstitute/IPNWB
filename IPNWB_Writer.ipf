@@ -245,6 +245,9 @@ threadsafe Function AddTimeSeriesUnitAndRes(variable locationID, string fullAbsP
 		numPrefix = 1
 		unit      = "a.u."
 	else
+		if(!cmpstr(unitWithPrefix, "v", 1))
+			unitWithPrefix = UpperStr(unitWithPrefix)
+		endif
 		ParseUnit(unitWithPrefix, prefix, numPrefix, unit)
 	endif
 
