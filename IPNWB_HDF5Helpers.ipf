@@ -123,7 +123,7 @@ threadsafe static Function H5_WriteDatasetLowLevel(variable locationID, string n
 
 	WAVE/Z chunkSizes = H5_GetChunkSizes(wv, compressionMode)
 
-#if IgorVersion() >= 9.0 && (NumberByKey("BUILD", IgorInfo(0)) >= 36478)
+#if (IgorVersion() >= 9.0 && (NumberByKey("BUILD", IgorInfo(0)) >= 36478)) || IgorVersion() >= 10.0
 	// do nothing, we assume that SetIgorOption HDF5LibVerLowBound
 	// defaults to 1, see also "Reading Igor HDF5 Files With Old HDF5 Programs"
 	// so that we can always write large attributes
