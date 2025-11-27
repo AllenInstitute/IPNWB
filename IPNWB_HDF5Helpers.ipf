@@ -46,6 +46,8 @@ threadsafe Function H5_WriteTextDataset(variable locationID, string name, [strin
 
 	if(!ParamIsDefault(str))
 		Make/FREE/T/N=1 wvText = str
+	else
+		ASSERT_TS(WaveExists(wvText), "wvText must exist")
 	endif
 
 	H5_WriteDatasetLowLevel(locationID, name, wvText, overwrite, compressionMode, skipIfExists, writeIgorAttr, appendData, refMode)
