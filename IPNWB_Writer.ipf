@@ -493,8 +493,10 @@ threadsafe static Function WriteEpochs(string nwbFilePath, WAVE/T epochs, string
 		treeLevel = str2num(epochs[i][%TreeLevel])
 
 		//		printf "ts %s, range [%g, %g], tags = %s, treeLevel = %g\r", timeseries, startTime, stopTime, TextWaveToList(tags, ";"), treeLevel
+		Make/FREE/D startingTime_wv = {startingTime}
+		Make/FREE/D samplingRate_wv = {samplingRate}
 
-		AppendToEpochTable(nwbFilePath, startTime, stopTime, tags, {timeseries}, {startingTime}, {samplingRate}, treeLevel)
+		AppendToEpochTable(nwbFilePath, startTime, stopTime, tags, {timeseries}, startingTime_wv, samplingRate_wv, treeLevel)
 	endfor
 End
 
