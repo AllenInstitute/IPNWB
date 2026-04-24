@@ -516,7 +516,7 @@ End
 /// @param treelevel     Tree level of the epochs
 threadsafe static Function AppendToEpochTable(string nwbFilePath, WAVE startTime, WAVE stopTime, WAVE/WAVE tags, WAVE/T timeseries, WAVE startingTime, WAVE rate, WAVE treelevel)
 
-	variable groupID, err, numReadback, numTimeseries, locationID
+	variable groupID, err, numReadback, numTimeseries, locationID, cumSum, i
 	variable appendMode      = ROWS
 	variable compressionMode = NO_COMPRESSION
 
@@ -554,12 +554,16 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, WAVE startTime
 	H5_WriteDataset(groupID, "stop_time", wv = stopTime, compressionMode = compressionMode, appendData = appendMode)
 	H5_WriteDataset(groupID, "treelevel", wv = treeLevel, compressionMode = compressionMode, appendData = appendMode)
 
-	Make/FREE/N=(numTimeSeries) tags_length = DimSize(tags[p], ROWS)
 	Concatenate/FREE/NP=(ROWS) {tags}, allTags
 
 	WAVE/Z tagsSize = H5_GetDatasetSize(groupID, "tags")
 	numReadback = WaveExists(tagsSize) ? tagsSize[ROWS] : 0
-	Make/FREE/Y=(IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED)/N=(numTimeSeries) tags_index = numReadback + Sum(tags_length, 0, p)
+	Make/FREE/Y=(IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED)/N=(numTimeSeries) tags_index
+	cumSum = numReadback
+	for(i = 0; i < numTimeSeries; i += 1)
+		cumSum       += DimSize(tags[i], ROWS)
+		tags_index[i] = cumSum
+	endfor
 	H5_WriteDataset(groupID, "tags_index", wv = tags_index, compressionMode = compressionMode, appendData = appendMode)
 	H5_WriteTextDataset(groupID, "tags", wvText = allTags, compressionMode = compressionMode, appendData = appendMode)
 
