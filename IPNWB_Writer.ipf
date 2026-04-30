@@ -483,43 +483,54 @@ End
 
 threadsafe static Function WriteEpochs(string nwbFilePath, WAVE/T epochs, string timeseries, variable startingTime, variable samplingRate)
 
-	variable i, numEntries, startTime, stopTime, treeLevel
+	variable numEntries
 
 	numEntries = DimSize(epochs, ROWS)
-	for(i = 0; i < numEntries; i += 1)
-		startTime = startingTime + str2num(epochs[i][%StartTime])
-		stopTime  = startingTime + str2num(epochs[i][%EndTime])
-		WAVE/T tags = ListToTextWave(epochs[i][%Tags], ";")
-		treeLevel = str2num(epochs[i][%TreeLevel])
 
-		//		printf "ts %s, range [%g, %g], tags = %s, treeLevel = %g\r", timeseries, startTime, stopTime, TextWaveToList(tags, ";"), treeLevel
+	if(numEntries == 0)
+		return NaN
+	endif
 
-		AppendToEpochTable(nwbFilePath, startTime, stopTime, tags, {timeseries}, {startingTime}, {samplingRate}, treeLevel)
-	endfor
+	Make/FREE/D/N=(numEntries) startTime = startingTime + str2num(epochs[p][%StartTime])
+	Make/FREE/D/N=(numEntries) stopTime = startingTime + str2num(epochs[p][%EndTime])
+	Make/FREE/WAVE/N=(numEntries) tags = ListToTextWave(epochs[p][%Tags], ";")
+	Make/FREE/D/N=(numEntries) treeLevel = str2num(epochs[p][%TreeLevel])
+	Make/FREE/T/N=(numEntries) timeseries_wv = timeseries
+	Make/FREE/D/N=(numEntries) startingTime_wv = startingTime
+	Make/FREE/D/N=(numEntries) rate = samplingRate
+
+	AppendToEpochTable(nwbFilePath, startTime, stopTime, tags, timeseries_wv, startingTime_wv, rate, treeLevel)
 End
 
-/// @brief Append an epoch to the TimeIntervals table
+/// @brief Append epochs to the TimeIntervals table
 ///
 /// Note: NWBv2 specific function
 ///
 /// @param nwbFilePath   HDF5 file path (required for writing the timeseries compound using a custom XOP)
-/// @param startTime     start time of the epoch in seconds in the global time coordinate system (included in the range)
-/// @param stopTime      stop time of the epoch in seconds in the global time coordinate system (*not* included in the range)
-/// @param tags          text wave with strings for the epoch, format is unspecified
+/// @param startTime     start time of epochs in seconds in the global time coordinate system (included in the range)
+/// @param stopTime      stop time of the epochs in seconds in the global time coordinate system (*not* included in the range)
+/// @param tags          text wave with strings for the epochs, format is unspecified
 /// @param timeseries    absolute paths to *existing* timeseries groups
 /// @param startingTime  timeseries starting time in s according to NWBv2 spec
 /// @param rate          timeseries rate in Hz according to NWBv2 spec
-/// @param treelevel     Tree level of the epoch
-threadsafe static Function AppendToEpochTable(string nwbFilePath, variable startTime, variable stopTime, WAVE/T tags, WAVE/T timeseries, WAVE startingTime, WAVE rate, variable treelevel)
+/// @param treelevel     Tree level of the epochs
+threadsafe static Function AppendToEpochTable(string nwbFilePath, WAVE startTime, WAVE stopTime, WAVE/WAVE tags, WAVE/T timeseries, WAVE startingTime, WAVE rate, WAVE treelevel)
 
-	variable groupID, err, numReadback, numTimeseries, locationID
+	variable groupID, err, numReadback, numTimeseries, locationID, cumSum, i
 	variable appendMode      = ROWS
 	variable compressionMode = NO_COMPRESSION
 
-	ASSERT_TS(EqualWaves(timeseries, startingTime, 512) == 1 && EqualWaves(timeseries, rate, 512) == 1, "Non matching wave sizes")
+	ASSERT_TS(EqualWaves(timeseries, startTime, 512) == 1                              \
+	          && EqualWaves(timeseries, stopTime, 512) == 1                            \
+	          && EqualWaves(timeseries, tags, 512) == 1                                \
+	          && EqualWaves(timeseries, startingTime, 512) == 1                        \
+	          && EqualWaves(timeseries, rate, 512) == 1                                \
+	          && EqualWaves(timeseries, treelevel, 512) == 1, "Non matching wave sizes")
 
 	locationID  = H5_OpenFile(nwbFilePath, write = 1)
 	nwbFilePath = GetWindowsPath(nwbFilePath)
+
+	numTimeSeries = DimSize(timeseries, ROWS)
 
 	if(!H5_GroupExists(locationID, NWB_TIME_INTERVALS_EPOCHS))
 		STRUCT DynamicTable dt
@@ -537,29 +548,38 @@ threadsafe static Function AppendToEpochTable(string nwbFilePath, variable start
 
 	WAVE/Z idSize = H5_GetDatasetSize(groupID, "id")
 	numReadback = WaveExists(idSize) ? idSize[ROWS] : 0
-	H5_WriteDataset(groupID, "id", var = numReadback + 1, varType = IGOR_TYPE_32BIT_INT, compressionMode = compressionMode, appendData = appendMode)
-	H5_WriteDataset(groupID, "start_time", var = startTime, varType = IGOR_TYPE_64BIT_FLOAT, compressionMode = compressionMode, appendData = appendMode)
-	H5_WriteDataset(groupID, "stop_time", var = stopTime, varType = IGOR_TYPE_64BIT_FLOAT, compressionMode = compressionMode, appendData = appendMode)
-	H5_WriteDataset(groupID, "treelevel", var = treeLevel, varType = IGOR_TYPE_64BIT_FLOAT, compressionMode = compressionMode, appendData = appendMode)
+	Make/FREE/Y=(IGOR_TYPE_32BIT_INT)/N=(numTimeSeries) ids = numReadback + p + 1
+	H5_WriteDataset(groupID, "id", wv = ids, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "start_time", wv = startTime, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "stop_time", wv = stopTime, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteDataset(groupID, "treelevel", wv = treeLevel, compressionMode = compressionMode, appendData = appendMode)
+
+	Concatenate/FREE/NP=(ROWS) {tags}, allTags
 
 	WAVE/Z tagsSize = H5_GetDatasetSize(groupID, "tags")
 	numReadback = WaveExists(tagsSize) ? tagsSize[ROWS] : 0
-	H5_WriteDataset(groupID, "tags_index", var = (numReadback + DimSize(tags, ROWS)), varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
-	H5_WriteTextDataset(groupID, "tags", wvText = tags, compressionMode = compressionMode, appendData = appendMode)
+	Make/FREE/Y=(IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED)/N=(numTimeSeries) tags_index
+	cumSum = numReadback
+	for(i = 0; i < numTimeSeries; i += 1)
+		cumSum       += DimSize(tags[i], ROWS)
+		tags_index[i] = cumSum
+	endfor
+	H5_WriteDataset(groupID, "tags_index", wv = tags_index, compressionMode = compressionMode, appendData = appendMode)
+	H5_WriteTextDataset(groupID, "tags", wvText = allTags, compressionMode = compressionMode, appendData = appendMode)
 
 	WAVE/Z timeseriesSize = H5_GetDatasetSize(groupID, "timeseries")
 	numReadback = WaveExists(timeseriesSize) ? timeseriesSize[ROWS] : 0
 
-	H5_WriteDataset(groupID, "timeseries_index", var = (numReadback + DimSize(timeseries, ROWS)), varType = IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED, compressionMode = compressionMode, appendData = appendMode)
+	Make/FREE/Y=(IGOR_TYPE_32BIT_INT | IGOR_TYPE_UNSIGNED)/N=(numTimeSeries) timeseries_index = numReadback + p + 1
+	H5_WriteDataset(groupID, "timeseries_index", wv = timeseries_index, compressionMode = compressionMode, appendData = appendMode)
 
 	HDF5CloseGroup groupID
 	groupID = NaN
 	HDF5CloseFile locationID
 	locationID = NaN
 
-	numTimeSeries = DimSize(timeseries, ROWS)
-	Make/FREE/I/N=(numTimeSeries) offsets = round((startTime - startingTime[p]) * rate[p])
-	Make/FREE/I/N=(numTimeSeries) sizes = round((stopTime - startTime) * rate[p])
+	Make/FREE/I/N=(numTimeSeries) offsets = round((startTime[p] - startingTime[p]) * rate[p])
+	Make/FREE/I/N=(numTimeSeries) sizes = round((stopTime[p] - startTime[p]) * rate[p])
 
 #if exists("IPNWB_WriteCompound")
 	try
